@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic';
 
 // Full snapshot: pillars + checks + iterations. Seeds reference data on first hit.
 export async function GET() {
-  ensureSeeded();
-  return NextResponse.json({ pillars: listPillars(), checks: listChecks(), iterations: listIterations() });
+  await ensureSeeded();
+  const [pillars, checks, iterations] = await Promise.all([listPillars(), listChecks(), listIterations()]);
+  return NextResponse.json({ pillars, checks, iterations });
 }

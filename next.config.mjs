@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // better-sqlite3 is a native module — keep it out of the bundle.
-  serverExternalPackages: ['better-sqlite3'],
+  // pg has dynamic requires — keep it out of the client/server bundle.
+  serverExternalPackages: ['pg'],
 };
 
 export default nextConfig;

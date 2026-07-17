@@ -18,7 +18,7 @@ export async function PATCH(req: Request, { params }: Params) {
   const patch: { active?: boolean; justification?: string } = {};
   if (typeof body.active === 'boolean') patch.active = body.active;
   if (typeof body.justification === 'string') patch.justification = body.justification;
-  const row = updateCheckMeta(Number(id), patch);
+  const row = await updateCheckMeta(Number(id), patch);
   if (!row) return NextResponse.json({ error: 'not-found' }, { status: 404 });
   return NextResponse.json(row);
 }
@@ -27,7 +27,7 @@ export async function PATCH(req: Request, { params }: Params) {
 // PUT here — only delete of a whole check (cascades its versions).
 export async function DELETE(_req: Request, { params }: Params) {
   const { id } = await params;
-  const ok = deleteCheck(Number(id));
+  const ok = await deleteCheck(Number(id));
   if (!ok) return NextResponse.json({ error: 'not-found' }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

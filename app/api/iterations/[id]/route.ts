@@ -18,14 +18,14 @@ export async function PUT(req: Request, { params }: Params) {
   const parsed = coerceIterationInput(body);
   if ('error' in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 });
 
-  const row = updateIteration(Number(id), parsed);
+  const row = await updateIteration(Number(id), parsed);
   if (!row) return NextResponse.json({ error: 'not-found' }, { status: 404 });
   return NextResponse.json(row);
 }
 
 export async function DELETE(_req: Request, { params }: Params) {
   const { id } = await params;
-  const ok = deleteIteration(Number(id));
+  const ok = await deleteIteration(Number(id));
   if (!ok) return NextResponse.json({ error: 'not-found' }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

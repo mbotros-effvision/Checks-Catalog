@@ -15,6 +15,6 @@ export async function POST(req: Request) {
   }
   const parsed = coerceInput(body);
   if ('error' in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 });
-  const row = createCheck(parsed as CheckInput, true);
+  const row = await createCheck(parsed as CheckInput, true);
   return NextResponse.json(row, { status: 201 });
 }

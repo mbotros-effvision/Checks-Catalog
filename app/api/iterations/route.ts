@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const parsed = coerceIterationInput(body);
   if ('error' in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 });
 
-  const row = createIteration(checkId, parsed);
+  const row = await createIteration(checkId, parsed);
   if (!row) return NextResponse.json({ error: 'check-not-found' }, { status: 404 });
   return NextResponse.json(row, { status: 201 });
 }

@@ -30,9 +30,10 @@ Other scripts: `npm run build` · `npm run start` · `npm test` (vitest) · `npm
 - `components/` — `Toolbar`, `ChecksTable`, `PriorityCell`, `MvpCell`, `MetricModal`, `ThemeToggle`.
 - `app/` — `layout.tsx` (no-flash theme script), `page.tsx`, `globals.css` (ported design tokens).
 
-## Data model (SQLite via better-sqlite3)
+## Data model (Postgres via node-postgres / Neon)
 
-Three relational tables in `${DATA_DIR:-.data}/feasibility.db` (WAL mode), all in
+Set `DATABASE_URL` in `.env` (a Neon/Postgres connection string). The schema is created and the
+reference data seeded automatically on the first `GET /api/data`. Three relational tables, all in
 [`lib/server/db.ts`](lib/server/db.ts):
 
 - **`pillars`** `(id, name UNIQUE, layer)` — the 29 pillars.
@@ -44,8 +45,8 @@ Three relational tables in `${DATA_DIR:-.data}/feasibility.db` (WAL mode), all i
   — editable **versions** of a check. `version` is per-check (v1, v2, …); each row is a full
   denormalized snapshot; `comment` is an optional commit-message.
 
-The reference data is seeded on the first `GET /api/data` (no-op afterwards). `DATA_DIR` overrides
-where the DB file is written.
+The reference data is seeded on the first `GET /api/data` (no-op afterwards). The connection string
+comes from the `DATABASE_URL` env var.
 
 ### API routes
 
