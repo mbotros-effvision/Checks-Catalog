@@ -151,6 +151,13 @@ export function Toolbar({
       <button className="btn btn-add" type="button" onClick={onAddCheck}>
         ＋ Add check
       </button>
+      <a
+        className="btn btn-exp"
+        href="/api/export/xlsx"
+        title="Download all checks (latest version of each) as an Excel file"
+      >
+        ⬇ Export XLSX
+      </a>
       <span className="count-chip">
         <b>{shownCount}</b> of {totalCount}
         {customCount ? ' · ' + customCount + ' custom' : ''}

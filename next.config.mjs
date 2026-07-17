@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   // pg has dynamic requires — keep it out of the client/server bundle.
-  serverExternalPackages: ['pg'],
+  serverExternalPackages: ['pg', 'exceljs'],
 };
 
 export default nextConfig;
