@@ -2,8 +2,8 @@
 
 import { Fragment, useState } from 'react';
 import { ChevronRight, Eye, Pencil, Plus, Trash2 } from 'lucide-react';
-import type { CheckInput, DisplayRow, IterationRow, Layer } from '@/types';
-import { BUCKETS, LAYER_BG, mvpClass, mvpLabel, PRIO_LABEL, srcCls } from '@/lib/taxonomy';
+import type { CheckInput, DisplayRow, IterationRow } from '@/types';
+import { BUCKETS, mvpClass, mvpLabel, PRIO_LABEL, srcCls } from '@/lib/taxonomy';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { InlineVersionForm } from './InlineVersionForm';
@@ -22,7 +22,7 @@ export interface ChecksTableProps {
 
 function iterationToInput(v: IterationRow): CheckInput {
   return {
-    pillar: v.pillar, layer: v.layer, check: v.check, plainEnglish: v.plainEnglish, bucket: v.bucket,
+    pillar: v.pillar, check: v.check, plainEnglish: v.plainEnglish, bucket: v.bucket,
     effort: v.effort, how: v.how, source: v.source, hero: v.hero, phase: v.phase, dupOf: v.dupOf,
     mvp: v.mvp, priority: v.priority,
   };
@@ -127,9 +127,8 @@ export function ChecksTable({
                 {showBand && (
                   <tr className="ph">
                     <td colSpan={9}>
-                      <div className="ph-band" style={{ ['--lc' as string]: LAYER_BG[r.layer as Layer] }}>
+                      <div className="ph-band" style={{ ['--lc' as string]: 'var(--accent)' }}>
                         <span className="pn">{r.pillar}</span>
-                        <span className="ll">{r.layer}</span>
                       </div>
                     </td>
                   </tr>

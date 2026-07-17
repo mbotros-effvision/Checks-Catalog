@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Save, X } from 'lucide-react';
-import type { BucketKey, CheckInput, Effort, Layer, Mvp, Phase, Prio } from '@/types';
-import { BUCKET_ORDER, BUCKETS, LAYERS } from '@/lib/taxonomy';
+import type { BucketKey, CheckInput, Effort, Mvp, Phase, Prio } from '@/types';
+import { BUCKET_ORDER, BUCKETS } from '@/lib/taxonomy';
 import { Button } from './ui/button';
 
 export interface InlineVersionFormProps {
@@ -63,19 +63,9 @@ export function InlineVersionForm({ title, initial, initialComment, onSave, onCa
           <input type="text" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="What changed…" />
         </label>
 
-        <label className="ivf-field">
+        <label className="ivf-field ivf-span2">
           <span>Pillar *</span>
           <input type="text" list="pillar-list" value={form.pillar} onChange={(e) => set('pillar', e.target.value)} />
-        </label>
-        <label className="ivf-field">
-          <span>Layer</span>
-          <select value={form.layer} onChange={(e) => set('layer', e.target.value as Layer)}>
-            {LAYERS.map((l) => (
-              <option key={l} value={l}>
-                {l}
-              </option>
-            ))}
-          </select>
         </label>
 
         <label className="ivf-field ivf-span2">

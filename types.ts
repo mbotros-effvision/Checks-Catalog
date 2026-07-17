@@ -6,13 +6,6 @@ export type Phase = 'A' | 'B';
 export type Mvp = 'MVP' | 'Post-MVP' | 'Duplicated';
 export type Prio = 'high' | 'med' | 'low' | '';
 
-export type Layer =
-  | 'Layer 1 — Website'
-  | 'Layer 2 — Infrastructure'
-  | 'Layer 3 — Content & Intelligence'
-  | 'Layer 4 — Paid Discovery'
-  | 'Layer 5 — Runtime Monitoring & Insights';
-
 /** Seed shape (the 200 built-in rows in `data/checks.ts`). No id — that is
  *  assigned by the database when the rows are seeded. */
 export interface Check {
@@ -33,17 +26,15 @@ export interface Check {
 export interface PillarRow {
   id: number;
   name: string;
-  layer: Layer;
 }
 
 /** A check as stored/returned by the database — the runtime source of truth.
- *  `id` is the sequential primary key; `pillar`/`layer` are joined from the
- *  pillar the check references via `pillarId`. */
+ *  `id` is the sequential primary key; `pillar` is joined from the pillar the
+ *  check references via `pillarId`. */
 export interface CheckRow {
   id: number;
   pillarId: number;
   pillar: string;
-  layer: Layer;
   check: string;
   plainEnglish: string;
   bucket: BucketKey; // feasibility
@@ -60,11 +51,10 @@ export interface CheckRow {
   justification: string; // reason for deactivation / review notes
 }
 
-/** Payload for creating/updating a check. The pillar is addressed by name +
- *  layer; the server resolves/creates the pillar and returns the stored row. */
+/** Payload for creating/updating a check. The pillar is addressed by name; the
+ *  server resolves/creates the pillar and returns the stored row. */
 export interface CheckInput {
   pillar: string;
-  layer: Layer;
   check: string;
   plainEnglish: string;
   bucket: BucketKey;
@@ -86,7 +76,6 @@ export interface IterationRow {
   version: number; // 1, 2, 3… per check
   comment: string;
   pillar: string;
-  layer: Layer;
   check: string;
   plainEnglish: string;
   bucket: BucketKey;
@@ -117,7 +106,6 @@ export interface DisplayRow {
   selectedIterationId: number; // 0 = base
   versions: IterationRow[];
   pillar: string;
-  layer: Layer;
   check: string;
   plainEnglish: string;
   bucket: BucketKey;
@@ -145,7 +133,6 @@ export interface BucketMeta {
 /** The current toolbar filter/sort state. */
 export interface Filters {
   search: string;
-  layer: string;
   pillar: string;
   source: string;
   bucket: string;

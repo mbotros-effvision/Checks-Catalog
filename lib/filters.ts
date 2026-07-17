@@ -3,12 +3,12 @@ import type { CheckRow, Filters } from '@/types';
 import { BUCKETS, EFFORT_RANK, PRIO_RANK } from './taxonomy';
 
 export const EMPTY_FILTERS: Filters = {
-  search: '', layer: '', pillar: '', source: '', bucket: '', mvp: '',
+  search: '', pillar: '', source: '', bucket: '', mvp: '',
   effort: '', phase: '', hero: '', prio: '', sort: '',
 };
 
 /**
- * Filter + sort base checks. Priority/MVP/layer are read straight off the row.
+ * Filter + sort base checks. Priority/MVP are read straight off the row.
  * When `filters.sort` is empty the input order is preserved (the table then
  * groups by pillar); sorting by priority/effort disables grouping upstream.
  */
@@ -16,7 +16,6 @@ export function filteredRows(rows: CheckRow[], filters: Filters): CheckRow[] {
   const q = filters.search.trim().toLowerCase();
 
   let out = rows.filter((r) => {
-    if (filters.layer && r.layer !== filters.layer) return false;
     if (filters.pillar && r.pillar !== filters.pillar) return false;
     if (filters.source && r.source !== filters.source) return false;
     if (filters.bucket && r.bucket !== filters.bucket) return false;

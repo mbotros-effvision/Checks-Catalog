@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { BucketKey, CheckInput, Effort, Layer, Mvp, Phase, Prio } from '@/types';
-import { BUCKET_ORDER, BUCKETS, LAYERS } from '@/lib/taxonomy';
+import type { BucketKey, CheckInput, Effort, Mvp, Phase, Prio } from '@/types';
+import { BUCKET_ORDER, BUCKETS } from '@/lib/taxonomy';
 
 export interface EditorModalProps {
   open: boolean;
@@ -12,7 +12,6 @@ export interface EditorModalProps {
   showComment: boolean; // true for versions
   showDelete: boolean; // true when editing an existing version
   pillars: string[];
-  layerOfPillar: (pillar: string) => Layer;
   onSubmit: (input: CheckInput, comment: string) => void;
   onDelete?: () => void;
   onClose: () => void;
@@ -26,7 +25,6 @@ export function EditorModal({
   showComment,
   showDelete,
   pillars,
-  layerOfPillar,
   onSubmit,
   onDelete,
   onClose,
@@ -117,7 +115,7 @@ export function EditorModal({
             </div>
           )}
 
-          <div className="frow">
+          <div className="frow one">
             <div className="fld">
               <label>
                 Pillar <span className="req">*</span>
@@ -129,28 +127,12 @@ export function EditorModal({
                 autoComplete="off"
                 value={form.pillar}
                 onChange={(e) => set('pillar', e.target.value)}
-                onBlur={(e) => {
-                  const layer = layerOfPillar(e.target.value.trim());
-                  if (e.target.value.trim()) set('layer', layer);
-                }}
               />
               <datalist id="pillar-list">
                 {pillars.map((p) => (
                   <option key={p} value={p} />
                 ))}
               </datalist>
-            </div>
-            <div className="fld">
-              <label>
-                Layer <span className="req">*</span>
-              </label>
-              <select value={form.layer} onChange={(e) => set('layer', e.target.value as Layer)}>
-                {LAYERS.map((l) => (
-                  <option key={l} value={l}>
-                    {l}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
 

@@ -1,14 +1,13 @@
 // Server-only Postgres persistence (node-postgres / Neon). Import ONLY from
 // route handlers / server code — never from a client component.
 //
-// Relational model (unchanged from the SQLite version):
-//   pillars(id, name UNIQUE, layer)
+// Relational model:
+//   pillars(id, name UNIQUE)
 //   checks(id, pillar_id -> pillars.id, …fields…, custom, active, justification)
 //   check_iterations(id, check_id -> checks.id, version, comment, …snapshot…)
 import { Pool, type PoolClient } from 'pg';
-import type { CheckInput, CheckRow, IterationInput, IterationRow, Layer, PillarRow } from '@/types';
+import type { CheckInput, CheckRow, IterationInput, IterationRow, PillarRow } from '@/types';
 import { CHECKS } from '@/data/checks';
-import { layerOf } from '@/lib/taxonomy';
 
 // Reuse a single pool across dev hot-reloads to avoid exhausting connections.
 const g = globalThis as unknown as { _pgPool?: Pool };
@@ -23,9 +22,8 @@ if (process.env.NODE_ENV !== 'production') g._pgPool = pool;
 
 const SCHEMA_DDL = `
   CREATE TABLE IF NOT EXISTS pillars (
-    id    SERIAL PRIMARY KEY,
-    name  TEXT UNIQUE NOT NULL,
-    layer TEXT NOT NULL
+    id   SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL
   );
   CREATE TABLE IF NOT EXISTS checks (
     id            SERIAL PRIMARY KEY,
@@ -52,7 +50,6 @@ const SCHEMA_DDL = `
     version       INTEGER NOT NULL,
     comment       TEXT NOT NULL DEFAULT '',
     pillar        TEXT NOT NULL,
-    layer         TEXT NOT NULL,
     name          TEXT NOT NULL,
     plain_english TEXT NOT NULL DEFAULT '',
     feasibility   TEXT NOT NULL,
@@ -68,6 +65,9 @@ const SCHEMA_DDL = `
     UNIQUE(check_id, version)
   );
   CREATE INDEX IF NOT EXISTS idx_iter_check ON check_iterations(check_id);
+  -- migration: drop the retired "layer" column from any pre-existing DB
+  ALTER TABLE pillars DROP COLUMN IF EXISTS layer;
+  ALTER TABLE check_iterations DROP COLUMN IF EXISTS layer;
 `;
 
 let schemaReady: Promise<void> | null = null;
@@ -92,10 +92,8 @@ export async function ensureSeeded(): Promise<void> {
     // 1) pillars in first-appearance order -> name→id map
     const pillarNames: string[] = [];
     for (const ch of CHECKS) if (!pillarNames.includes(ch.pillar)) pillarNames.push(ch.pillar);
-    const pTuples = pillarNames.map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`).join(',');
-    const pVals: unknown[] = [];
-    for (const name of pillarNames) pVals.push(name, layerOf(name));
-    const pRes = await client.query(`INSERT INTO pillars (name, layer) VALUES ${pTuples} RETURNING id, name`, pVals);
+    const pTuples = pillarNames.map((_, i) => `($${i + 1})`).join(',');
+    const pRes = await client.query(`INSERT INTO pillars (name) VALUES ${pTuples} RETURNING id, name`, pillarNames);
     const pillarId: Record<string, number> = {};
     for (const r of pRes.rows) pillarId[r.name] = r.id;
 
@@ -124,13 +122,13 @@ export async function ensureSeeded(): Promise<void> {
 
 // ---- Row mapping -----------------------------------------------------------
 interface DbCheckRow {
-  id: number; pillarId: number; pillar: string; layer: string; checkName: string;
+  id: number; pillarId: number; pillar: string; checkName: string;
   plainEnglish: string; bucket: string; effort: string; how: string; source: string;
   hero: boolean; phase: string; dupOf: string; mvp: string; priority: string;
   custom: boolean; active: boolean; justification: string;
 }
 interface DbIterRow {
-  id: number; checkId: number; version: number; comment: string; pillar: string; layer: string;
+  id: number; checkId: number; version: number; comment: string; pillar: string;
   checkName: string; plainEnglish: string; bucket: string; effort: string; how: string;
   source: string; hero: boolean; phase: string; dupOf: string; mvp: string; priority: string; createdAt: string;
 }
@@ -140,7 +138,6 @@ function toRow(r: DbCheckRow): CheckRow {
     id: r.id,
     pillarId: r.pillarId,
     pillar: r.pillar,
-    layer: r.layer as Layer,
     check: r.checkName,
     plainEnglish: r.plainEnglish,
     bucket: r.bucket as CheckRow['bucket'],
@@ -165,7 +162,6 @@ function toIter(r: DbIterRow): IterationRow {
     version: r.version,
     comment: r.comment,
     pillar: r.pillar,
-    layer: r.layer as Layer,
     check: r.checkName,
     plainEnglish: r.plainEnglish,
     bucket: r.bucket as IterationRow['bucket'],
@@ -182,14 +178,14 @@ function toIter(r: DbIterRow): IterationRow {
 }
 
 const SELECT_CHECK = `
-  SELECT c.id, c.pillar_id AS "pillarId", p.name AS pillar, p.layer AS layer,
+  SELECT c.id, c.pillar_id AS "pillarId", p.name AS pillar,
          c.name AS "checkName", c.plain_english AS "plainEnglish", c.feasibility AS bucket,
          c.effort, c.how, c.source, c.hero, c.phase, c.dup_of AS "dupOf", c.mvp, c.priority,
          c.custom, c.active, c.justification
   FROM checks c JOIN pillars p ON p.id = c.pillar_id
 `;
 const SELECT_ITER = `
-  SELECT id, check_id AS "checkId", version, comment, pillar, layer, name AS "checkName",
+  SELECT id, check_id AS "checkId", version, comment, pillar, name AS "checkName",
          plain_english AS "plainEnglish", feasibility AS bucket, effort, how, source, hero, phase,
          dup_of AS "dupOf", mvp, priority, created_at::text AS "createdAt"
   FROM check_iterations
@@ -198,7 +194,7 @@ const SELECT_ITER = `
 // ---- Reads -----------------------------------------------------------------
 export async function listPillars(): Promise<PillarRow[]> {
   await ensureSchema();
-  const { rows } = await pool.query('SELECT id, name, layer FROM pillars ORDER BY id');
+  const { rows } = await pool.query('SELECT id, name FROM pillars ORDER BY id');
   return rows as PillarRow[];
 }
 
@@ -227,12 +223,12 @@ export async function getIteration(id: number): Promise<IterationRow | null> {
 }
 
 // ---- Writes ----------------------------------------------------------------
-async function resolvePillarId(client: PoolClient, name: string, layer: string): Promise<number> {
+async function resolvePillarId(client: PoolClient, name: string): Promise<number> {
   const found = await client.query('SELECT id FROM pillars WHERE name = $1', [name]);
   if (found.rows[0]) return found.rows[0].id;
   const ins = await client.query(
-    'INSERT INTO pillars (name, layer) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id',
-    [name, layer],
+    'INSERT INTO pillars (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id',
+    [name],
   );
   return ins.rows[0].id;
 }
@@ -247,7 +243,7 @@ export async function createCheck(input: CheckInput, custom = true): Promise<Che
   let id: number;
   try {
     await client.query('BEGIN');
-    const pid = await resolvePillarId(client, input.pillar, input.layer);
+    const pid = await resolvePillarId(client, input.pillar);
     const r = await client.query(
       `INSERT INTO checks (pillar_id, name, plain_english, feasibility, effort, how, source, hero, phase, dup_of, mvp, priority, custom)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`,
@@ -306,7 +302,7 @@ export async function deleteCheck(id: number): Promise<boolean> {
 // ---- Iterations (versions) -------------------------------------------------
 function iterValues(input: IterationInput): unknown[] {
   return [
-    input.comment, input.pillar, input.layer, input.check, input.plainEnglish, input.bucket,
+    input.comment, input.pillar, input.check, input.plainEnglish, input.bucket,
     input.effort, input.how, input.source, input.hero, input.phase, input.dupOf, input.mvp, input.priority,
   ];
 }
@@ -325,8 +321,8 @@ export async function createIteration(checkId: number, input: IterationInput): P
       );
       const version = nx.rows[0].next;
       const r = await client.query(
-        `INSERT INTO check_iterations (check_id, version, comment, pillar, layer, name, plain_english, feasibility, effort, how, source, hero, phase, dup_of, mvp, priority)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
+        `INSERT INTO check_iterations (check_id, version, comment, pillar, name, plain_english, feasibility, effort, how, source, hero, phase, dup_of, mvp, priority)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
         [checkId, version, ...iterValues(input)],
       );
       id = r.rows[0].id;
@@ -344,9 +340,9 @@ export async function createIteration(checkId: number, input: IterationInput): P
 export async function updateIteration(id: number, input: IterationInput): Promise<IterationRow | null> {
   await ensureSchema();
   const r = await pool.query(
-    `UPDATE check_iterations SET comment=$1, pillar=$2, layer=$3, name=$4, plain_english=$5, feasibility=$6,
-       effort=$7, how=$8, source=$9, hero=$10, phase=$11, dup_of=$12, mvp=$13, priority=$14
-     WHERE id=$15`,
+    `UPDATE check_iterations SET comment=$1, pillar=$2, name=$3, plain_english=$4, feasibility=$5,
+       effort=$6, how=$7, source=$8, hero=$9, phase=$10, dup_of=$11, mvp=$12, priority=$13
+     WHERE id=$14`,
     [...iterValues(input), id],
   );
   return r.rowCount ? getIteration(id) : null;

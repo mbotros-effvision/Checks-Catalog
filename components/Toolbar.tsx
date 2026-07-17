@@ -41,18 +41,6 @@ export function Toolbar({
       </div>
 
       <div className="fgroup">
-        <label>Layer</label>
-        <select value={filters.layer} onChange={(e) => onFilterChange({ layer: e.target.value })}>
-          <option value="">All layers</option>
-          <option>Layer 1 — Website</option>
-          <option>Layer 2 — Infrastructure</option>
-          <option>Layer 3 — Content &amp; Intelligence</option>
-          <option>Layer 4 — Paid Discovery</option>
-          <option>Layer 5 — Runtime Monitoring &amp; Insights</option>
-        </select>
-      </div>
-
-      <div className="fgroup">
         <label>Pillar</label>
         <select value={filters.pillar} onChange={(e) => onFilterChange({ pillar: e.target.value })}>
           <option value="">All pillars</option>

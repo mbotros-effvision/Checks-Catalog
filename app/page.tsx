@@ -1,22 +1,21 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import type { CheckInput, CheckRow, DisplayRow, Filters, IterationRow, Layer } from '@/types';
+import type { CheckInput, CheckRow, DisplayRow, Filters, IterationRow } from '@/types';
 import { EMPTY_FILTERS, filteredRows } from '@/lib/filters';
-import { layerOf } from '@/lib/taxonomy';
 import { useReportState } from '@/lib/report-state';
 import { Toolbar } from '@/components/Toolbar';
 import { ChecksTable } from '@/components/ChecksTable';
 import { EditorModal } from '@/components/EditorModal';
 
 const BLANK_INPUT: CheckInput = {
-  pillar: '', layer: 'Layer 1 — Website', check: '', plainEnglish: '', bucket: 'human',
+  pillar: '', check: '', plainEnglish: '', bucket: 'human',
   effort: 'N/A', how: '', source: '', hero: false, phase: 'A', dupOf: '', mvp: 'Post-MVP', priority: '',
 };
 
 function toInput(r: CheckRow | IterationRow): CheckInput {
   return {
-    pillar: r.pillar, layer: r.layer, check: r.check, plainEnglish: r.plainEnglish, bucket: r.bucket,
+    pillar: r.pillar, check: r.check, plainEnglish: r.plainEnglish, bucket: r.bucket,
     effort: r.effort, how: r.how, source: r.source, hero: r.hero, phase: r.phase, dupOf: r.dupOf,
     mvp: r.mvp, priority: r.priority,
   };
@@ -47,11 +46,6 @@ export default function Page() {
 
   const pillarNames = useMemo(() => state.pillars.map((p) => p.name), [state.pillars]);
 
-  const layerOfPillar = useCallback(
-    (name: string): Layer => state.pillars.find((p) => p.name === name)?.layer ?? layerOf(name),
-    [state.pillars],
-  );
-
   const baseRows = useMemo(() => filteredRows(state.checks, filters), [state.checks, filters]);
   const grouped = filters.sort === '';
 
@@ -74,7 +68,7 @@ export default function Page() {
           versionLabel: sel ? `v${sel.version}` : 'Base',
           selectedIterationId: sel ? sel.id : 0,
           versions,
-          pillar: src.pillar, layer: src.layer, check: src.check, plainEnglish: src.plainEnglish,
+          pillar: src.pillar, check: src.check, plainEnglish: src.plainEnglish,
           bucket: src.bucket, effort: src.effort, how: src.how, source: src.source, hero: src.hero,
           phase: src.phase, dupOf: src.dupOf, mvp: src.mvp, priority: src.priority,
           newVersionInput,
@@ -190,7 +184,6 @@ export default function Page() {
         showComment={modal.showComment}
         showDelete={modal.showDelete}
         pillars={pillarNames}
-        layerOfPillar={layerOfPillar}
         onSubmit={onSubmit}
         onClose={() => setModal(CLOSED)}
       />

@@ -1,12 +1,5 @@
-import type { BucketKey, CheckInput, Effort, IterationInput, Layer, Mvp, Phase, Prio } from '@/types';
+import type { BucketKey, CheckInput, Effort, IterationInput, Mvp, Phase, Prio } from '@/types';
 
-const LAYERS: Layer[] = [
-  'Layer 1 — Website',
-  'Layer 2 — Infrastructure',
-  'Layer 3 — Content & Intelligence',
-  'Layer 4 — Paid Discovery',
-  'Layer 5 — Runtime Monitoring & Insights',
-];
 const BUCKETS: BucketKey[] = ['spectera', 'thirdparty', 'agentic', 'build', 'human'];
 const EFFORTS: Effort[] = ['Live', 'Low', 'Medium', 'High', 'N/A'];
 const PHASES: Phase[] = ['A', 'B'];
@@ -29,7 +22,6 @@ export function coerceInput(body: unknown): CheckInput | { error: string } {
 
   return {
     pillar,
-    layer: (LAYERS.includes(b.layer as Layer) ? b.layer : 'Layer 1 — Website') as Layer,
     check,
     plainEnglish: String(b.plainEnglish ?? '').trim(),
     bucket: (BUCKETS.includes(b.bucket as BucketKey) ? b.bucket : 'human') as BucketKey,

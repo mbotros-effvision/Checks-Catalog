@@ -3,48 +3,7 @@
 // from "../spectera-pillar-feasibility-report 3 (3).html". Do not edit by hand.
 // Re-run `node scripts/extract-data.mjs` to regenerate.
 
-import type { BucketKey, BucketMeta, Layer } from '@/types';
-
-export const LAYERS: Layer[] = [
-  "Layer 1 — Website",
-  "Layer 2 — Infrastructure",
-  "Layer 3 — Content & Intelligence",
-  "Layer 4 — Paid Discovery",
-  "Layer 5 — Runtime Monitoring & Insights"
-] as Layer[];
-
-export const LAYER_BG: Record<Layer, string> = {
-  "Layer 1 — Website": "#374151",
-  "Layer 2 — Infrastructure": "#0c4a6e",
-  "Layer 3 — Content & Intelligence": "#7c3aed",
-  "Layer 4 — Paid Discovery": "#9a3412",
-  "Layer 5 — Runtime Monitoring & Insights": "#b45309"
-} as Record<Layer, string>;
-
-// Pillars belonging to each non-default layer (Layer 1 is the fallback).
-export const LAYER_PILLARS: { layer2: string[]; layer3: string[]; layer4: string[]; layer5: string[] } = {
-  "layer2": [
-    "SSL & Domain Health",
-    "Third-Party Script Health",
-    "Analytics & Tag Integrity"
-  ],
-  "layer3": [
-    "Content Change Detection",
-    "Regulatory Intelligence",
-    "Audit Trail & Evidence",
-    "Competitive Benchmark"
-  ],
-  "layer4": [
-    "Deep-dive Workstreams"
-  ],
-  "layer5": [
-    "Availability & Monitoring",
-    "UX & Behaviour",
-    "Observability",
-    "Content Quality",
-    "Visual Stability"
-  ]
-};
+import type { BucketKey, BucketMeta } from '@/types';
 
 export const BUCKET_ORDER: BucketKey[] = [
   "spectera",

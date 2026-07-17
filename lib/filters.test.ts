@@ -9,7 +9,6 @@ function mk(partial: Partial<CheckRow> & Pick<CheckRow, 'pillar' | 'check'>): Ch
   return {
     id: nextId++,
     pillarId: 1,
-    layer: 'Layer 1 — Website',
     plainEnglish: '',
     mvp: 'Post-MVP',
     bucket: 'human',
@@ -30,7 +29,7 @@ function mk(partial: Partial<CheckRow> & Pick<CheckRow, 'pillar' | 'check'>): Ch
 const rows: CheckRow[] = [
   mk({ pillar: 'Homepage', check: 'Hero renders', bucket: 'spectera', effort: 'Live', phase: 'A', hero: true }),
   mk({ pillar: 'Homepage', check: 'CTA present', bucket: 'human', effort: 'High', phase: 'B', source: 'Presales', mvp: 'MVP' }),
-  mk({ pillar: 'SSL & Domain Health', check: 'Cert valid', layer: 'Layer 2 — Infrastructure', bucket: 'thirdparty', effort: 'Low', source: 'Spectera' }),
+  mk({ pillar: 'SSL & Domain Health', check: 'Cert valid', bucket: 'thirdparty', effort: 'Low', source: 'Spectera' }),
 ];
 
 describe('filteredRows', () => {
@@ -44,10 +43,6 @@ describe('filteredRows', () => {
     expect(filteredRows(rows, f({ effort: 'High' }))).toHaveLength(1);
     expect(filteredRows(rows, f({ phase: 'B' }))).toHaveLength(1);
     expect(filteredRows(rows, f({ hero: '1' }))).toHaveLength(1);
-  });
-
-  it('filters by layer (read off the row)', () => {
-    expect(filteredRows(rows, f({ layer: 'Layer 2 — Infrastructure' })).map((x) => x.check)).toEqual(['Cert valid']);
   });
 
   it('search matches pillar, check, source, and bucket label', () => {
