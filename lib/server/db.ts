@@ -123,8 +123,19 @@ export async function ensureSeeded(): Promise<void> {
 }
 
 // ---- Row mapping -----------------------------------------------------------
-/* eslint-disable @typescript-eslint/no-explicit-any */
-function toRow(r: any): CheckRow {
+interface DbCheckRow {
+  id: number; pillarId: number; pillar: string; layer: string; checkName: string;
+  plainEnglish: string; bucket: string; effort: string; how: string; source: string;
+  hero: boolean; phase: string; dupOf: string; mvp: string; priority: string;
+  custom: boolean; active: boolean; justification: string;
+}
+interface DbIterRow {
+  id: number; checkId: number; version: number; comment: string; pillar: string; layer: string;
+  checkName: string; plainEnglish: string; bucket: string; effort: string; how: string;
+  source: string; hero: boolean; phase: string; dupOf: string; mvp: string; priority: string; createdAt: string;
+}
+
+function toRow(r: DbCheckRow): CheckRow {
   return {
     id: r.id,
     pillarId: r.pillarId,
@@ -132,22 +143,22 @@ function toRow(r: any): CheckRow {
     layer: r.layer as Layer,
     check: r.checkName,
     plainEnglish: r.plainEnglish,
-    bucket: r.bucket,
-    effort: r.effort,
+    bucket: r.bucket as CheckRow['bucket'],
+    effort: r.effort as CheckRow['effort'],
     how: r.how,
     source: r.source,
     hero: !!r.hero,
-    phase: r.phase,
+    phase: r.phase as CheckRow['phase'],
     dupOf: r.dupOf,
-    mvp: r.mvp,
-    priority: r.priority,
+    mvp: r.mvp as CheckRow['mvp'],
+    priority: r.priority as CheckRow['priority'],
     custom: !!r.custom,
     active: !!r.active,
     justification: r.justification,
   };
 }
 
-function toIter(r: any): IterationRow {
+function toIter(r: DbIterRow): IterationRow {
   return {
     id: r.id,
     checkId: r.checkId,
@@ -157,19 +168,18 @@ function toIter(r: any): IterationRow {
     layer: r.layer as Layer,
     check: r.checkName,
     plainEnglish: r.plainEnglish,
-    bucket: r.bucket,
-    effort: r.effort,
+    bucket: r.bucket as IterationRow['bucket'],
+    effort: r.effort as IterationRow['effort'],
     how: r.how,
     source: r.source,
     hero: !!r.hero,
-    phase: r.phase,
+    phase: r.phase as IterationRow['phase'],
     dupOf: r.dupOf,
-    mvp: r.mvp,
-    priority: r.priority,
+    mvp: r.mvp as IterationRow['mvp'],
+    priority: r.priority as IterationRow['priority'],
     createdAt: r.createdAt,
   };
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 const SELECT_CHECK = `
   SELECT c.id, c.pillar_id AS "pillarId", p.name AS pillar, p.layer AS layer,
