@@ -21,9 +21,8 @@ export default async function ComparisonPage() {
       <div className="view-head">
         <h1 className="view-title">Comparison</h1>
         <p className="view-sub">
-          Each side is broken down against its own total. They do not add together: the US and Ex-US versions of a
-          Mamta check usually map to a single catalog check, so {result.counts.matched + result.counts.near} matched
-          and near-matched Mamta rows resolve onto only {result.counts.catalogCovered} catalog checks.
+          The Mamta checklist and the checks catalog, each broken down against its own total. The two sides describe
+          the same overlap from opposite ends, so their figures do not add together.
         </p>
       </div>
       <ComparisonView result={result} />

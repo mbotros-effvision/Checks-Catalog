@@ -235,6 +235,8 @@ tr.ivf-row > td { padding: 0; }
 .cmp-stat.is-gap .n { color: #b91c1c; }
 .cmp-stat.is-near .n { color: #854d0e; }
 .cmp-stat.is-warn .n { color: #854d0e; }
+.cmp-bridge { font-size: 11px; color: var(--muted); line-height: 1.55; margin: -4px 0 16px; max-width: 860px; padding-left: 11px; border-left: 2px solid var(--line-strong); }
+.cmp-bridge b { color: var(--ink); font-weight: 700; }
 .cmp-tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
 .cmp-tab { font-family: inherit; font-size: 12px; font-weight: 600; color: var(--muted); background: none; border: none; border-bottom: 2px solid transparent; padding: 8px 13px; margin-bottom: -1px; cursor: pointer; transition: all .15s; }
 .cmp-tab:hover { color: var(--ink); }

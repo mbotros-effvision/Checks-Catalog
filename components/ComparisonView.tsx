@@ -208,6 +208,14 @@ export function ComparisonView({ result }: ComparisonViewProps) {
   const [bucket, setBucket] = useState<BucketKey>('gaps');
   const { counts } = result;
 
+  // The single most-asked question about this screen is why the two "Matched"
+  // tiles differ, so state the bridge rather than leaving it to be inferred.
+  const shared = useMemo(() => {
+    const fan = new Map<number, number>();
+    for (const p of result.matched) for (const c of p.catalog) fan.set(c.id, (fan.get(c.id) ?? 0) + 1);
+    return [...fan.values()].filter((n) => n > 1).length;
+  }, [result.matched]);
+
   const tabs = useMemo(() => {
     const t: { key: BucketKey; label: string; n: number }[] = [
       { key: 'gaps', label: 'Only in Mamta', n: counts.gaps },
@@ -272,6 +280,13 @@ export function ComparisonView({ result }: ComparisonViewProps) {
           </div>
         </div>
       </div>
+
+      <p className="cmp-bridge">
+        The two <b>Matched</b> tiles count the same overlap from opposite ends, so they differ:{' '}
+        <b>{counts.matched}</b> Mamta checks are covered by <b>{counts.catalogMatched}</b> catalog checks, because{' '}
+        <b>{shared}</b> catalog checks are shared by more than one Mamta check — usually the US and Ex-US versions of
+        the same test.
+      </p>
 
       <div className="cmp-tabs">
         {tabs.map((t) => (
