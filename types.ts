@@ -213,6 +213,25 @@ export interface ComparisonGap {
   note: string;
 }
 
+export type LinkKind = 'match' | 'near' | 'mamta-only' | 'catalog-only';
+
+/** One displayed row of the comparison: exactly one Mamta check against exactly
+ *  one catalog check. A Mamta check covering two catalog checks produces two
+ *  links, and a catalog check covered by the US and Ex-US rows produces two —
+ *  so a check can legitimately appear on more than one row. `mamtaRepeat` /
+ *  `catalogRepeat` say how many rows that side appears on (1 = only this one),
+ *  which is what the UI marks so a repeat does not read as a data error. */
+export interface ComparisonLink {
+  key: string;
+  kind: LinkKind;
+  mamta: MamtaRow | null; // null on catalog-only rows
+  catalog: CheckRow | null; // null on Mamta-only rows
+  note: string;
+  unresolved: CatalogRef[];
+  mamtaRepeat: number;
+  catalogRepeat: number;
+}
+
 /** Two independent partitions, one per catalog:
  *    matched + near + gaps + unmapped === mamtaTotal
  *    catalogMatched + catalogNear + catalogOnly === catalogTotal
@@ -225,6 +244,13 @@ export interface ComparisonCounts {
   near: number;
   gaps: number;
   unmapped: number;
+  /** Displayed rows. Every row is one Mamta check against one catalog check,
+   *  so these four partition `links` exactly:
+   *    matchedPairs + nearPairs + gaps + catalogOnly === links.length
+   *  They exceed `matched` / `near` because a check on either side can appear
+   *  on more than one row. */
+  matchedPairs: number;
+  nearPairs: number;
   catalogTotal: number;
   /** Catalog checks reached by at least one `match` mapping. */
   catalogMatched: number;
@@ -240,6 +266,8 @@ export interface ComparisonResult {
   near: ComparisonPair[];
   gaps: ComparisonGap[];
   catalogOnly: CheckRow[];
+  /** The pair-level projection the UI renders — see ComparisonLink. */
+  links: ComparisonLink[];
   /** Mamta rows with no entry in the map — an authoring hole, surfaced rather
    *  than silently bucketed. Empty once the map is complete. */
   unmapped: MamtaRow[];

@@ -8,6 +8,7 @@ import type {
   CatalogRef,
   CheckRow,
   ComparisonGap,
+  ComparisonLink,
   ComparisonPair,
   ComparisonResult,
   MamtaMapping,
@@ -35,6 +36,72 @@ function indexCatalog(catalog: CheckRow[]): Map<CatalogRef, CheckRow[]> {
     add(qualifiedRef(row.pillar, row.check), row);
   }
   return index;
+}
+
+/** Flatten the per-Mamta-check pairs into one row per (Mamta, catalog) link, so
+ *  every displayed row is 1-to-1. A Mamta check mapping to two catalog checks
+ *  is emitted twice; a catalog check claimed by the US and Ex-US rows likewise.
+ *  Both sides then carry a repeat count, so the duplication is visible as
+ *  intent rather than looking like a bug. */
+function buildLinks(
+  matched: ComparisonPair[],
+  near: ComparisonPair[],
+  gaps: ComparisonGap[],
+  catalogOnly: CheckRow[],
+): ComparisonLink[] {
+  const links: ComparisonLink[] = [];
+
+  const fromPairs = (pairs: ComparisonPair[], kind: 'match' | 'near') => {
+    for (const p of pairs) {
+      // A pair whose refs all failed to resolve still deserves a row, so the
+      // broken reference is visible instead of the check silently vanishing.
+      if (p.catalog.length === 0) {
+        links.push({
+          key: p.mamta.id, kind, mamta: p.mamta, catalog: null,
+          note: p.note, unresolved: p.unresolved, mamtaRepeat: 1, catalogRepeat: 1,
+        });
+        continue;
+      }
+      for (const c of p.catalog) {
+        links.push({
+          key: p.mamta.id + '->' + c.id, kind, mamta: p.mamta, catalog: c,
+          note: p.note, unresolved: p.unresolved, mamtaRepeat: 1, catalogRepeat: 1,
+        });
+      }
+    }
+  };
+
+  fromPairs(matched, 'match');
+  fromPairs(near, 'near');
+  for (const g of gaps) {
+    links.push({
+      key: g.mamta.id, kind: 'mamta-only', mamta: g.mamta, catalog: null,
+      note: g.note, unresolved: [], mamtaRepeat: 1, catalogRepeat: 1,
+    });
+  }
+  for (const c of catalogOnly) {
+    links.push({
+      key: 'catalog-' + c.id, kind: 'catalog-only', mamta: null, catalog: c,
+      note: '', unresolved: [], mamtaRepeat: 1, catalogRepeat: 1,
+    });
+  }
+
+  // Counted WITHIN each bucket, not across all of them: the UI shows one bucket
+  // at a time, and a marker claiming rows the reader cannot see is worse than
+  // no marker. Four catalog checks are reached by both a match and a near, so a
+  // global count would overstate their repeats on the matched tab.
+  const mamtaSeen = new Map<string, number>();
+  const catalogSeen = new Map<string, number>();
+  for (const l of links) {
+    if (l.mamta) mamtaSeen.set(l.kind + '|' + l.mamta.id, (mamtaSeen.get(l.kind + '|' + l.mamta.id) ?? 0) + 1);
+    if (l.catalog) catalogSeen.set(l.kind + '|' + l.catalog.id, (catalogSeen.get(l.kind + '|' + l.catalog.id) ?? 0) + 1);
+  }
+  for (const l of links) {
+    l.mamtaRepeat = l.mamta ? mamtaSeen.get(l.kind + '|' + l.mamta.id)! : 1;
+    l.catalogRepeat = l.catalog ? catalogSeen.get(l.kind + '|' + l.catalog.id)! : 1;
+  }
+
+  return links;
 }
 
 export function buildComparison(
@@ -89,14 +156,18 @@ export function buildComparison(
   const catalogNear = [...nearIds].filter((id) => !matchedIds.has(id));
   const covered = new Set<number>([...matchedIds, ...catalogNear]);
   const catalogOnly = catalog.filter((c) => !covered.has(c.id));
+  const links = buildLinks(matched, near, gaps, catalogOnly);
 
   return {
     matched,
     near,
     gaps,
     catalogOnly,
+    links,
     unmapped,
     counts: {
+      matchedPairs: links.filter((l) => l.kind === 'match').length,
+      nearPairs: links.filter((l) => l.kind === 'near').length,
       mamtaTotal: mamta.length,
       matched: matched.length,
       near: near.length,

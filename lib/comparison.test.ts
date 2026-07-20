@@ -137,6 +137,83 @@ describe('buildComparison', () => {
     expect(c.catalogMatched + c.catalogNear).toBe(c.catalogCovered);
   });
 
+  it('emits one link per pair, repeating whichever side is shared', () => {
+    const one = cat('Homepage', 'One');
+    const two = cat('Homepage', 'Two');
+    const us = mamta('us'), exus = mamta('exus'), wide = mamta('wide');
+    const r = buildComparison([us, exus, wide], [one, two], [
+      // a catalog check claimed by two Mamta checks -> catalog side repeats
+      { mamtaId: 'us', relation: 'match', catalog: ['One'] },
+      { mamtaId: 'exus', relation: 'match', catalog: ['One'] },
+      // a Mamta check claiming two catalog checks -> Mamta side repeats
+      { mamtaId: 'wide', relation: 'match', catalog: ['One', 'Two'] },
+    ]);
+
+    const links = r.links.filter((l) => l.kind === 'match');
+    expect(links).toHaveLength(4); // us->One, exus->One, wide->One, wide->Two
+    // every row is exactly one check against one check
+    for (const l of links) {
+      expect(l.mamta).not.toBeNull();
+      expect(l.catalog).not.toBeNull();
+    }
+    // 'One' is on 3 rows, 'wide' is on 2
+    expect(links.filter((l) => l.catalog!.id === one.id).every((l) => l.catalogRepeat === 3)).toBe(true);
+    expect(links.filter((l) => l.mamta!.id === 'wide').every((l) => l.mamtaRepeat === 2)).toBe(true);
+    // a check on only one row is not marked
+    expect(links.find((l) => l.catalog!.id === two.id)!.catalogRepeat).toBe(1);
+  });
+
+  // Regression: repeats were counted across all buckets, so a catalog check
+  // reached by both a match and a near was marked x2 on the matched tab while
+  // appearing there only once — promising a row the reader could not see.
+  it('counts repeats within a bucket, not across buckets', () => {
+    const lcp = cat('Performance & SEO', 'LCP loads within 2.5 seconds');
+    const r = buildComparison([mamta('us'), mamta('exus')], [lcp], [
+      { mamtaId: 'us', relation: 'match', catalog: ['LCP loads within 2.5 seconds'] },
+      { mamtaId: 'exus', relation: 'near', catalog: ['LCP loads within 2.5 seconds'], note: 'not geo-scoped' },
+    ]);
+
+    const matchLink = r.links.find((l) => l.kind === 'match')!;
+    const nearLink = r.links.find((l) => l.kind === 'near')!;
+    expect(matchLink.catalogRepeat).toBe(1); // it is the only matched row for this check
+    expect(nearLink.catalogRepeat).toBe(1);
+  });
+
+  it('marks a repeat only when the rows are actually in the same bucket', () => {
+    const one = cat('Homepage', 'One');
+    const r = buildComparison([mamta('a'), mamta('b')], [one], [
+      { mamtaId: 'a', relation: 'match', catalog: ['One'] },
+      { mamtaId: 'b', relation: 'match', catalog: ['One'] },
+    ]);
+    for (const l of r.links.filter((x) => x.kind === 'match')) expect(l.catalogRepeat).toBe(2);
+  });
+
+  it('partitions the displayed rows exactly', () => {
+    const catalog = [cat('Homepage', 'One'), cat('Homepage', 'Two'), cat('Security', 'Three')];
+    const rows = [mamta('a'), mamta('b'), mamta('c')];
+    const r = buildComparison(rows, catalog, [
+      { mamtaId: 'a', relation: 'match', catalog: ['One', 'Two'] },
+      { mamtaId: 'b', relation: 'near', catalog: ['One'], note: 'close' },
+      { mamtaId: 'c', relation: 'gap', catalog: [], note: 'absent' },
+    ]);
+
+    const c = r.counts;
+    expect(c.matchedPairs + c.nearPairs + c.gaps + c.catalogOnly).toBe(r.links.length);
+    expect(c.matchedPairs).toBe(2); // a->One, a->Two
+    expect(c.nearPairs).toBe(1);
+    expect(c.catalogOnly).toBe(1); // 'Three'
+  });
+
+  it('still emits a row when every ref failed to resolve', () => {
+    const r = buildComparison([mamta('a')], [cat('Homepage', 'Real')], [
+      { mamtaId: 'a', relation: 'match', catalog: ['Renamed away'] },
+    ]);
+    const link = r.links.find((l) => l.kind === 'match')!;
+    expect(link.mamta).not.toBeNull();
+    expect(link.catalog).toBeNull(); // shown as unresolved, not silently dropped
+    expect(link.unresolved).toEqual(['Renamed away']);
+  });
+
   // The two sides describe the same overlap from opposite ends. Adding all
   // five tiles is meaningless — this pins down why.
   it('resolves many Mamta rows onto fewer catalog checks', () => {

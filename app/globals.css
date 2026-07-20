@@ -225,11 +225,16 @@ tr.ivf-row > td { padding: 0; }
 .mamta-origin { font-family: var(--mono); font-size: 9.5px; color: var(--muted-2); margin-bottom: 11px; }
 
 /* ---------- comparison ---------- */
-.cmp-summary { display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 18px; }
-.cmp-group { display: flex; flex-direction: column; gap: 7px; }
-.cmp-group-h { display: flex; align-items: baseline; gap: 7px; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted-2); }
-.cmp-group-h .tot { font-family: var(--mono); font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 99px; background: var(--track); color: var(--muted); letter-spacing: 0; }
+.cmp-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 .cmp-stats { display: flex; gap: 10px; flex-wrap: wrap; }
+.cmp-stat.is-total { background: var(--surface-2); border-style: dashed; }
+.cmp-stat.is-total .n { color: var(--ink); }
+/* repeat marker: this check pairs with n checks on the other side */
+.dup-mark { display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 99px; background: var(--track); color: var(--muted); cursor: help; }
+.cell-none { font-family: var(--mono); font-size: 10px; color: var(--muted-2); }
+.cell-none.is-warn { color: #b91c1c; font-weight: 700; }
+.cmp-table td.is-empty { background: color-mix(in srgb, var(--muted-2) 6%, transparent); }
+.cmp-table td { vertical-align: top; }
 .cmp-stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 18px; min-width: 128px; }
 .cmp-stat .n { display: block; font-size: 22px; font-weight: 700; color: var(--accent); letter-spacing: -.02em; line-height: 1.15; }
 .cmp-stat .l { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
