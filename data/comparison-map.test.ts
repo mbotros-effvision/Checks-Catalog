@@ -35,6 +35,24 @@ describe('MAMTA_CHECKS', () => {
   it('has a section on every row', () => {
     for (const m of MAMTA_CHECKS) expect(m.section, m.id).not.toBe('');
   });
+
+  // `seq` is derived in SQL as sort_order + 1, and sort_order is the seed array
+  // index — so the running 1..174 shown in the # column is exactly this order.
+  it('is ordered so the running number runs 1..174 without gaps', () => {
+    expect(MAMTA_CHECKS.map((_, i) => i + 1)).toEqual(
+      Array.from({ length: MAMTA_CHECKS.length }, (_, i) => i + 1),
+    );
+    // and the order is tab-contiguous, which is what keeps the bands whole
+    const seenTabs = new Set<string>();
+    let lastTab = '';
+    for (const m of MAMTA_CHECKS) {
+      const tab = m.version + '/' + m.category;
+      if (tab === lastTab) continue;
+      expect(seenTabs.has(tab), `tab "${tab}" is split across the array`).toBe(false);
+      seenTabs.add(tab);
+      lastTab = tab;
+    }
+  });
 });
 
 describe('COMPARISON_MAP', () => {

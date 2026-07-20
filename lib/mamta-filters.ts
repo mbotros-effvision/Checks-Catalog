@@ -1,7 +1,7 @@
 // Pure filtering for the Mamta checklist table. No DOM, no React — unit-tested.
 // Separate from lib/filters.ts on purpose: the Mamta rows have no pillar,
 // source, MVP or effort, so sharing `Filters` would force dead fields on both.
-import type { MamtaFilters, MamtaRow } from '@/types';
+import type { MamtaCheck, MamtaFilters } from '@/types';
 
 export const EMPTY_MAMTA_FILTERS: MamtaFilters = { search: '', version: '', category: '', priority: '' };
 
@@ -14,7 +14,7 @@ export const EMPTY_MAMTA_FILTERS: MamtaFilters = { search: '', version: '', cate
  * and GDPR Compliance apply to the US and Ex-US sites alike, so excluding them
  * would silently drop 23 checks from either view.
  */
-export function filteredMamta(rows: MamtaRow[], filters: MamtaFilters): MamtaRow[] {
+export function filteredMamta<T extends MamtaCheck>(rows: T[], filters: MamtaFilters): T[] {
   const q = filters.search.trim().toLowerCase();
 
   return rows.filter((r) => {

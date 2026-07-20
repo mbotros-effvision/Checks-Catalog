@@ -5,8 +5,10 @@ import { EMPTY_MAMTA_FILTERS, filteredMamta } from './mamta-filters';
 
 const f = (patch: Partial<MamtaFilters>): MamtaFilters => ({ ...EMPTY_MAMTA_FILTERS, ...patch });
 
+let nextSeq = 1;
 function mk(partial: Partial<MamtaRow> & Pick<MamtaRow, 'id' | 'version' | 'category'>): MamtaRow {
   return {
+    seq: nextSeq++,
     section: 'Section',
     number: 1,
     check: 'A check',

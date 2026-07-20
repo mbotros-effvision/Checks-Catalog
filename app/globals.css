@@ -222,6 +222,7 @@ tr.ivf-row > td { padding: 0; }
 .ver-tag.is-both { background: var(--track); color: var(--muted); }
 .url-link { font-family: var(--mono); font-size: 10px; color: var(--accent); word-break: break-all; }
 .steps-body { white-space: pre-line; }
+.mamta-origin { font-family: var(--mono); font-size: 9.5px; color: var(--muted-2); margin-bottom: 11px; }
 
 /* ---------- comparison ---------- */
 .cmp-summary { display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 18px; }

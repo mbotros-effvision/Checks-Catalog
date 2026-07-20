@@ -17,10 +17,9 @@ function MamtaSide({ row }: { row: MamtaRow }) {
   return (
     <div className="cmp-side">
       <div className="cmp-catalog-item">
+        <span className="cell-id">{row.seq}</span>
         <span className={'ver-tag ' + VERSION_CLASS[row.version]}>{row.version}</span>
-        <span className="cell-pillar">
-          {row.category} · {row.number}
-        </span>
+        <span className="cell-pillar">{row.category}</span>
       </div>
       <span className="cn">{row.check}</span>
     </div>
@@ -76,6 +75,7 @@ function GapTable({ result }: { result: ComparisonResult }) {
       <table>
         <thead>
           <tr>
+            <th style={{ width: '44px' }}>#</th>
             <th style={{ width: '62px' }}>Version</th>
             <th style={{ width: '11%' }}>Category</th>
             <th style={{ width: '30%' }}>Mamta check</th>
@@ -86,6 +86,9 @@ function GapTable({ result }: { result: ComparisonResult }) {
         <tbody>
           {result.gaps.map((g) => (
             <tr className="data" key={g.mamta.id}>
+              <td>
+                <span className="cell-id">{g.mamta.seq}</span>
+              </td>
               <td>
                 <span className={'ver-tag ' + VERSION_CLASS[g.mamta.version]}>{g.mamta.version}</span>
               </td>
@@ -183,13 +186,17 @@ function UnmappedTable({ rows }: { rows: MamtaRow[] }) {
       <table>
         <thead>
           <tr>
-            <th style={{ width: '150px' }}>Mamta id</th>
+            <th style={{ width: '44px' }}>#</th>
+            <th style={{ width: '170px' }}>Mamta id</th>
             <th>Check</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
             <tr className="data" key={r.id}>
+              <td>
+                <span className="cell-id">{r.seq}</span>
+              </td>
               <td>
                 <span className="cell-id">{r.id}</span>
               </td>

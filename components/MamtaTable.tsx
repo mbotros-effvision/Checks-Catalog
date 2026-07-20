@@ -118,7 +118,7 @@ export function MamtaTable({ rows }: MamtaTableProps) {
                   )}
                   <tr className={'data expandable' + (open ? ' is-open' : '')} onClick={() => toggle(r.id)}>
                     <td>
-                      <span className="cell-id">{r.number}</span>
+                      <span className="cell-id">{r.seq}</span>
                     </td>
                     <td>
                       <span className={'ver-tag ' + VERSION_CLASS[r.version]}>{r.version}</span>
@@ -155,6 +155,12 @@ export function MamtaTable({ rows }: MamtaTableProps) {
                         <div className="ver-anim">
                           <div className="ver-anim-inner">
                             <div className="ver-panel">
+                              {/* The # column is a running 1..174; this keeps the row
+                                  traceable back to its own tab and row in the workbook. */}
+                              <div className="mamta-origin">
+                                #{r.seq} · workbook tab “{r.version === 'Both' ? r.category : r.version + ' ' + r.category}
+                                ”, row {r.number}
+                              </div>
                               <div className="ver-panel-h">Steps to test</div>
                               <div className="how steps-body">{r.steps}</div>
                               <div className="ver-panel-h" style={{ marginTop: '12px' }}>

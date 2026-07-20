@@ -249,13 +249,14 @@ function toIter(r: DbIterRow): IterationRow {
 }
 
 interface DbMamtaRow {
-  id: string; version: string; category: string; section: string; number: number;
+  id: string; seq: number; version: string; category: string; section: string; number: number;
   checkName: string; url: string; steps: string; expected: string; priority: string;
 }
 
 function toMamtaRow(r: DbMamtaRow): MamtaRow {
   return {
     id: r.id,
+    seq: r.seq,
     version: r.version as MamtaRow['version'],
     category: r.category,
     section: r.section,
@@ -314,11 +315,14 @@ export async function getIteration(id: number): Promise<IterationRow | null> {
 }
 
 /** Workbook order — sort_order is the seed array index, which keeps each tab's
- *  section groups contiguous for the grouped table render. */
+ *  section groups contiguous for the grouped table render. `seq` is derived
+ *  from it rather than stored, so the running number can never drift out of
+ *  step with the ordering it describes. */
 export async function listMamtaChecks(): Promise<MamtaRow[]> {
   await ensureSchema();
   const { rows } = await pool.query(
-    `SELECT id, version, category, section, number, name AS "checkName", url, steps, expected, priority
+    `SELECT id, sort_order + 1 AS seq, version, category, section, number,
+            name AS "checkName", url, steps, expected, priority
      FROM mamta_checks ORDER BY sort_order`,
   );
   return rows.map(toMamtaRow);

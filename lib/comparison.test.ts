@@ -11,9 +11,10 @@ function cat(pillar: string, check: string): CheckRow {
   };
 }
 
+let nextSeq = 1;
 function mamta(id: string): MamtaRow {
   return {
-    id, version: 'US', category: 'Homepage', section: 'Section', number: 1,
+    id, seq: nextSeq++, version: 'US', category: 'Homepage', section: 'Section', number: 1,
     check: 'A check', url: '/', steps: '', expected: '', priority: 'High',
   };
 }

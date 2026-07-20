@@ -164,10 +164,13 @@ export interface MamtaCheck {
   priority: MamtaPriority;
 }
 
-/** A Mamta check as stored/returned by the database. Identical to the seed
- *  shape today — these rows carry no user-editable state. Kept as its own name
- *  so the two can diverge if per-check QA status is ever added. */
-export type MamtaRow = MamtaCheck;
+/** A Mamta check as stored/returned by the database. Adds `seq`, the running
+ *  1..N position in workbook order — assigned by the store, the way `CheckRow`
+ *  adds a database-assigned `id`. `number` stays the in-tab row number, which
+ *  is what the workbook itself shows and what the id is built from. */
+export interface MamtaRow extends MamtaCheck {
+  seq: number;
+}
 
 /** The Mamta table's filter state. */
 export interface MamtaFilters {
