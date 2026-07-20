@@ -3,8 +3,8 @@ import type { CheckRow, Filters } from '@/types';
 import { BUCKETS, EFFORT_RANK, PRIO_RANK } from './taxonomy';
 
 export const EMPTY_FILTERS: Filters = {
-  search: '', pillar: '', source: '', bucket: '', mvp: '',
-  effort: '', phase: '', hero: '', prio: '', sort: '',
+  search: '', pillar: '', source: '', mvp: '',
+  effort: '', prio: '', sort: '',
 };
 
 /**
@@ -18,10 +18,7 @@ export function filteredRows(rows: CheckRow[], filters: Filters): CheckRow[] {
   let out = rows.filter((r) => {
     if (filters.pillar && r.pillar !== filters.pillar) return false;
     if (filters.source && r.source !== filters.source) return false;
-    if (filters.bucket && r.bucket !== filters.bucket) return false;
     if (filters.effort && r.effort !== filters.effort) return false;
-    if (filters.phase && r.phase !== filters.phase) return false;
-    if (filters.hero && !r.hero) return false;
     if (filters.mvp && r.mvp !== filters.mvp) return false;
     if (filters.prio) {
       if (filters.prio === '__none') {

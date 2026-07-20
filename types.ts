@@ -135,11 +135,8 @@ export interface Filters {
   search: string;
   pillar: string;
   source: string;
-  bucket: string;
   mvp: string;
   effort: string;
-  phase: string;
-  hero: string; // '' | '1'
   prio: string; // '' | 'high' | 'med' | 'low' | '__none'
   sort: string; // '' | 'prio' | 'eff'
 }

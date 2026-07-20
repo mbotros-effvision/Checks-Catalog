@@ -1,7 +1,6 @@
 'use client';
 
 import type { Filters } from '@/types';
-import { BUCKET_ORDER, BUCKETS } from '@/lib/taxonomy';
 import { ThemeToggle } from './ThemeToggle';
 
 export interface ToolbarProps {
@@ -63,18 +62,6 @@ export function Toolbar({
       </div>
 
       <div className="fgroup">
-        <label>Feasibility</label>
-        <select value={filters.bucket} onChange={(e) => onFilterChange({ bucket: e.target.value })}>
-          <option value="">All buckets</option>
-          {BUCKET_ORDER.map((k) => (
-            <option key={k} value={k}>
-              {BUCKETS[k].icon} {BUCKETS[k].label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="fgroup">
         <label>MVP</label>
         <select value={filters.mvp} onChange={(e) => onFilterChange({ mvp: e.target.value })}>
           <option value="">All</option>
@@ -93,23 +80,6 @@ export function Toolbar({
           <option>Medium</option>
           <option>High</option>
           <option value="N/A">N/A</option>
-        </select>
-      </div>
-
-      <div className="fgroup">
-        <label>Phase</label>
-        <select value={filters.phase} onChange={(e) => onFilterChange({ phase: e.target.value })}>
-          <option value="">All</option>
-          <option value="A">A · URL-only</option>
-          <option value="B">B · needs access</option>
-        </select>
-      </div>
-
-      <div className="fgroup">
-        <label>Hero</label>
-        <select value={filters.hero} onChange={(e) => onFilterChange({ hero: e.target.value })}>
-          <option value="">All</option>
-          <option value="1">🔶 Hero only</option>
         </select>
       </div>
 

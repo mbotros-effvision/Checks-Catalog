@@ -37,12 +37,9 @@ describe('filteredRows', () => {
     expect(filteredRows(rows, EMPTY_FILTERS)).toHaveLength(3);
   });
 
-  it('filters by source / bucket / effort / phase / hero', () => {
+  it('filters by source / effort', () => {
     expect(filteredRows(rows, f({ source: 'Presales' })).map((x) => x.check)).toEqual(['CTA present']);
-    expect(filteredRows(rows, f({ bucket: 'spectera' }))).toHaveLength(1);
     expect(filteredRows(rows, f({ effort: 'High' }))).toHaveLength(1);
-    expect(filteredRows(rows, f({ phase: 'B' }))).toHaveLength(1);
-    expect(filteredRows(rows, f({ hero: '1' }))).toHaveLength(1);
   });
 
   it('search matches pillar, check, source, and bucket label', () => {
