@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { Save, X } from 'lucide-react';
-import type { BucketKey, CheckInput, Effort, Mvp, Phase, Prio } from '@/types';
-import { BUCKET_ORDER, BUCKETS } from '@/lib/taxonomy';
+import type { CheckInput, Effort, Mvp, Prio } from '@/types';
 import { Button } from './ui/button';
 
 export interface InlineVersionFormProps {
@@ -88,17 +87,6 @@ export function InlineVersionForm({ title, initial, initialComment, onSave, onCa
           <input type="text" list="source-list" value={form.source} onChange={(e) => set('source', e.target.value)} />
         </label>
         <label className="ivf-field">
-          <span>Feasibility</span>
-          <select value={form.bucket} onChange={(e) => set('bucket', e.target.value as BucketKey)}>
-            {BUCKET_ORDER.map((k) => (
-              <option key={k} value={k}>
-                {BUCKETS[k].icon} {BUCKETS[k].label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="ivf-field">
           <span>Effort</span>
           <select value={form.effort} onChange={(e) => set('effort', e.target.value as Effort)}>
             <option>Live</option>
@@ -106,13 +94,6 @@ export function InlineVersionForm({ title, initial, initialComment, onSave, onCa
             <option>Medium</option>
             <option>High</option>
             <option value="N/A">N/A</option>
-          </select>
-        </label>
-        <label className="ivf-field">
-          <span>Phase</span>
-          <select value={form.phase} onChange={(e) => set('phase', e.target.value as Phase)}>
-            <option value="A">A · URL-only</option>
-            <option value="B">B · needs access</option>
           </select>
         </label>
 
@@ -140,11 +121,6 @@ export function InlineVersionForm({ title, initial, initialComment, onSave, onCa
             <input type="text" value={form.dupOf} onChange={(e) => set('dupOf', e.target.value)} />
           </label>
         )}
-
-        <label className="ivf-field ivf-check ivf-span2">
-          <input type="checkbox" checked={form.hero} onChange={(e) => set('hero', e.target.checked)} />
-          <span>🔶 Hero — demo-able “early findings” item</span>
-        </label>
       </div>
 
       <div className="ivf-actions">

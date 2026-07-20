@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { BucketKey, CheckInput, Effort, Mvp, Phase, Prio } from '@/types';
-import { BUCKET_ORDER, BUCKETS } from '@/lib/taxonomy';
+import type { CheckInput, Effort, Mvp, Prio } from '@/types';
 
 export interface EditorModalProps {
   open: boolean;
@@ -193,19 +192,6 @@ export function EditorModal({
               </datalist>
             </div>
             <div className="fld">
-              <label>Feasibility</label>
-              <select value={form.bucket} onChange={(e) => set('bucket', e.target.value as BucketKey)}>
-                {BUCKET_ORDER.map((k) => (
-                  <option key={k} value={k}>
-                    {BUCKETS[k].icon} {BUCKETS[k].label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="frow">
-            <div className="fld">
               <label>Effort</label>
               <select value={form.effort} onChange={(e) => set('effort', e.target.value as Effort)}>
                 <option>Live</option>
@@ -213,13 +199,6 @@ export function EditorModal({
                 <option>Medium</option>
                 <option>High</option>
                 <option value="N/A">N/A</option>
-              </select>
-            </div>
-            <div className="fld">
-              <label>Phase</label>
-              <select value={form.phase} onChange={(e) => set('phase', e.target.value as Phase)}>
-                <option value="A">A · URL-only</option>
-                <option value="B">B · needs access</option>
               </select>
             </div>
           </div>
@@ -241,13 +220,6 @@ export function EditorModal({
                 <option value="med">Medium</option>
                 <option value="low">Low</option>
               </select>
-            </div>
-          </div>
-
-          <div className="frow">
-            <div className="fld fld-check">
-              <input type="checkbox" id="m-hero" checked={form.hero} onChange={(e) => set('hero', e.target.checked)} />
-              <label htmlFor="m-hero">🔶 Hero — demo-able “early findings” item</label>
             </div>
           </div>
 

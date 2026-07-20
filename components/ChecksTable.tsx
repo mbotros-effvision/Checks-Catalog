@@ -3,7 +3,7 @@
 import { Fragment, useState } from 'react';
 import { ChevronRight, Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import type { CheckInput, DisplayRow, IterationRow } from '@/types';
-import { BUCKETS, mvpClass, mvpLabel, PRIO_LABEL, srcCls } from '@/lib/taxonomy';
+import { mvpClass, mvpLabel, PRIO_LABEL, srcCls } from '@/lib/taxonomy';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { InlineVersionForm } from './InlineVersionForm';
@@ -156,7 +156,6 @@ export function ChecksTable({
                       <span className={'ver-cur' + (onVersion ? ' is-ver' : '')}>
                         {onVersion ? r.versionLabel : `Versions · ${r.versions.length}`}
                       </span>
-                      {r.hero && <span className="hero-i" title="Hero — demo-able finding">🔶</span>}
                       {r.mvp === 'Duplicated' && r.dupOf && (
                         <span className="dup-i" title="Duplicated from">
                           Dup · <span className="dup-of">{r.dupOf}</span>
