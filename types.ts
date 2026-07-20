@@ -210,6 +210,12 @@ export interface ComparisonGap {
   note: string;
 }
 
+/** Two independent partitions, one per catalog:
+ *    matched + near + gaps + unmapped === mamtaTotal
+ *    catalogMatched + catalogNear + catalogOnly === catalogTotal
+ *  The two sides describe the same overlap from opposite ends, so they must not
+ *  be added together — `matched` counts Mamta rows, `catalogMatched` counts the
+ *  (fewer) catalog checks those rows resolve to. */
 export interface ComparisonCounts {
   mamtaTotal: number;
   matched: number;
@@ -217,7 +223,12 @@ export interface ComparisonCounts {
   gaps: number;
   unmapped: number;
   catalogTotal: number;
-  catalogCovered: number;
+  /** Catalog checks reached by at least one `match` mapping. */
+  catalogMatched: number;
+  /** Catalog checks reached ONLY by `near` mappings — a check reached by both
+   *  counts as matched, since the stronger relation wins. */
+  catalogNear: number;
+  catalogCovered: number; // catalogMatched + catalogNear
   catalogOnly: number;
 }
 

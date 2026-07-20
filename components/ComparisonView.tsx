@@ -222,29 +222,55 @@ export function ComparisonView({ result }: ComparisonViewProps) {
 
   return (
     <>
+      {/* Two independent partitions, deliberately shown as two groups: each
+          side totals its own catalog, and adding across them would double-count
+          the overlap (many Mamta rows resolve onto one catalog check). */}
       <div className="cmp-summary">
-        <div className="cmp-stat is-gap">
-          <b className="n">{counts.gaps}</b>
-          <span className="l">Only in Mamta</span>
-        </div>
-        <div className="cmp-stat is-near">
-          <b className="n">{counts.near}</b>
-          <span className="l">Near match</span>
-        </div>
-        <div className="cmp-stat">
-          <b className="n">{counts.matched}</b>
-          <span className="l">Matched</span>
-        </div>
-        <div className="cmp-stat">
-          <b className="n">{counts.catalogOnly}</b>
-          <span className="l">Only in catalog</span>
-        </div>
-        {counts.unmapped > 0 && (
-          <div className="cmp-stat is-warn">
-            <b className="n">{counts.unmapped}</b>
-            <span className="l">Unmapped</span>
+        <div className="cmp-group">
+          <div className="cmp-group-h">
+            Mamta checklist <span className="tot">{counts.mamtaTotal}</span>
           </div>
-        )}
+          <div className="cmp-stats">
+            <div className="cmp-stat is-gap">
+              <b className="n">{counts.gaps}</b>
+              <span className="l">Only in Mamta</span>
+            </div>
+            <div className="cmp-stat is-near">
+              <b className="n">{counts.near}</b>
+              <span className="l">Near match</span>
+            </div>
+            <div className="cmp-stat">
+              <b className="n">{counts.matched}</b>
+              <span className="l">Matched</span>
+            </div>
+            {counts.unmapped > 0 && (
+              <div className="cmp-stat is-warn">
+                <b className="n">{counts.unmapped}</b>
+                <span className="l">Unmapped</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="cmp-group">
+          <div className="cmp-group-h">
+            Checks catalog <span className="tot">{counts.catalogTotal}</span>
+          </div>
+          <div className="cmp-stats">
+            <div className="cmp-stat is-gap">
+              <b className="n">{counts.catalogOnly}</b>
+              <span className="l">Only in catalog</span>
+            </div>
+            <div className="cmp-stat is-near">
+              <b className="n">{counts.catalogNear}</b>
+              <span className="l">Near match</span>
+            </div>
+            <div className="cmp-stat">
+              <b className="n">{counts.catalogMatched}</b>
+              <span className="l">Matched</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="cmp-tabs">

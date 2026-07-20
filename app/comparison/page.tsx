@@ -21,9 +21,9 @@ export default async function ComparisonPage() {
       <div className="view-head">
         <h1 className="view-title">Comparison</h1>
         <p className="view-sub">
-          {result.counts.mamtaTotal} Mamta checks against {result.counts.catalogTotal} catalog checks. A Mamta check
-          can map to more than one catalog check, and the US and Ex-US versions of a check often map to the same one —
-          so the two totals do not add up row for row.
+          Each side is broken down against its own total. They do not add together: the US and Ex-US versions of a
+          Mamta check usually map to a single catalog check, so {result.counts.matched + result.counts.near} matched
+          and near-matched Mamta rows resolve onto only {result.counts.catalogCovered} catalog checks.
         </p>
       </div>
       <ComparisonView result={result} />

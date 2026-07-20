@@ -50,8 +50,11 @@ export function buildComparison(
   const gaps: ComparisonGap[] = [];
   const unmapped: MamtaRow[] = [];
   // Catalog row ids, not names: a check referenced by both a US and an Ex-US
-  // Mamta row is covered once, so it is never double-counted.
-  const covered = new Set<number>();
+  // Mamta row is covered once, so it is never double-counted. Tracked per
+  // relation so the catalog side partitions the same three ways the Mamta side
+  // does — see ComparisonCounts.
+  const matchedIds = new Set<number>();
+  const nearIds = new Set<number>();
 
   for (const row of mamta) {
     const entry = byId.get(row.id);
@@ -64,21 +67,27 @@ export function buildComparison(
       continue;
     }
 
+    const isNear = entry.relation === 'near';
+    const reached = isNear ? nearIds : matchedIds;
     const resolved: CheckRow[] = [];
     const unresolved: CatalogRef[] = [];
     for (const ref of entry.catalog) {
       const hits = index.get(ref) ?? [];
       if (hits.length === 0) unresolved.push(ref);
       for (const hit of hits) {
-        covered.add(hit.id);
+        reached.add(hit.id);
         if (!resolved.includes(hit)) resolved.push(hit);
       }
     }
 
     const pair: ComparisonPair = { mamta: row, catalog: resolved, unresolved, note: entry.note ?? '' };
-    (entry.relation === 'near' ? near : matched).push(pair);
+    (isNear ? near : matched).push(pair);
   }
 
+  // A catalog check reached by both relations counts as matched — the stronger
+  // one wins, which keeps the three catalog buckets disjoint.
+  const catalogNear = [...nearIds].filter((id) => !matchedIds.has(id));
+  const covered = new Set<number>([...matchedIds, ...catalogNear]);
   const catalogOnly = catalog.filter((c) => !covered.has(c.id));
 
   return {
@@ -94,6 +103,8 @@ export function buildComparison(
       gaps: gaps.length,
       unmapped: unmapped.length,
       catalogTotal: catalog.length,
+      catalogMatched: matchedIds.size,
+      catalogNear: catalogNear.length,
       catalogCovered: covered.size,
       catalogOnly: catalogOnly.length,
     },

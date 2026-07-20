@@ -95,7 +95,32 @@ describe('buildComparison', () => {
     expect(r.counts.matched).toBe(0);
   });
 
-  it('keeps both count invariants', () => {
+  it('counts a catalog check reached by both relations as matched', () => {
+    const lcp = cat('Performance & SEO', 'LCP loads within 2.5 seconds');
+    const r = buildComparison([mamta('us'), mamta('exus')], [lcp], [
+      { mamtaId: 'us', relation: 'match', catalog: ['LCP loads within 2.5 seconds'] },
+      { mamtaId: 'exus', relation: 'near', catalog: ['LCP loads within 2.5 seconds'], note: 'not geo-scoped' },
+    ]);
+
+    expect(r.counts.catalogMatched).toBe(1);
+    expect(r.counts.catalogNear).toBe(0); // not double-counted as both
+    expect(r.counts.catalogOnly).toBe(0);
+    expect(r.counts.matched).toBe(1); // the Mamta side still sees two rows
+    expect(r.counts.near).toBe(1);
+  });
+
+  it('counts a catalog check reached only by a near mapping as near', () => {
+    const label = cat('Regulatory Intelligence', 'FDA label updates for portfolio drugs');
+    const r = buildComparison([mamta('a')], [label], [
+      { mamtaId: 'a', relation: 'near', catalog: ['FDA label updates for portfolio drugs'], note: 'partial' },
+    ]);
+
+    expect(r.counts.catalogMatched).toBe(0);
+    expect(r.counts.catalogNear).toBe(1);
+    expect(r.counts.catalogOnly).toBe(0);
+  });
+
+  it('keeps both partitions whole and disjoint', () => {
     const catalog = [cat('Homepage', 'One'), cat('Homepage', 'Two'), cat('Security', 'Three')];
     const rows = [mamta('a'), mamta('b'), mamta('c'), mamta('d')];
     const r = buildComparison(rows, catalog, [
@@ -107,6 +132,20 @@ describe('buildComparison', () => {
 
     const c = r.counts;
     expect(c.matched + c.near + c.gaps + c.unmapped).toBe(c.mamtaTotal);
-    expect(c.catalogCovered + c.catalogOnly).toBe(c.catalogTotal);
+    expect(c.catalogMatched + c.catalogNear + c.catalogOnly).toBe(c.catalogTotal);
+    expect(c.catalogMatched + c.catalogNear).toBe(c.catalogCovered);
+  });
+
+  // The two sides describe the same overlap from opposite ends. Adding all
+  // five tiles is meaningless — this pins down why.
+  it('resolves many Mamta rows onto fewer catalog checks', () => {
+    const one = cat('Homepage', 'One');
+    const rows = [mamta('a'), mamta('b'), mamta('c')];
+    const r = buildComparison(rows, [one], rows.map((m) => ({
+      mamtaId: m.id, relation: 'match' as const, catalog: ['One'],
+    })));
+
+    expect(r.counts.matched).toBe(3); // Mamta side
+    expect(r.counts.catalogMatched).toBe(1); // catalog side
   });
 });
