@@ -6,8 +6,9 @@
 //   checks(id, pillar_id -> pillars.id, …fields…, custom, active, justification)
 //   check_iterations(id, check_id -> checks.id, version, comment, …snapshot…)
 import { Pool, type PoolClient } from 'pg';
-import type { CheckInput, CheckRow, IterationInput, IterationRow, PillarRow } from '@/types';
+import type { CheckInput, CheckRow, IterationInput, IterationRow, MamtaRow, PillarRow } from '@/types';
 import { CHECKS } from '@/data/checks';
+import { MAMTA_CHECKS } from '@/data/mamta-checks';
 
 // Reuse a single pool across dev hot-reloads to avoid exhausting connections.
 const g = globalThis as unknown as { _pgPool?: Pool };
@@ -65,6 +66,23 @@ const SCHEMA_DDL = `
     UNIQUE(check_id, version)
   );
   CREATE INDEX IF NOT EXISTS idx_iter_check ON check_iterations(check_id);
+  -- Mamta QA checklist: read-only reference rows imported from the QA workbook.
+  -- The check text lives in "name" (CHECK is reserved, and it matches the
+  -- checks/check_iterations convention); "sort_order" is the seed array index.
+  CREATE TABLE IF NOT EXISTS mamta_checks (
+    id         TEXT PRIMARY KEY,
+    version    TEXT NOT NULL,
+    category   TEXT NOT NULL,
+    section    TEXT NOT NULL DEFAULT '',
+    number     INTEGER NOT NULL,
+    name       TEXT NOT NULL,
+    url        TEXT NOT NULL DEFAULT '',
+    steps      TEXT NOT NULL DEFAULT '',
+    expected   TEXT NOT NULL DEFAULT '',
+    priority   TEXT NOT NULL DEFAULT '',
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE INDEX IF NOT EXISTS idx_mamta_sort ON mamta_checks(sort_order);
   -- migration: drop the retired "layer" column from any pre-existing DB
   ALTER TABLE pillars DROP COLUMN IF EXISTS layer;
   ALTER TABLE check_iterations DROP COLUMN IF EXISTS layer;
@@ -111,6 +129,59 @@ export async function ensureSeeded(): Promise<void> {
        VALUES ${cTuples}`,
       cVals,
     );
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+// ---- Mamta seed ------------------------------------------------------------
+// Deliberately NOT folded into ensureSeeded(): that one early-returns as soon
+// as `checks` has rows, so on any already-seeded database this would never run.
+let mamtaReady: Promise<void> | null = null;
+
+export function ensureMamtaSeeded(): Promise<void> {
+  if (!mamtaReady) {
+    mamtaReady = seedMamta().catch((e) => {
+      mamtaReady = null; // let the next request retry a transient failure
+      throw e;
+    });
+  }
+  return mamtaReady;
+}
+
+/** Upsert-always rather than a COUNT(*) guard: these rows carry no user state,
+ *  so rewriting them clobbers nothing, and a guard would go stale the moment a
+ *  typo is fixed in data/mamta-checks.ts. Memoized above, so this costs one
+ *  statement per server process. */
+async function seedMamta(): Promise<void> {
+  await ensureSchema();
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('SELECT pg_advisory_xact_lock($1)', [727101]); // distinct from the checks seed
+    const cols = 11;
+    const tuples = MAMTA_CHECKS.map(
+      (_, i) => '(' + Array.from({ length: cols }, (_, j) => `$${i * cols + j + 1}`).join(',') + ')',
+    ).join(',');
+    const vals: unknown[] = [];
+    MAMTA_CHECKS.forEach((m, i) => {
+      vals.push(m.id, m.version, m.category, m.section, m.number, m.check, m.url, m.steps, m.expected, m.priority, i);
+    });
+    await client.query(
+      `INSERT INTO mamta_checks (id, version, category, section, number, name, url, steps, expected, priority, sort_order)
+       VALUES ${tuples}
+       ON CONFLICT (id) DO UPDATE SET
+         version = EXCLUDED.version, category = EXCLUDED.category, section = EXCLUDED.section,
+         number = EXCLUDED.number, name = EXCLUDED.name, url = EXCLUDED.url, steps = EXCLUDED.steps,
+         expected = EXCLUDED.expected, priority = EXCLUDED.priority, sort_order = EXCLUDED.sort_order`,
+      vals,
+    );
+    // drop rows removed from the seed file
+    await client.query('DELETE FROM mamta_checks WHERE id <> ALL($1::text[])', [MAMTA_CHECKS.map((m) => m.id)]);
     await client.query('COMMIT');
   } catch (e) {
     await client.query('ROLLBACK');
@@ -177,6 +248,26 @@ function toIter(r: DbIterRow): IterationRow {
   };
 }
 
+interface DbMamtaRow {
+  id: string; version: string; category: string; section: string; number: number;
+  checkName: string; url: string; steps: string; expected: string; priority: string;
+}
+
+function toMamtaRow(r: DbMamtaRow): MamtaRow {
+  return {
+    id: r.id,
+    version: r.version as MamtaRow['version'],
+    category: r.category,
+    section: r.section,
+    number: r.number,
+    check: r.checkName,
+    url: r.url,
+    steps: r.steps,
+    expected: r.expected,
+    priority: r.priority as MamtaRow['priority'],
+  };
+}
+
 const SELECT_CHECK = `
   SELECT c.id, c.pillar_id AS "pillarId", p.name AS pillar,
          c.name AS "checkName", c.plain_english AS "plainEnglish", c.feasibility AS bucket,
@@ -220,6 +311,17 @@ export async function getIteration(id: number): Promise<IterationRow | null> {
   await ensureSchema();
   const { rows } = await pool.query(`${SELECT_ITER} WHERE id = $1`, [id]);
   return rows[0] ? toIter(rows[0]) : null;
+}
+
+/** Workbook order — sort_order is the seed array index, which keeps each tab's
+ *  section groups contiguous for the grouped table render. */
+export async function listMamtaChecks(): Promise<MamtaRow[]> {
+  await ensureSchema();
+  const { rows } = await pool.query(
+    `SELECT id, version, category, section, number, name AS "checkName", url, steps, expected, priority
+     FROM mamta_checks ORDER BY sort_order`,
+  );
+  return rows.map(toMamtaRow);
 }
 
 // ---- Writes ----------------------------------------------------------------

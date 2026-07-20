@@ -140,3 +140,94 @@ export interface Filters {
   prio: string; // '' | 'high' | 'med' | 'low' | '__none'
   sort: string; // '' | 'prio' | 'eff'
 }
+
+// ---------------------------------------------------------------------------
+// Mamta QA checklist — read-only reference data imported from the QA workbook.
+// ---------------------------------------------------------------------------
+
+export type MamtaVersion = 'US' | 'Ex-US' | 'Both';
+export type MamtaPriority = 'High' | 'Medium';
+
+/** Seed shape (the 174 rows in `data/mamta-checks.ts`). Unlike `Check`, the id
+ *  is authored — a stable slug derived from (version, category, number), which
+ *  is what `data/comparison-map.ts` keys off. */
+export interface MamtaCheck {
+  id: string; // 'us-homepage-01' | 'exus-content-17' | 'both-geo-detection-11'
+  version: MamtaVersion;
+  category: string; // workbook tab, e.g. 'Homepage'
+  section: string; // in-tab group header, e.g. 'Hero & Above the Fold'
+  number: number; // row number within its tab
+  check: string;
+  url: string;
+  steps: string;
+  expected: string;
+  priority: MamtaPriority;
+}
+
+/** A Mamta check as stored/returned by the database. Identical to the seed
+ *  shape today — these rows carry no user-editable state. Kept as its own name
+ *  so the two can diverge if per-check QA status is ever added. */
+export type MamtaRow = MamtaCheck;
+
+/** The Mamta table's filter state. */
+export interface MamtaFilters {
+  search: string;
+  version: string; // '' | 'US' | 'Ex-US' | 'Both'
+  category: string; // '' | a workbook tab name
+  priority: string; // '' | 'High' | 'Medium'
+}
+
+// ---------------------------------------------------------------------------
+// Comparison — Mamta checklist vs the feasibility catalog.
+// ---------------------------------------------------------------------------
+
+export type MamtaRelation = 'match' | 'near' | 'gap';
+
+/** Reference to a catalog check by NAME. Three catalog names are not unique, so
+ *  a ref may be pillar-qualified as "Pillar :: Check name". */
+export type CatalogRef = string;
+
+/** One curated entry in `data/comparison-map.ts` — exactly one per Mamta check. */
+export interface MamtaMapping {
+  mamtaId: string;
+  relation: MamtaRelation;
+  catalog: CatalogRef[]; // [] iff relation === 'gap'
+  note?: string;
+}
+
+/** A Mamta check resolved against live catalog rows. `catalog` may hold more
+ *  than one row (one Mamta check split across several), and the same catalog
+ *  row may appear in several pairs (a US and an Ex-US row mapping to one check). */
+export interface ComparisonPair {
+  mamta: MamtaRow;
+  catalog: CheckRow[];
+  unresolved: CatalogRef[]; // refs matching no live row — a renamed/deleted check
+  note: string;
+}
+
+export interface ComparisonGap {
+  mamta: MamtaRow;
+  note: string;
+}
+
+export interface ComparisonCounts {
+  mamtaTotal: number;
+  matched: number;
+  near: number;
+  gaps: number;
+  unmapped: number;
+  catalogTotal: number;
+  catalogCovered: number;
+  catalogOnly: number;
+}
+
+export interface ComparisonResult {
+  matched: ComparisonPair[];
+  near: ComparisonPair[];
+  gaps: ComparisonGap[];
+  catalogOnly: CheckRow[];
+  /** Mamta rows with no entry in the map — an authoring hole, surfaced rather
+   *  than silently bucketed. Empty once the map is complete. */
+  unmapped: MamtaRow[];
+  counts: ComparisonCounts;
+}

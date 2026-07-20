@@ -1,0 +1,130 @@
+// One-off dev tool (NOT shipped in the app bundle).
+// Builds the Mamta QA checklist from the external workbook: 18 checklist tabs
+// (US + Ex-US mirrors plus two shared) between the Cover and Defect Log sheets.
+//
+// Run from the feasibility-app/ folder:
+//   node scripts/extract-mamta.mjs ["path/to/Mamta Sheet.xlsx"]
+// Uses exceljs, already a dependency via app/api/export/xlsx/route.ts.
+
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import ExcelJS from 'exceljs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const APP_ROOT = path.resolve(__dirname, '..');
+const DEFAULT_XLSX = 'C:\\Users\\markb\\Downloads\\Mamta Sheet.xlsx';
+const XLSX = process.argv[2] || DEFAULT_XLSX;
+
+// Column layout, identical on every checklist tab (1-based, as ExcelJS reports):
+//   1 # · 2 Check Item · 3 Page/URL · 4 Steps to Test · 5 Expected Result
+//   6 Status · 7 Tester Notes · 8 Priority · 9 Ticket #
+// Status / Tester Notes / Ticket # are intentionally dropped — the rows are
+// read-only reference data here, and those columns are blank in the source.
+const COL = { num: 1, check: 2, url: 3, steps: 4, expected: 5, priority: 8 };
+const FIRST_DATA_ROW = 5; // 1-2 titles, 3 pass-rate strip, 4 header
+
+const EXPECTED_TOTAL = 174;
+const EXPECTED_BY_VERSION = { US: 75, 'Ex-US': 76, Both: 23 };
+
+const cell = (row, c) => {
+  const v = row.getCell(c).value;
+  if (v == null) return '';
+  if (typeof v === 'object' && 'richText' in v) return v.richText.map((t) => t.text).join('');
+  if (typeof v === 'object' && 'text' in v) return String(v.text);
+  return String(v).trim();
+};
+
+/** ' ExUS Homepage' -> { version: 'Ex-US', category: 'Homepage' } */
+function splitTabName(raw) {
+  const name = raw.trim();
+  if (name.startsWith('ExUS ')) return { version: 'Ex-US', category: name.slice(5).trim() };
+  if (name.startsWith('US ')) return { version: 'US', category: name.slice(3).trim() };
+  return { version: 'Both', category: name };
+}
+
+const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const VERSION_SLUG = { US: 'us', 'Ex-US': 'exus', Both: 'both' };
+
+/** Ids are fully derivable from (version, category, number) — the test re-derives them independently. */
+function idFor(version, category, number) {
+  return `${VERSION_SLUG[version]}-${slug(category)}-${String(number).padStart(2, '0')}`;
+}
+
+/** '🔴 High' -> 'High' */
+function normalisePriority(raw) {
+  const p = raw.replace(/[^\x20-\x7E]/g, '').trim();
+  if (p !== 'High' && p !== 'Medium') throw new Error(`Unknown priority "${raw}"`);
+  return p;
+}
+
+const wb = new ExcelJS.Workbook();
+await wb.xlsx.readFile(XLSX);
+
+// Sheet 1 is the Cover, the last is the Defect Log; the 18 between are checklists.
+const sheets = wb.worksheets.slice(1, -1);
+if (sheets.length !== 18) throw new Error(`Expected 18 checklist tabs, found ${sheets.length}`);
+
+const checks = [];
+for (const ws of sheets) {
+  const { version, category } = splitTabName(ws.name);
+  let section = '';
+  for (let r = FIRST_DATA_ROW; r <= ws.rowCount; r++) {
+    const row = ws.getRow(r);
+    const num = cell(row, COL.num);
+    const text = cell(row, COL.check);
+    if (!num) continue;
+    // Section headers are merged across A:B and carry their title in column A.
+    // Check rows carry a number there — that is what tells the two apart
+    // (ExcelJS reports the master's value for a merged cell's slaves, so both
+    // columns read the same on a header row).
+    if (!/^\d+$/.test(num)) {
+      section = num;
+      continue;
+    }
+    if (!text) throw new Error(`Check ${num} on ${ws.name} has no text`);
+    const number = Number(num);
+    checks.push({
+      id: idFor(version, category, number),
+      version,
+      category,
+      section,
+      number,
+      check: text,
+      url: cell(row, COL.url),
+      steps: cell(row, COL.steps),
+      expected: cell(row, COL.expected),
+      priority: normalisePriority(cell(row, COL.priority)),
+    });
+  }
+}
+
+// ---- Sanity checks so a bad extraction fails loudly ------------------------
+if (checks.length !== EXPECTED_TOTAL) throw new Error(`Expected ${EXPECTED_TOTAL} checks, got ${checks.length}`);
+const ids = new Set(checks.map((c) => c.id));
+if (ids.size !== checks.length) throw new Error('Duplicate ids — (version, category, number) is not unique');
+for (const [version, n] of Object.entries(EXPECTED_BY_VERSION)) {
+  const got = checks.filter((c) => c.version === version).length;
+  if (got !== n) throw new Error(`Expected ${n} ${version} checks, got ${got}`);
+}
+for (const c of checks) {
+  if (!c.section) throw new Error(`Missing section on ${c.id} — a section header row was not picked up`);
+}
+
+// ---- Emit ------------------------------------------------------------------
+// Array order is load-bearing: it becomes sort_order in the database and drives
+// render order, keeping each tab's section groups contiguous.
+const banner = `// AUTO-GENERATED by scripts/extract-mamta.mjs from the Mamta QA workbook
+// (18 checklist tabs: US + Ex-US mirrors plus Geo Detection and GDPR Compliance).
+// Do not edit by hand. Re-run \`npm run extract-mamta\` to regenerate.\n\n`;
+
+const ts =
+  banner +
+  `import type { MamtaCheck } from '@/types';\n\n` +
+  `export const MAMTA_CHECKS: MamtaCheck[] = ${JSON.stringify(checks, null, 2)};\n`;
+
+fs.writeFileSync(path.join(APP_ROOT, 'data', 'mamta-checks.ts'), ts);
+
+console.log(`Wrote data/mamta-checks.ts (${checks.length} checks)`);
+console.log(`Tabs: ${sheets.length} · sections: ${new Set(checks.map((c) => c.category + '/' + c.section)).size}`);
+for (const [v, n] of Object.entries(EXPECTED_BY_VERSION)) console.log(`  ${v}: ${n}`);

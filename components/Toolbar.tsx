@@ -1,7 +1,6 @@
 'use client';
 
 import type { Filters } from '@/types';
-import { ThemeToggle } from './ThemeToggle';
 
 export interface ToolbarProps {
   filters: Filters;
@@ -120,7 +119,6 @@ export function Toolbar({
         <b>{shownCount}</b> of {totalCount}
         {customCount ? ' · ' + customCount + ' custom' : ''}
       </span>
-      <ThemeToggle />
     </div>
   );
 }
