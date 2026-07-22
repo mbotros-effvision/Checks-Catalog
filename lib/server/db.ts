@@ -121,18 +121,65 @@ export async function ensureSeeded(): Promise<void> {
     for (const r of pRes.rows) pillarId[r.name] = r.id;
 
     // 2) checks in array order (pillar-contiguous) -> sequential ids
-    const cols = 13;
+    const cols = 14;
     const cTuples = CHECKS.map(
       (_, i) => '(' + Array.from({ length: cols }, (_, j) => `$${i * cols + j + 1}`).join(',') + ')',
     ).join(',');
     const cVals: unknown[] = [];
     for (const ch of CHECKS) {
-      cVals.push(pillarId[ch.pillar], ch.check, ch.plainEnglish, ch.bucket, ch.effort, ch.how, ch.source, ch.hero, ch.phase, ch.dupOf || '', ch.mvp, '', false);
+      cVals.push(pillarId[ch.pillar], ch.check, ch.plainEnglish, ch.bucket, ch.effort, ch.how, ch.source, ch.hero, ch.phase, ch.dupOf || '', ch.mvp, '', ch.roadmap, false);
     }
     await client.query(
-      `INSERT INTO checks (pillar_id, name, plain_english, feasibility, effort, how, source, hero, phase, dup_of, mvp, priority, custom)
+      `INSERT INTO checks (pillar_id, name, plain_english, feasibility, effort, how, source, hero, phase, dup_of, mvp, priority, roadmap, custom)
        VALUES ${cTuples}`,
       cVals,
+    );
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+// ---- Roadmap backfill ------------------------------------------------------
+// ensureSeeded() early-returns once `checks` has rows, so a database seeded
+// before the roadmap field was populated never picks it up from the seed.
+// Upsert-always, like the Mamta seed: base rows are read-only in the app, so
+// rewriting the roadmap column clobbers nothing user-authored (iteration rows
+// are untouched). Memoized, so this costs one statement per server process.
+let roadmapReady: Promise<void> | null = null;
+
+export function ensureRoadmapBackfilled(): Promise<void> {
+  if (!roadmapReady) {
+    roadmapReady = backfillRoadmap().catch((e) => {
+      roadmapReady = null; // let the next request retry a transient failure
+      throw e;
+    });
+  }
+  return roadmapReady;
+}
+
+async function backfillRoadmap(): Promise<void> {
+  await ensureSchema();
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('SELECT pg_advisory_xact_lock($1)', [727102]); // distinct from the other seeds
+    const cols = 3;
+    const tuples = CHECKS.map(
+      (_, i) => '(' + Array.from({ length: cols }, (_, j) => `$${i * cols + j + 1}`).join(',') + ')',
+    ).join(',');
+    const vals: unknown[] = [];
+    for (const ch of CHECKS) vals.push(ch.pillar, ch.check, ch.roadmap);
+    await client.query(
+      `UPDATE checks c SET roadmap = v.roadmap
+       FROM (VALUES ${tuples}) AS v(pillar, name, roadmap)
+       JOIN pillars p ON p.name = v.pillar
+       WHERE c.pillar_id = p.id AND c.name = v.name
+         AND c.custom = false AND c.roadmap IS DISTINCT FROM v.roadmap`,
+      vals,
     );
     await client.query('COMMIT');
   } catch (e) {

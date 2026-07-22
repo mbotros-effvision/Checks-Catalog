@@ -19,6 +19,7 @@ export interface Check {
   source: string;
   hero: boolean;
   phase: Phase;
+  roadmap: string;
   dupOf?: string;
 }
 
