@@ -40,6 +40,7 @@ const SCHEMA_DDL = `
     dup_of        TEXT NOT NULL DEFAULT '',
     mvp           TEXT NOT NULL,
     priority      TEXT NOT NULL DEFAULT '',
+    roadmap       TEXT NOT NULL DEFAULT '',
     custom        BOOLEAN NOT NULL DEFAULT false,
     active        BOOLEAN NOT NULL DEFAULT true,
     justification TEXT NOT NULL DEFAULT ''
@@ -62,6 +63,7 @@ const SCHEMA_DDL = `
     dup_of        TEXT NOT NULL DEFAULT '',
     mvp           TEXT NOT NULL,
     priority      TEXT NOT NULL DEFAULT '',
+    roadmap       TEXT NOT NULL DEFAULT '',
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE(check_id, version)
   );
@@ -86,6 +88,9 @@ const SCHEMA_DDL = `
   -- migration: drop the retired "layer" column from any pre-existing DB
   ALTER TABLE pillars DROP COLUMN IF EXISTS layer;
   ALTER TABLE check_iterations DROP COLUMN IF EXISTS layer;
+  -- migration: add the "roadmap" text field to any pre-existing DB
+  ALTER TABLE checks ADD COLUMN IF NOT EXISTS roadmap TEXT NOT NULL DEFAULT '';
+  ALTER TABLE check_iterations ADD COLUMN IF NOT EXISTS roadmap TEXT NOT NULL DEFAULT '';
 `;
 
 let schemaReady: Promise<void> | null = null;
@@ -195,13 +200,14 @@ async function seedMamta(): Promise<void> {
 interface DbCheckRow {
   id: number; pillarId: number; pillar: string; checkName: string;
   plainEnglish: string; bucket: string; effort: string; how: string; source: string;
-  hero: boolean; phase: string; dupOf: string; mvp: string; priority: string;
+  hero: boolean; phase: string; dupOf: string; mvp: string; priority: string; roadmap: string;
   custom: boolean; active: boolean; justification: string;
 }
 interface DbIterRow {
   id: number; checkId: number; version: number; comment: string; pillar: string;
   checkName: string; plainEnglish: string; bucket: string; effort: string; how: string;
-  source: string; hero: boolean; phase: string; dupOf: string; mvp: string; priority: string; createdAt: string;
+  source: string; hero: boolean; phase: string; dupOf: string; mvp: string; priority: string;
+  roadmap: string; createdAt: string;
 }
 
 function toRow(r: DbCheckRow): CheckRow {
@@ -220,6 +226,7 @@ function toRow(r: DbCheckRow): CheckRow {
     dupOf: r.dupOf,
     mvp: r.mvp as CheckRow['mvp'],
     priority: r.priority as CheckRow['priority'],
+    roadmap: r.roadmap,
     custom: !!r.custom,
     active: !!r.active,
     justification: r.justification,
@@ -244,6 +251,7 @@ function toIter(r: DbIterRow): IterationRow {
     dupOf: r.dupOf,
     mvp: r.mvp as IterationRow['mvp'],
     priority: r.priority as IterationRow['priority'],
+    roadmap: r.roadmap,
     createdAt: r.createdAt,
   };
 }
@@ -273,13 +281,13 @@ const SELECT_CHECK = `
   SELECT c.id, c.pillar_id AS "pillarId", p.name AS pillar,
          c.name AS "checkName", c.plain_english AS "plainEnglish", c.feasibility AS bucket,
          c.effort, c.how, c.source, c.hero, c.phase, c.dup_of AS "dupOf", c.mvp, c.priority,
-         c.custom, c.active, c.justification
+         c.roadmap, c.custom, c.active, c.justification
   FROM checks c JOIN pillars p ON p.id = c.pillar_id
 `;
 const SELECT_ITER = `
   SELECT id, check_id AS "checkId", version, comment, pillar, name AS "checkName",
          plain_english AS "plainEnglish", feasibility AS bucket, effort, how, source, hero, phase,
-         dup_of AS "dupOf", mvp, priority, created_at::text AS "createdAt"
+         dup_of AS "dupOf", mvp, priority, roadmap, created_at::text AS "createdAt"
   FROM check_iterations
 `;
 
@@ -351,9 +359,9 @@ export async function createCheck(input: CheckInput, custom = true): Promise<Che
     await client.query('BEGIN');
     const pid = await resolvePillarId(client, input.pillar);
     const r = await client.query(
-      `INSERT INTO checks (pillar_id, name, plain_english, feasibility, effort, how, source, hero, phase, dup_of, mvp, priority, custom)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`,
-      [pid, input.check, input.plainEnglish, input.bucket, input.effort, input.how, input.source, input.hero, input.phase, input.dupOf, input.mvp, input.priority, custom],
+      `INSERT INTO checks (pillar_id, name, plain_english, feasibility, effort, how, source, hero, phase, dup_of, mvp, priority, roadmap, custom)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
+      [pid, input.check, input.plainEnglish, input.bucket, input.effort, input.how, input.source, input.hero, input.phase, input.dupOf, input.mvp, input.priority, input.roadmap, custom],
     );
     id = r.rows[0].id;
     await client.query('COMMIT');
@@ -409,7 +417,7 @@ export async function deleteCheck(id: number): Promise<boolean> {
 function iterValues(input: IterationInput): unknown[] {
   return [
     input.comment, input.pillar, input.check, input.plainEnglish, input.bucket,
-    input.effort, input.how, input.source, input.hero, input.phase, input.dupOf, input.mvp, input.priority,
+    input.effort, input.how, input.source, input.hero, input.phase, input.dupOf, input.mvp, input.priority, input.roadmap,
   ];
 }
 
@@ -427,8 +435,8 @@ export async function createIteration(checkId: number, input: IterationInput): P
       );
       const version = nx.rows[0].next;
       const r = await client.query(
-        `INSERT INTO check_iterations (check_id, version, comment, pillar, name, plain_english, feasibility, effort, how, source, hero, phase, dup_of, mvp, priority)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
+        `INSERT INTO check_iterations (check_id, version, comment, pillar, name, plain_english, feasibility, effort, how, source, hero, phase, dup_of, mvp, priority, roadmap)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
         [checkId, version, ...iterValues(input)],
       );
       id = r.rows[0].id;
@@ -447,8 +455,8 @@ export async function updateIteration(id: number, input: IterationInput): Promis
   await ensureSchema();
   const r = await pool.query(
     `UPDATE check_iterations SET comment=$1, pillar=$2, name=$3, plain_english=$4, feasibility=$5,
-       effort=$6, how=$7, source=$8, hero=$9, phase=$10, dup_of=$11, mvp=$12, priority=$13
-     WHERE id=$14`,
+       effort=$6, how=$7, source=$8, hero=$9, phase=$10, dup_of=$11, mvp=$12, priority=$13, roadmap=$14
+     WHERE id=$15`,
     [...iterValues(input), id],
   );
   return r.rowCount ? getIteration(id) : null;

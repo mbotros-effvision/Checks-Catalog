@@ -76,6 +76,7 @@ export function EditorModal({
         source,
         plainEnglish: form.plainEnglish.trim(),
         how: form.how.trim(),
+        roadmap: form.roadmap.trim(),
         dupOf: form.mvp === 'Duplicated' ? dupOf : '',
       },
       comment.trim(),
@@ -168,6 +169,17 @@ export function EditorModal({
                 placeholder="Recommended delivery path first, then alternatives…"
                 value={form.how}
                 onChange={(e) => set('how', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="frow one">
+            <div className="fld">
+              <label>Roadmap</label>
+              <textarea
+                placeholder="Where this check sits on the roadmap…"
+                value={form.roadmap}
+                onChange={(e) => set('roadmap', e.target.value)}
               />
             </div>
           </div>

@@ -26,6 +26,7 @@ export async function GET() {
     { header: 'Check', key: 'check', width: 42 },
     { header: 'Plain English', key: 'plainEnglish', width: 55 },
     { header: 'How', key: 'how', width: 55 },
+    { header: 'Roadmap', key: 'roadmap', width: 45 },
     { header: 'Source', key: 'source', width: 14 },
     { header: 'Effort', key: 'effort', width: 9 },
     { header: 'MVP', key: 'mvp', width: 12 },
@@ -45,6 +46,7 @@ export async function GET() {
       check: src.check,
       plainEnglish: src.plainEnglish,
       how: src.how,
+      roadmap: src.roadmap,
       source: src.source,
       effort: src.effort,
       mvp: src.mvp,
@@ -56,7 +58,7 @@ export async function GET() {
 
   ws.getRow(1).font = { bold: true };
   ws.views = [{ state: 'frozen', ySplit: 1 }];
-  ws.autoFilter = { from: 'A1', to: 'L1' };
+  ws.autoFilter = { from: 'A1', to: 'M1' };
 
   const buffer = await wb.xlsx.writeBuffer();
   return new Response(buffer, {

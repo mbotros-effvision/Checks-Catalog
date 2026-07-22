@@ -10,14 +10,14 @@ import { EditorModal } from '@/components/EditorModal';
 
 const BLANK_INPUT: CheckInput = {
   pillar: '', check: '', plainEnglish: '', bucket: 'human',
-  effort: 'N/A', how: '', source: '', hero: false, phase: 'A', dupOf: '', mvp: 'Post-MVP', priority: '',
+  effort: 'N/A', how: '', source: '', hero: false, phase: 'A', dupOf: '', mvp: 'Post-MVP', priority: '', roadmap: '',
 };
 
 function toInput(r: CheckRow | IterationRow): CheckInput {
   return {
     pillar: r.pillar, check: r.check, plainEnglish: r.plainEnglish, bucket: r.bucket,
     effort: r.effort, how: r.how, source: r.source, hero: r.hero, phase: r.phase, dupOf: r.dupOf,
-    mvp: r.mvp, priority: r.priority,
+    mvp: r.mvp, priority: r.priority, roadmap: r.roadmap,
   };
 }
 
@@ -70,7 +70,7 @@ export default function Page() {
           versions,
           pillar: src.pillar, check: src.check, plainEnglish: src.plainEnglish,
           bucket: src.bucket, effort: src.effort, how: src.how, source: src.source, hero: src.hero,
-          phase: src.phase, dupOf: src.dupOf, mvp: src.mvp, priority: src.priority,
+          phase: src.phase, dupOf: src.dupOf, mvp: src.mvp, priority: src.priority, roadmap: src.roadmap,
           newVersionInput,
         };
       }),

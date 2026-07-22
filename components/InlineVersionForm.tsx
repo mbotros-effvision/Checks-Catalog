@@ -43,6 +43,7 @@ export function InlineVersionForm({ title, initial, initialComment, onSave, onCa
         source,
         plainEnglish: form.plainEnglish.trim(),
         how: form.how.trim(),
+        roadmap: form.roadmap.trim(),
         dupOf: form.mvp === 'Duplicated' ? dupOf : '',
       },
       comment.trim(),
@@ -80,6 +81,11 @@ export function InlineVersionForm({ title, initial, initialComment, onSave, onCa
         <label className="ivf-field ivf-span2">
           <span>How</span>
           <textarea value={form.how} onChange={(e) => set('how', e.target.value)} placeholder="How to deliver this check…" />
+        </label>
+
+        <label className="ivf-field ivf-span2">
+          <span>Roadmap</span>
+          <textarea value={form.roadmap} onChange={(e) => set('roadmap', e.target.value)} placeholder="Where this check sits on the roadmap…" />
         </label>
 
         <label className="ivf-field">

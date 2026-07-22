@@ -7,7 +7,7 @@ function cat(pillar: string, check: string): CheckRow {
   return {
     id: nextId++, pillarId: 1, pillar, check, plainEnglish: '', bucket: 'human', effort: 'N/A',
     how: '', source: 'Snurra QA', hero: false, phase: 'A', dupOf: '', mvp: 'Post-MVP',
-    priority: '', custom: false, active: true, justification: '',
+    priority: '', roadmap: '', custom: false, active: true, justification: '',
   };
 }
 

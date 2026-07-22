@@ -27,7 +27,7 @@ export function filteredRows(rows: CheckRow[], filters: Filters): CheckRow[] {
     }
     if (q) {
       const hay = (
-        r.pillar + ' ' + r.check + ' ' + r.plainEnglish + ' ' + r.how + ' ' + r.source + ' ' + BUCKETS[r.bucket].label
+        r.pillar + ' ' + r.check + ' ' + r.plainEnglish + ' ' + r.how + ' ' + r.roadmap + ' ' + r.source + ' ' + BUCKETS[r.bucket].label
       ).toLowerCase();
       if (hay.indexOf(q) < 0) return false;
     }

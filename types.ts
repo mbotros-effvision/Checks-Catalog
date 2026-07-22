@@ -46,6 +46,7 @@ export interface CheckRow {
   dupOf: string;
   mvp: Mvp;
   priority: Prio;
+  roadmap: string;
   custom: boolean; // false for seeded reference rows, true for user-added
   active: boolean; // review-workflow: false = deactivated by the team
   justification: string; // reason for deactivation / review notes
@@ -66,6 +67,7 @@ export interface CheckInput {
   dupOf: string;
   mvp: Mvp;
   priority: Prio;
+  roadmap: string;
 }
 
 /** An editable version of a check (row in `check_iterations`) — a full snapshot
@@ -87,6 +89,7 @@ export interface IterationRow {
   dupOf: string;
   mvp: Mvp;
   priority: Prio;
+  roadmap: string;
   createdAt: string;
 }
 
@@ -117,6 +120,7 @@ export interface DisplayRow {
   dupOf: string;
   mvp: Mvp;
   priority: Prio;
+  roadmap: string;
   /** Prefill for a NEW version: a copy of the latest version, or the base check
    *  with How blanked when there are no versions yet. */
   newVersionInput: CheckInput;

@@ -24,7 +24,7 @@ function iterationToInput(v: IterationRow): CheckInput {
   return {
     pillar: v.pillar, check: v.check, plainEnglish: v.plainEnglish, bucket: v.bucket,
     effort: v.effort, how: v.how, source: v.source, hero: v.hero, phase: v.phase, dupOf: v.dupOf,
-    mvp: v.mvp, priority: v.priority,
+    mvp: v.mvp, priority: v.priority, roadmap: v.roadmap,
   };
 }
 
@@ -101,8 +101,9 @@ export function ChecksTable({
           <tr>
             <th style={{ width: '44px' }}>ID</th>
             <th style={{ width: '10%' }}>Pillar</th>
-            <th style={{ width: '22%' }}>Check</th>
-            <th style={{ width: '26%' }}>Plain English</th>
+            <th style={{ width: '19%' }}>Check</th>
+            <th style={{ width: '20%' }}>Plain English</th>
+            <th style={{ width: '15%' }}>Roadmap</th>
             <th style={{ width: '78px' }}>Source</th>
             <th style={{ width: '46px' }}>MVP</th>
             <th style={{ width: '70px' }}>Priority</th>
@@ -126,7 +127,7 @@ export function ChecksTable({
               <Fragment key={r.checkId}>
                 {showBand && (
                   <tr className="ph">
-                    <td colSpan={9}>
+                    <td colSpan={10}>
                       <div className="ph-band" style={{ ['--lc' as string]: 'var(--accent)' }}>
                         <span className="pn">{r.pillar}</span>
                       </div>
@@ -169,6 +170,9 @@ export function ChecksTable({
                     <div className="pl">{r.plainEnglish}</div>
                   </td>
                   <td>
+                    <div className="pl">{r.roadmap}</div>
+                  </td>
+                  <td>
                     <span className={'src ' + srcCls(r.source)}>{r.source}</span>
                   </td>
                   <td>
@@ -196,7 +200,7 @@ export function ChecksTable({
 
                 {open && (
                   <tr className="ver-exp">
-                    <td colSpan={9}>
+                    <td colSpan={10}>
                       <div className="ver-anim">
                         <div className="ver-anim-inner">
                           <div className="ver-panel">
@@ -245,7 +249,7 @@ export function ChecksTable({
 
                 {form?.checkId === r.checkId && (
                   <tr className="ivf-row">
-                    <td colSpan={9}>
+                    <td colSpan={10}>
                       <InlineVersionForm
                         title={form.title}
                         initial={form.initial}

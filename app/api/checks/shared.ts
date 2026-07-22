@@ -33,6 +33,7 @@ export function coerceInput(body: unknown): CheckInput | { error: string } {
     dupOf: mvp === 'Duplicated' ? dupOf : '',
     mvp,
     priority: (PRIOS.includes(b.priority as Prio) ? b.priority : '') as Prio,
+    roadmap: String(b.roadmap ?? '').trim(),
   };
 }
 

@@ -19,6 +19,7 @@ function mk(partial: Partial<CheckRow> & Pick<CheckRow, 'pillar' | 'check'>): Ch
     phase: 'A',
     dupOf: '',
     priority: '',
+    roadmap: '',
     custom: false,
     active: true,
     justification: '',
