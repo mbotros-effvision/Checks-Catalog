@@ -145,10 +145,12 @@ export async function ensureSeeded(): Promise<void> {
 
 // ---- Roadmap backfill ------------------------------------------------------
 // ensureSeeded() early-returns once `checks` has rows, so a database seeded
-// before the roadmap field was populated never picks it up from the seed.
+// before the roadmap mapping existed never picks it up from the seed. Syncs the
+// three columns that mapping writes: `roadmap`, plus the `mvp`/`dup_of` pair
+// that marks the 17 checks v4 removed as duplicates.
 // Upsert-always, like the Mamta seed: base rows are read-only in the app, so
-// rewriting the roadmap column clobbers nothing user-authored (iteration rows
-// are untouched). Memoized, so this costs one statement per server process.
+// rewriting these columns clobbers nothing user-authored (iteration rows are
+// untouched). Memoized, so this costs one statement per server process.
 let roadmapReady: Promise<void> | null = null;
 
 export function ensureRoadmapBackfilled(): Promise<void> {
@@ -167,18 +169,21 @@ async function backfillRoadmap(): Promise<void> {
   try {
     await client.query('BEGIN');
     await client.query('SELECT pg_advisory_xact_lock($1)', [727102]); // distinct from the other seeds
-    const cols = 3;
+    const cols = 5;
     const tuples = CHECKS.map(
       (_, i) => '(' + Array.from({ length: cols }, (_, j) => `$${i * cols + j + 1}`).join(',') + ')',
     ).join(',');
     const vals: unknown[] = [];
-    for (const ch of CHECKS) vals.push(ch.pillar, ch.check, ch.roadmap);
+    for (const ch of CHECKS) vals.push(ch.pillar, ch.check, ch.roadmap, ch.mvp, ch.dupOf || '');
     await client.query(
-      `UPDATE checks c SET roadmap = v.roadmap
-       FROM (VALUES ${tuples}) AS v(pillar, name, roadmap)
+      `UPDATE checks c SET roadmap = v.roadmap, mvp = v.mvp, dup_of = v.dup_of
+       FROM (VALUES ${tuples}) AS v(pillar, name, roadmap, mvp, dup_of)
        JOIN pillars p ON p.name = v.pillar
        WHERE c.pillar_id = p.id AND c.name = v.name
-         AND c.custom = false AND c.roadmap IS DISTINCT FROM v.roadmap`,
+         AND c.custom = false
+         AND (c.roadmap IS DISTINCT FROM v.roadmap
+              OR c.mvp IS DISTINCT FROM v.mvp
+              OR c.dup_of IS DISTINCT FROM v.dup_of)`,
       vals,
     );
     await client.query('COMMIT');

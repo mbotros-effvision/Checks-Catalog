@@ -18,7 +18,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Homepage",
@@ -31,7 +31,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Homepage",
@@ -70,7 +70,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Homepage",
@@ -161,20 +161,21 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Homepage",
     "check": "Profiling cookies off by default (Ex-US)",
     "plainEnglish": "In the EU advertising cookies must be switched off unless the user actively turns them on",
-    "mvp": "MVP",
+    "mvp": "Duplicated",
     "bucket": "agentic",
     "effort": "Medium",
     "how": "Claude content/structure read (AI API)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Phase 2 — Capture engines · Profiling cookies off by default (Ex-US)"
+    "dupOf": "Profiling cookies off by default (Ex-US)",
+    "roadmap": "Phase 2 — Capture engines · Profiling cookies off by default (Ex-US) (duplicate)"
   },
   {
     "pillar": "Navigation",
@@ -187,7 +188,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Navigation",
@@ -213,7 +214,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Navigation",
@@ -258,14 +259,15 @@ export const CHECKS: Check[] = [
     "pillar": "Navigation",
     "check": "Switching region routes to correct content",
     "plainEnglish": "When someone picks a different country the site takes them to that region's content",
-    "mvp": "Post-MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Medium",
     "how": "Playwright DOM/interaction check (DIY)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "Visitor can override geo-detection manually",
+    "roadmap": "Post-MVP — not sequenced (duplicate)"
   },
   {
     "pillar": "Content",
@@ -317,7 +319,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Content",
@@ -369,7 +371,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Content",
@@ -479,14 +481,15 @@ export const CHECKS: Check[] = [
     "pillar": "Content",
     "check": "Copyright year current in footer",
     "plainEnglish": "The year shown at the bottom is the current year",
-    "mvp": "MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Low",
     "how": "Text / date / regex check (DIY)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "Footer shows current copyright year",
+    "roadmap": "Phase 1 — Quick wins · Footer shows current copyright year (duplicate)"
   },
   {
     "pillar": "Performance & SEO",
@@ -668,7 +671,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Accessibility",
@@ -720,7 +723,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Accessibility",
@@ -772,7 +775,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Responsive",
@@ -785,7 +788,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Responsive",
@@ -811,7 +814,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Responsive",
@@ -824,7 +827,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Security",
@@ -915,7 +918,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Security",
@@ -954,7 +957,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Security",
@@ -967,7 +970,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Security",
@@ -999,40 +1002,43 @@ export const CHECKS: Check[] = [
     "pillar": "Security",
     "check": "SSL certificate not expiring within 30 days",
     "plainEnglish": "The security certificate has plenty of time left — expired certificates take sites offline",
-    "mvp": "MVP",
+    "mvp": "Duplicated",
     "bucket": "thirdparty",
     "effort": "Low",
     "how": "SSL Labs v4 API (free API, non-commercial) · testssl.sh/SSLyze (OSS)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Phase 1 — Quick wins · SSL certificate not expiring within 30 days"
+    "dupOf": "SSL certificate not expiring within 30 days",
+    "roadmap": "Phase 1 — Quick wins · SSL certificate not expiring within 30 days (duplicate)"
   },
   {
     "pillar": "Security",
     "check": "No analytics firing before GDPR consent",
     "plainEnglish": "Google Analytics must stay silent until the visitor clicks Accept — earlier firing is illegal",
-    "mvp": "Post-MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Medium",
     "how": "Playwright network/consent capture (DIY)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "GA4 tag present and firing correctly post-consent",
+    "roadmap": "Phase 2 — Capture engines · GA4 tag present and firing correctly post-consent (duplicate)"
   },
   {
     "pillar": "Security",
     "check": "Cookie consent / pre-consent tracking check",
     "plainEnglish": "Tracking fired before the user consents.",
-    "mvp": "Post-MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Medium",
     "how": "Playwright network/consent capture (DIY)",
     "source": "Presales",
     "hero": true,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "No tracking cookies set before user consent",
+    "roadmap": "Phase 2 — Capture engines · No tracking cookies set before user consent (duplicate)"
   },
   {
     "pillar": "Forms & CTAs",
@@ -1045,7 +1051,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Forms & CTAs",
@@ -1071,7 +1077,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Forms & CTAs",
@@ -1175,7 +1181,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Geo Detection",
@@ -1188,7 +1194,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Geo Detection",
@@ -1201,7 +1207,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Geo Detection",
@@ -1214,7 +1220,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Geo Detection",
@@ -1227,7 +1233,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Geo Detection",
@@ -1266,7 +1272,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Geo Detection",
@@ -1292,7 +1298,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "GDPR Compliance",
@@ -1357,59 +1363,63 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "GDPR Compliance",
     "check": "CMP loads before any tracking scripts fire",
     "plainEnglish": "The cookie consent tool loads first — ensures no data is collected without permission",
-    "mvp": "Post-MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Medium",
     "how": "Playwright network/consent capture (DIY)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "No tracking cookies set before user consent",
+    "roadmap": "Phase 2 — Capture engines · No tracking cookies set before user consent (duplicate)"
   },
   {
     "pillar": "GDPR Compliance",
     "check": "Analytics fires only after user gives consent",
     "plainEnglish": "Google Analytics only starts working after the visitor clicks Accept — not before",
-    "mvp": "Post-MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Medium",
     "how": "Playwright network/consent capture (DIY)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "GA4 tag present and firing correctly post-consent",
+    "roadmap": "Phase 2 — Capture engines · GA4 tag present and firing correctly post-consent (duplicate)"
   },
   {
     "pillar": "GDPR Compliance",
     "check": "TCF consent string correctly set after acceptance",
     "plainEnglish": "A coded record of the cookie choice is correctly saved — how EU compliance is technically evidenced",
-    "mvp": "Post-MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Medium",
     "how": "Playwright cookie/storage check (DIY)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "Cookie preferences remembered across sessions",
+    "roadmap": "Phase 2 — Capture engines · Cookie preferences remembered across sessions (duplicate)"
   },
   {
     "pillar": "GDPR Compliance",
     "check": "Consent event fired in DataLayer after acceptance",
     "plainEnglish": "When cookies are accepted the tag management system is notified — ensures analytics activates correctly",
-    "mvp": "Post-MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Medium",
     "how": "Playwright dataLayer probe (DIY)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "GA4 tag present and firing correctly post-consent",
+    "roadmap": "Phase 2 — Capture engines · GA4 tag present and firing correctly post-consent (duplicate)"
   },
   {
     "pillar": "IA & Structure",
@@ -1487,7 +1497,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "IA & Structure",
@@ -1565,7 +1575,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Technical SEO & Redirects",
@@ -1617,7 +1627,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Technical SEO & Redirects",
@@ -1721,7 +1731,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Platform & Tech / Code Health",
@@ -1747,7 +1757,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Platform & Tech / Code Health",
@@ -1760,7 +1770,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Platform & Tech / Code Health",
@@ -1773,20 +1783,21 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Platform & Tech / Code Health",
     "check": "JavaScript console errors on key pages",
     "plainEnglish": "Live JS errors on top templates.",
-    "mvp": "MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Low",
     "how": "Playwright console-error capture (DIY)",
     "source": "Presales",
     "hero": true,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "Zero JavaScript errors on page load",
+    "roadmap": "Phase 1 — Quick wins · Zero JavaScript errors on page load (duplicate)"
   },
   {
     "pillar": "Performance",
@@ -1864,7 +1875,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Mobile",
@@ -1890,7 +1901,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Mobile",
@@ -1916,7 +1927,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": true,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Manual UX QA",
@@ -1929,7 +1940,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Manual UX QA",
@@ -1942,7 +1953,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Manual UX QA",
@@ -1955,7 +1966,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": true,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Manual UX QA",
@@ -1968,7 +1979,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Manual UX QA",
@@ -1981,7 +1992,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "SSL & Domain Health",
@@ -2098,7 +2109,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Third-Party Script Health",
@@ -2124,7 +2135,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Third-Party Script Health",
@@ -2143,14 +2154,15 @@ export const CHECKS: Check[] = [
     "pillar": "Third-Party Script Health",
     "check": "Consent platform (OneTrust Cookiebot etc.) loading correctly",
     "plainEnglish": "The cookie consent tool itself is functional — if it breaks all consent is broken",
-    "mvp": "Post-MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Medium",
     "how": "Playwright DOM/interaction check (DIY)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "All third-party scripts loading — no 404s",
+    "roadmap": "Phase 2 — Capture engines · All third-party scripts loading — no 404s (duplicate)"
   },
   {
     "pillar": "Analytics & Tag Integrity",
@@ -2176,7 +2188,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Analytics & Tag Integrity",
@@ -2221,14 +2233,15 @@ export const CHECKS: Check[] = [
     "pillar": "Analytics & Tag Integrity",
     "check": "No analytics data collected before GDPR consent (Ex-US)",
     "plainEnglish": "Confirmed no data reaches Google Analytics before the user accepts — separate from the security consent check",
-    "mvp": "Post-MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Medium",
     "how": "Playwright network/consent capture (DIY)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "GA4 tag present and firing correctly post-consent",
+    "roadmap": "Phase 2 — Capture engines · GA4 tag present and firing correctly post-consent (duplicate)"
   },
   {
     "pillar": "Content Change Detection",
@@ -2254,7 +2267,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Content Change Detection",
@@ -2280,33 +2293,35 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Content Change Detection",
     "check": "No placeholder text on any page",
     "plainEnglish": "No Lorem ipsum or INSERT TEXT HERE is showing — simpler version already in Content section; this is the site-wide sweep",
-    "mvp": "MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Low",
     "how": "Text / date / regex check (DIY)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Phase 1 — Quick wins · No placeholder text on any page"
+    "dupOf": "No placeholder text on any page",
+    "roadmap": "Phase 1 — Quick wins · No placeholder text on any page (duplicate)"
   },
   {
     "pillar": "Content Change Detection",
     "check": "Copyright year current across all pages",
     "plainEnglish": "The year shown in footers matches the current year across every page — not just the homepage",
-    "mvp": "MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Low",
     "how": "Text / date / regex check (DIY)",
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "Footer shows current copyright year",
+    "roadmap": "Phase 1 — Quick wins · Footer shows current copyright year (duplicate)"
   },
   {
     "pillar": "Regulatory Intelligence",
@@ -2319,7 +2334,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Regulatory Intelligence",
@@ -2332,7 +2347,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Regulatory Intelligence",
@@ -2345,7 +2360,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Regulatory Intelligence",
@@ -2358,7 +2373,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Regulatory Intelligence",
@@ -2371,7 +2386,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Audit Trail & Evidence",
@@ -2384,7 +2399,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Audit Trail & Evidence",
@@ -2397,7 +2412,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Audit Trail & Evidence",
@@ -2410,7 +2425,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Audit Trail & Evidence",
@@ -2423,7 +2438,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Audit Trail & Evidence",
@@ -2436,7 +2451,7 @@ export const CHECKS: Check[] = [
     "source": "Snurra QA",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Competitive Benchmark",
@@ -2475,7 +2490,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "B",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Deep-dive Workstreams",
@@ -2488,7 +2503,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "B",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Deep-dive Workstreams",
@@ -2501,7 +2516,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "B",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Deep-dive Workstreams",
@@ -2514,7 +2529,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "B",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Deep-dive Workstreams",
@@ -2527,7 +2542,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "B",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Deep-dive Workstreams",
@@ -2540,7 +2555,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "B",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Deep-dive Workstreams",
@@ -2553,7 +2568,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "B",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Deep-dive Workstreams",
@@ -2566,7 +2581,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "B",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Deep-dive Workstreams",
@@ -2579,7 +2594,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "B",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Deep-dive Workstreams",
@@ -2592,7 +2607,7 @@ export const CHECKS: Check[] = [
     "source": "Presales",
     "hero": false,
     "phase": "B",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Availability & Monitoring",
@@ -2644,7 +2659,7 @@ export const CHECKS: Check[] = [
     "source": "Spectera",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "UX & Behaviour",
@@ -2657,7 +2672,7 @@ export const CHECKS: Check[] = [
     "source": "Spectera",
     "hero": true,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "UX & Behaviour",
@@ -2670,7 +2685,7 @@ export const CHECKS: Check[] = [
     "source": "Spectera",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "UX & Behaviour",
@@ -2683,7 +2698,7 @@ export const CHECKS: Check[] = [
     "source": "Spectera",
     "hero": true,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Observability",
@@ -2696,33 +2711,35 @@ export const CHECKS: Check[] = [
     "source": "Spectera",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Observability",
     "check": "Frontend error logging integration check",
     "plainEnglish": "Detects whether a production error-logging tool is present on key pages",
-    "mvp": "MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Low",
     "how": "Script + network detection for Sentry / Datadog / similar (DIY)",
     "source": "Presales",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "Third-party scripts / martech footprint",
+    "roadmap": "Post-MVP — not sequenced (duplicate)"
   },
   {
     "pillar": "Observability",
     "check": "JavaScript bundle / chunk load failure detection",
     "plainEnglish": "Catches missing or failed script chunks that can break modern front-end apps after deployment",
-    "mvp": "MVP",
+    "mvp": "Duplicated",
     "bucket": "build",
     "effort": "Low",
     "how": "Chunk-load failure capture via console + network (DIY)",
     "source": "Spectera",
     "hero": true,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "dupOf": "Zero JavaScript errors on page load",
+    "roadmap": "Phase 1 — Quick wins · Zero JavaScript errors on page load (duplicate)"
   },
   {
     "pillar": "Content Quality",
@@ -2735,7 +2752,7 @@ export const CHECKS: Check[] = [
     "source": "Spectera",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Content Quality",
@@ -2748,7 +2765,7 @@ export const CHECKS: Check[] = [
     "source": "Spectera",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Content Quality",
@@ -2761,7 +2778,7 @@ export const CHECKS: Check[] = [
     "source": "Spectera",
     "hero": true,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Content Quality",
@@ -2774,7 +2791,7 @@ export const CHECKS: Check[] = [
     "source": "Spectera",
     "hero": true,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Visual Stability",
@@ -2813,7 +2830,7 @@ export const CHECKS: Check[] = [
     "source": "Spectera",
     "hero": true,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   },
   {
     "pillar": "Visual Stability",
@@ -2826,6 +2843,6 @@ export const CHECKS: Check[] = [
     "source": "Spectera",
     "hero": false,
     "phase": "A",
-    "roadmap": "Not in roadmap"
+    "roadmap": "Post-MVP — not sequenced"
   }
 ];

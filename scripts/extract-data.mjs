@@ -6,6 +6,15 @@
 // then gets a "roadmap" field from spectra-implementation-roadmap.html — the
 // phase + item name where it sits on the implementation roadmap.
 //
+// The three sets line up exactly, which is what the assertions below enforce:
+//   · the roadmap's 124 items = 2 shared-engine builds + v4's 122 MVP checks, 1:1
+//     ("Every MVP check from the v4 feasibility report … duplicates removed")
+//   · v4's other 78 checks are Post-MVP — the roadmap never sequenced them, so
+//     they read "Post-MVP — not sequenced"
+//   · the 17 v3-only checks ARE the duplicates v4 removed. Each is paired with
+//     the v4 check it duplicates (DUPLICATES below) and inherits that check's
+//     roadmap value, prefixed "Duplicate of …".
+//
 // Run from the feasibility-app/ folder:  node scripts/extract-data.mjs
 // Standalone (no deps) so it can run before `npm install`.
 
@@ -90,9 +99,52 @@ for (const c of [...merged, ...extra]) {
 const checks = pillarOrder.flatMap((p) => byPillar.get(p));
 console.log(`Base v4 checks: ${merged.length}; restored from v3: ${extra.length}; total: ${checks.length}`);
 
+// ---- The 17 duplicates -----------------------------------------------------
+// v3-only check  ->  the v4 check it duplicates. Curated by comparing the two
+// reports' plain-English text; several of the v3 rows say so themselves (e.g.
+// "simpler version already in Content section", "separate from the security
+// consent check"). The duplicate inherits its twin's roadmap value, so a dupe
+// of a Post-MVP check correctly reads as Post-MVP rather than as roadmap work.
+const DUPLICATES = {
+  'Homepage||Profiling cookies off by default (Ex-US)': 'Security||Profiling cookies off by default (Ex-US)',
+  'Navigation||Switching region routes to correct content': 'Geo Detection||Visitor can override geo-detection manually',
+  'Content||Copyright year current in footer': 'Homepage||Footer shows current copyright year',
+  'Security||SSL certificate not expiring within 30 days': 'SSL & Domain Health||SSL certificate not expiring within 30 days',
+  'Security||No analytics firing before GDPR consent': 'Analytics & Tag Integrity||GA4 tag present and firing correctly post-consent',
+  'Security||Cookie consent / pre-consent tracking check': 'Security||No tracking cookies set before user consent',
+  'GDPR Compliance||CMP loads before any tracking scripts fire': 'Security||No tracking cookies set before user consent',
+  'GDPR Compliance||Analytics fires only after user gives consent': 'Analytics & Tag Integrity||GA4 tag present and firing correctly post-consent',
+  'GDPR Compliance||TCF consent string correctly set after acceptance': 'Homepage||Cookie preferences remembered across sessions',
+  'GDPR Compliance||Consent event fired in DataLayer after acceptance': 'Analytics & Tag Integrity||GA4 tag present and firing correctly post-consent',
+  'Platform & Tech / Code Health||JavaScript console errors on key pages': 'Performance & SEO||Zero JavaScript errors on page load',
+  'Third-Party Script Health||Consent platform (OneTrust Cookiebot etc.) loading correctly': 'Third-Party Script Health||All third-party scripts loading — no 404s',
+  'Analytics & Tag Integrity||No analytics data collected before GDPR consent (Ex-US)': 'Analytics & Tag Integrity||GA4 tag present and firing correctly post-consent',
+  'Content Change Detection||No placeholder text on any page': 'Content||No placeholder text on any page',
+  'Content Change Detection||Copyright year current across all pages': 'Homepage||Footer shows current copyright year',
+  'Observability||Frontend error logging integration check': 'Platform & Tech / Code Health||Third-party scripts / martech footprint',
+  'Observability||JavaScript bundle / chunk load failure detection': 'Performance & SEO||Zero JavaScript errors on page load',
+};
+
+const keyOf = (c) => c.pillar + '||' + c.check;
+const extraIds = new Set(extra.map(keyOf));
+const dupKeys = Object.keys(DUPLICATES);
+if (dupKeys.length !== extra.length) {
+  throw new Error(`DUPLICATES has ${dupKeys.length} entries but ${extra.length} checks were restored from v3`);
+}
+for (const [dup, twin] of Object.entries(DUPLICATES)) {
+  if (!extraIds.has(dup)) throw new Error(`DUPLICATES key is not one of the restored v3 checks: ${dup}`);
+  if (!v4ids.has(twin)) throw new Error(`DUPLICATES twin is not a v4 check: ${twin}`);
+}
+
 // ---- Roadmap mapping -------------------------------------------------------
 // Stamp each check with where it sits on the implementation roadmap:
-//   "Phase <n> — <phase name> · <roadmap check name>"  or  "Not in roadmap".
+//   v4 MVP        "Phase <n> — <phase name> · <roadmap check name>"
+//   v4 Post-MVP   "Post-MVP — not sequenced"
+//   the 17 dupes  the twin's value + " (duplicate)". The twin is NOT repeated
+//                 in the string — it is in dupOf, which the table renders as a
+//                 "Dup · <twin>" badge — so the column stays uniform: every
+//                 value starts with "Phase <n>" or "Post-MVP", and sorting or
+//                 filtering on it groups duplicates with the work they belong to.
 // Match on exact pillar||check first; fall back to check name alone (the
 // roadmap regrouped 3 checks under a different pillar — same check text).
 const phaseName = Object.fromEntries(ROADMAP.phases.map((p) => [p.n, p.name]));
@@ -102,24 +154,42 @@ for (const it of ROADMAP.items) {
   roadmapExact.set(it.pillar + '||' + it.check, it);
   roadmapByName.set(it.check.toLowerCase(), it);
 }
+
 const matchedRoadmapIds = new Set();
-let onRoadmap = 0;
+const byKey = new Map(checks.map((c) => [keyOf(c), c]));
+const counts = { roadmap: 0, deferred: 0, duplicate: 0 };
+
 for (const c of checks) {
-  const item = roadmapExact.get(c.pillar + '||' + c.check) ?? roadmapByName.get(c.check.toLowerCase());
+  if (DUPLICATES[keyOf(c)]) continue; // stamped in the pass below, off its twin
+  const item = roadmapExact.get(keyOf(c)) ?? roadmapByName.get(c.check.toLowerCase());
   if (item) {
     c.roadmap = `Phase ${item.phase} — ${phaseName[item.phase]} · ${item.check}`;
     matchedRoadmapIds.add(item.id);
-    onRoadmap++;
+    counts.roadmap++;
   } else {
-    c.roadmap = 'Not in roadmap';
+    // The roadmap sequenced the MVP set only, so anything left must be Post-MVP.
+    if (c.mvp === 'MVP') throw new Error(`MVP check with no roadmap item: ${keyOf(c)}`);
+    c.roadmap = 'Post-MVP — not sequenced';
+    counts.deferred++;
   }
 }
+
+for (const [dup, twinKey] of Object.entries(DUPLICATES)) {
+  const c = byKey.get(dup);
+  const twin = byKey.get(twinKey);
+  c.mvp = 'Duplicated';
+  c.dupOf = twin.check;
+  c.roadmap = `${twin.roadmap} (duplicate)`;
+  counts.duplicate++;
+}
+
 // Every roadmap item must land on a check — except pure engine builds
 // (shared infrastructure rows that are not themselves checks).
 const orphaned = ROADMAP.items.filter((it) => !matchedRoadmapIds.has(it.id) && it.engine !== true);
 if (orphaned.length) throw new Error(`Roadmap items matching no catalog check: ${orphaned.map((i) => i.id).join(' ; ')}`);
-console.log(`Roadmap: ${onRoadmap} checks mapped, ${checks.length - onRoadmap} not in roadmap; ` +
-  `${ROADMAP.items.length - matchedRoadmapIds.size} roadmap items unmatched (engine builds)`);
+if (counts.roadmap + counts.deferred + counts.duplicate !== checks.length) throw new Error('roadmap stamping missed a check');
+console.log(`Roadmap: ${counts.roadmap} on the roadmap, ${counts.deferred} Post-MVP (not sequenced), ` +
+  `${counts.duplicate} duplicates; ${ROADMAP.items.length - matchedRoadmapIds.size} roadmap items unmatched (engine builds)`);
 
 // ---- Sanity checks so a bad extraction fails loudly ------------------------
 const BUCKET_KEYS = Object.keys(P.buckets);

@@ -40,9 +40,14 @@ reference data seeded automatically on the first `GET /api/data`. Three relation
 - **`checks`** `(id, pillar_id → pillars, name, plain_english, feasibility, effort, how, source,
   hero, phase, dup_of, mvp, priority, roadmap, custom)` — the **217** reference checks (v4's
   re-verified 200 plus the 17 that v4 removed, restored from the v3 report), seeded once with
-  sequential ids. `roadmap` maps each check to its item on
-  `../spectra-implementation-roadmap.html` (`Phase N — <phase name> · <roadmap check name>`, or
-  `Not in roadmap`); already-seeded databases are backfilled on `GET /api/data`.
+  sequential ids. `roadmap` maps every check to `../spectra-implementation-roadmap.html`, which
+  sequenced v4's MVP set only — so the 217 split three ways:
+  **122** `Phase N — <phase name> · <roadmap check name>` (v4's MVP checks, 1:1 with the roadmap's
+  122 check items — its other 2 items are shared-engine builds), **78** `Post-MVP — not sequenced`,
+  and the **17** restored v3 checks, which are the duplicates v4 removed: each carries
+  `mvp = Duplicated`, `dup_of = <the v4 check it duplicates>`, and that check's roadmap value
+  suffixed `(duplicate)`. The pairings live in `scripts/extract-data.mjs` (`DUPLICATES`).
+  Already-seeded databases are backfilled on `GET /api/data`.
   **Base check fields are read-only** (no PUT on `/api/checks`). Listed ordered by pillar then id.
 - **`check_iterations`** `(id, check_id → checks, version, comment, …all check fields…, created_at)`
   — editable **versions** of a check. `version` is per-check (v1, v2, …); each row is a full
