@@ -69,8 +69,8 @@ export function InlineVersionForm({ title, initial, initialComment, onSave, onCa
         </label>
 
         <label className="ivf-field ivf-span2">
-          <span>Check *</span>
-          <input type="text" value={form.check} onChange={(e) => set('check', e.target.value)} />
+          <span>Check</span>
+          <input type="text" value={form.check} readOnly title="The check name can't be changed here" />
         </label>
 
         <label className="ivf-field ivf-span2">

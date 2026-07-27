@@ -202,6 +202,8 @@ tr.ivf-row > td { padding: 0; }
 .ivf-field input[type=text], .ivf-field textarea, .ivf-field select { font-family: inherit; font-size: 12.5px; padding: 7px 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); width: 100%; }
 .ivf-field textarea { resize: vertical; min-height: 44px; line-height: 1.45; }
 .ivf-field input:focus, .ivf-field textarea:focus, .ivf-field select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.ivf-field input[readonly] { background: var(--surface-2); color: var(--muted); cursor: default; }
+.ivf-field input[readonly]:focus { border-color: var(--line-strong); box-shadow: none; }
 .ivf-check { flex-direction: row; align-items: center; gap: 8px; }
 .ivf-check input { width: 15px; height: 15px; cursor: pointer; }
 .ivf-check > span { text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--ink); font-weight: 500; }
