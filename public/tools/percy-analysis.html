@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Percy by BrowserStack — Capabilities & Embedding Analysis</title>
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#0f1630; --panel:#131c3a; --panel2:#18234a;
+    --line:#25315c; --line2:#33427a;
+    --ink:#eaf0ff; --mut:#9db0d8; --mut2:#6f83b3;
+    --brand:#4f8cff; --brand2:#7aa8ff; --accent:#22d3aa;
+    --warn:#ffb020; --bad:#ff5d6c; --good:#22d3aa;
+    --chip:#1b2649; --shadow:0 12px 40px rgba(0,0,0,.45);
+    --radius:16px;
+  }
+  html[data-theme="light"]{
+    --bg:#eef2fb; --bg2:#e6ecfa; --panel:#ffffff; --panel2:#f4f7ff;
+    --line:#d6def2; --line2:#c3cfec; --ink:#101a33; --mut:#41527a; --mut2:#6b7aa3;
+    --chip:#eef2fd; --shadow:0 12px 34px rgba(20,40,90,.12);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 700px at 80% -10%,rgba(79,140,255,.18),transparent 60%),
+               radial-gradient(900px 600px at -10% 10%,rgba(34,211,170,.10),transparent 55%),
+               var(--bg);
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--brand2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 22px}
+
+  /* Header */
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(79,140,255,.5)}
+  .logo .mark svg{width:18px;height:18px}
+  nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
+  nav.links a:hover{background:var(--chip); color:var(--ink); text-decoration:none}
+  .tbtn{border:1px solid var(--line2); background:var(--chip); color:var(--ink); border-radius:9px;
+    padding:7px 10px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; gap:6px; align-items:center}
+  .tbtn:hover{border-color:var(--brand)}
+
+  /* Hero */
+  .hero{padding:46px 0 26px}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:var(--chip);
+    border:1px solid var(--line2); padding:6px 12px; border-radius:999px}
+  h1{font-size:40px; line-height:1.12; margin:16px 0 10px; letter-spacing:-.5px}
+  h1 .grad{background:linear-gradient(120deg,var(--brand2),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--mut); font-size:17px; max-width:800px}
+  .meta{margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; color:var(--mut2); font-size:13px}
+  .meta b{color:var(--mut)}
+
+  /* TL;DR */
+  .tldr{margin-top:26px; border:1px solid var(--line2); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:var(--shadow); overflow:hidden}
+  .tldr .hd{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line);
+    font-weight:800; letter-spacing:.3px}
+  .tldr .hd .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,170,.18)}
+  .tldr .bd{padding:18px 20px; color:var(--mut); font-size:15.5px}
+  .tldr .bd strong{color:var(--ink)}
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .vcard{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .vcard h4{margin:0 0 4px; font-size:13px; color:var(--mut2); text-transform:uppercase; letter-spacing:.08em}
+  .vcard p{margin:0; font-size:14px; color:var(--ink)}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; margin-top:8px}
+  .pill.good{background:rgba(34,211,170,.14); color:var(--good); border:1px solid rgba(34,211,170,.35)}
+  .pill.warn{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.35)}
+  .pill.bad{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.35)}
+
+  /* Sections */
+  section{padding:34px 0; border-top:1px solid var(--line)}
+  .kicker{font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--brand2)}
+  h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.3px}
+  .lead{color:var(--mut); max-width:880px; margin:0 0 20px}
+
+  /* Tabs */
+  .tabs{display:flex; gap:8px; margin:6px 0 18px; flex-wrap:wrap}
+  .tab{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:9px 16px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:14px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--accent)); color:#04122a; border-color:transparent}
+  .tabpane{display:none; animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .grid{display:grid; gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:16.5px; display:flex; align-items:center; gap:9px}
+  .card .ic{width:30px;height:30px;border-radius:9px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .card .ic svg{width:17px;height:17px;stroke:var(--brand2)}
+  .card p{margin:0; color:var(--mut); font-size:14px}
+  .tag{font-size:11px; font-weight:700; color:var(--mut2); background:var(--chip); border:1px solid var(--line2);
+    padding:2px 8px; border-radius:6px; margin-right:6px; display:inline-block; margin-top:8px}
+
+  /* Fit table */
+  .fit{overflow:hidden; border:1px solid var(--line); border-radius:14px}
+  .fitrow{display:grid; grid-template-columns:1.4fr 2.2fr .9fr; gap:0; border-bottom:1px solid var(--line)}
+  .fitrow:last-child{border-bottom:0}
+  .fitrow.head{background:var(--chip); font-weight:800; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut2)}
+  .fitrow>div{padding:14px 16px}
+  .fitrow .name{font-weight:700; color:var(--ink)}
+  .fitrow .name small{display:block; font-weight:500; color:var(--mut2); margin-top:3px}
+  .fitrow .desc{color:var(--mut); font-size:14px; border-left:1px solid var(--line); border-right:1px solid var(--line)}
+  .fitrow .verd{display:flex; align-items:center; justify-content:center}
+  .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
+  .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .badge.ok{background:rgba(79,140,255,.16); color:var(--brand2); border:1px solid rgba(79,140,255,.4)}
+  .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
+
+  /* Callout */
+  .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
+  .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
+  .callout.info{background:rgba(79,140,255,.08); border-color:rgba(79,140,255,.4)}
+  .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
+  .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
+  .callout.warn .cic{background:rgba(255,176,32,.16)}
+  .callout.info .cic{background:rgba(79,140,255,.16)}
+  .callout.bad .cic{background:rgba(255,93,108,.16)}
+  .callout h4{margin:0 0 5px; font-size:15.5px}
+  .callout p{margin:0; color:var(--mut); font-size:14.5px}
+  .callout.warn h4{color:var(--warn)}
+  .callout.bad h4{color:var(--bad)}
+  .callout .cic svg{width:19px;height:19px}
+
+  /* Scenario picker */
+  .picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
+  .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
+  .scn.active{border-color:var(--brand); background:rgba(79,140,255,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(79,140,255,.12)}
+  .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
+  .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
+  .rec h3{margin:6px 0 6px; font-size:18px}
+  .rec p{margin:0 0 8px; color:var(--mut); font-size:14.5px}
+  .rec .steps{margin:8px 0 0; padding-left:18px; color:var(--mut); font-size:14px}
+  .rec .steps li{margin:3px 0}
+
+  /* Filter grids (integrations + coverage) */
+  .filterbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--chip);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 12px}
+  .search input{border:0; background:transparent; color:var(--ink); font-size:14px; width:100%; outline:none}
+  .chip{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:7px 12px; border-radius:999px;
+    cursor:pointer; font-size:12.5px; font-weight:700}
+  .chip.active{background:var(--brand); color:#04122a; border-color:transparent}
+  .intgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .intitem{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px}
+  .intitem h5{margin:0 0 3px; font-size:14px}
+  .intitem span{font-size:12px; color:var(--mut2)}
+  .intitem .cat{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--brand2)}
+  .empty{color:var(--mut2); font-size:14px; padding:16px; text-align:center; grid-column:1/-1}
+
+  /* Coverage list */
+  .covgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .covitem{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px; position:relative}
+  .covitem .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .covitem h5{margin:0; font-size:14.5px; color:var(--ink); font-weight:700; line-height:1.3}
+  .covitem .pil{font-size:10px; color:var(--mut2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+  .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
+  .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
+  .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .ttag.redundant{background:rgba(79,140,255,.14); color:var(--brand2); border:1px solid rgba(79,140,255,.4)}
+  .ttag.partial{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
+    border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
+  .capname{color:var(--accent); font-weight:700}
+  .covcount{font-size:12.5px; color:var(--mut2); margin:0 0 10px}
+
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:10px; background:var(--panel)}
+  .acc>button{width:100%; text-align:left; background:transparent; border:0; color:var(--ink); padding:15px 18px;
+    font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .acc>button .ar{transition:transform .2s; color:var(--mut2)}
+  .acc.open>button .ar{transform:rotate(90deg)}
+  .acc .panel{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc.open .panel{max-height:1400px}
+  .acc .panel .inner{padding:0 18px 18px; color:var(--mut); font-size:14px}
+  code,.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px}
+  .codeblock{background:#0a1024; border:1px solid var(--line2); border-radius:10px; padding:13px 15px;
+    overflow:auto; color:#cfe0ff; margin:10px 0}
+  html[data-theme="light"] .codeblock{background:#0d1530; color:#dbe6ff}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:8px 0}
+  .kv code{color:var(--accent)}
+  .kv span{color:var(--mut)}
+
+  /* Pricing */
+  table.price{width:100%; border-collapse:collapse; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.price th,table.price td{padding:13px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top}
+  table.price th{background:var(--chip); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut2)}
+  table.price td.prod{font-weight:700; color:var(--ink)}
+  table.price td.prod small{display:block; font-weight:500; color:var(--mut2); margin-top:2px}
+  .money{font-weight:800; color:var(--accent)}
+  .quote{color:var(--warn); font-weight:700}
+  .freeword{color:var(--good); font-weight:800}
+
+  /* References */
+  .refs{columns:2; column-gap:26px}
+  .refs .ref{break-inside:avoid; margin-bottom:12px; padding-left:14px; border-left:2px solid var(--line2)}
+  .refs .ref a{font-weight:600; font-size:13.5px}
+  .refs .ref p{margin:2px 0 0; color:var(--mut2); font-size:12px}
+
+  footer{padding:30px 0 60px; color:var(--mut2); font-size:12.5px; border-top:1px solid var(--line)}
+  .disc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px}
+
+  @media(max-width:860px){
+    .g2,.g3,.verdict,.intgrid,.covgrid{grid-template-columns:1fr}
+    .fitrow{grid-template-columns:1fr}
+    .fitrow .desc{border-left:0;border-right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .refs{columns:1}
+    h1{font-size:31px}
+    nav.links{display:none}
+  }
+  @media print{
+    header.top,.tbtn,.picker,.filterbar{display:none!important}
+    .tabpane{display:block!important} .acc .panel{max-height:none!important}
+    body{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="#04122a" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="#04122a" stroke-width="1.6"/></svg></span>
+      Percy by BrowserStack <span style="color:var(--mut2);font-weight:600">· Embedding Analysis</span>
+    </div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#embed">Embedding</a>
+      <a href="#api">Integration</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#coverage">Checks covered</a>
+      <a href="#recommend">Recommendation</a>
+      <a href="#refs">Sources</a>
+    </nav>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Light</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <span class="eyebrow">● Product & Integration Assessment</span>
+    <h1>Percy by BrowserStack, assessed for <span class="grad">embedding into Snurra</span></h1>
+    <p class="sub">Percy is a <b>visual‑regression engine</b>. It captures a <b>DOM snapshot</b> during your existing tests, re‑renders it across real browsers and responsive widths in its own cloud, and pixel‑diffs each render against an <b>approved baseline</b>. It never drives or asserts application behaviour itself — it answers one question deterministically: <em>has the rendered appearance changed since the last approved baseline?</em> — and a human adjudicates the flagged diffs. This page maps its capabilities, how it slots into Snurra's audit worker, what it costs (billed per screenshot), and — held to a strict 100%‑certain bar — exactly which feasibility‑catalog checks it can cover.</p>
+    <div class="meta">
+      <span><b>Prepared:</b> 26 Jul 2026</span>
+      <span><b>Use case:</b> Visual‑regression / "looks‑right" signal for the Snurra Site Audit</span>
+      <span><b>Catalog:</b> feasibility‑app · 217 checks</span>
+    </div>
+
+    <div class="tldr">
+      <div class="hd"><span class="dot"></span> Bottom line up front</div>
+      <div class="bd">
+        Percy is <strong>not a scanner and not a functional test runner</strong> — it needs your test/CLI to load the page, and it produces exactly one kind of verdict: a <strong>deterministic visual diff against an approved baseline</strong>. That makes its value <strong>narrow but real</strong>: it covers precisely the <strong>"looks‑right / unchanged‑since‑baseline"</strong> checks — visual regression of key pages, hero/image swaps, unexpected banners &amp; overlays, and responsive layout at configured widths. The catch: every check becomes a <strong>regression monitor</strong> (Percy is 100% reliable at <em>detecting</em> a change; a human approves or rejects each flagged diff), it bills <strong>per screenshot</strong> (snapshot × browser × width — so 4 browsers × 3 widths = <strong>12× per page</strong>), and it does <strong>zero</strong> functional, performance, SEO, accessibility, security or content‑text judgment.
+        <div class="verdict">
+          <div class="vcard"><h4>Technical fit</h4><p>Drop‑in SDK (<code>@percy/playwright</code> — Snurra already runs Playwright); rendering is server‑side, so no CI‑speed cost.</p><span class="pill good">Strong</span></div>
+          <div class="vcard"><h4>What it covers</h4><p>One kind of verdict: a visual "looks‑right / unchanged‑vs‑baseline" diff across key pages, images, banners and responsive widths.</p><span class="pill good">Visual only</span></div>
+          <div class="vcard"><h4>Cost &amp; model</h4><p>Billed per screenshot (snapshot × browser × width); unlimited projects — but every flagged diff needs a human approve/reject.</p><span class="pill warn">Human‑in‑loop</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="kicker">01 · What Percy actually does</div>
+    <h2>Capabilities</h2>
+    <p class="lead">Two layers matter for embedding: the <b>visual engine</b> (how it captures and diffs a page) and the <b>review &amp; baseline workflow</b> (how a change becomes a verdict). Toggle between them:</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="engine">The visual engine</button>
+      <button class="tab" data-tab="flow">Review &amp; baseline workflow</button>
+    </div>
+
+    <div class="tabpane active" data-pane="engine">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M4 10h16M8 6v12"/></svg></span>DOM snapshot, not a raw screenshot</h3><p>Percy's SDK captures the <b>DOM + CSS + assets</b> during your test, ships them to Percy, and re‑renders server‑side. Because the DOM is stored, it can re‑render at any width later.</p><span class="tag">DOM snapshot</span><span class="tag">Server‑side render</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></span>4 rendering browsers</h3><p>Renders in <b>Chrome, Firefox, Edge and Safari</b> — all enabled by default for new projects. Rendering happens in Percy's cloud, so it adds <b>no time</b> to your CI run.</p><span class="tag">Cross‑browser</span><span class="tag">Safari</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="5" width="7" height="14" rx="1"/><rect x="14" y="5" width="7" height="9" rx="1"/></svg></span>Responsive widths</h3><p>Re‑renders the same snapshot at <b>as many configured widths</b> as you want (e.g. 375 / 768 / 1440). For viewport‑dependent DOM, <code>responsiveSnapshotCapture</code> captures per width.</p><span class="tag">Responsive</span><span class="tag">Configurable widths</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 4v16M18 4v16M6 8h12M6 16h12"/></svg></span>Snapshot stabilization</h3><p>Proprietary stabilization <b>freezes animations/GIFs</b> and handles anti‑aliasing &amp; dynamic data to minimise false positives — so a diff means a real change.</p><span class="tag">Freeze motion</span><span class="tag">Fewer false diffs</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5h7v14H4zM13 5h7v14h-7z"/><path d="M16 9l2 2-2 2"/></svg></span>Pixel diff vs baseline</h3><p>Compares each new render against the last approved baseline and highlights changed pixels in a <b>side‑by‑side</b> UI (baseline left, new right). Detection is deterministic.</p><span class="tag">Visual diff</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></span>Percy on Automate (POA)</h3><p>Run the visual snapshot inside a real <b>BrowserStack Automate</b> session — 20,000+ real devices / real Safari‑iOS — when the server render isn't enough. <code>width</code> is ignored for mobile (real screen).</p><span class="tag">Real devices</span><span class="tag">POA</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></span>Standards &amp; protocols it builds on</h3><p>No formal compliance standard — Percy is a <b>rendering / diff</b> engine. It rides the <b>W3C WebDriver / Selenium</b> protocol and framework SDKs (<code>@percy/playwright</code>, <code>@percy/cypress</code>, <code>@percy/selenium-webdriver</code>, <code>@percy/puppeteer</code>), serializes the DOM via <code>@percy/dom</code>, and re‑renders across <b>Chrome / Firefox / Edge / Safari</b> engines at configurable responsive widths.</p><span class="tag">W3C WebDriver</span><span class="tag">SDK model</span><span class="tag">Cross‑browser engines</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout warn">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M12 3l9 16H3l9-16z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+        <div><h4>The defining constraint</h4><p>Percy does <b>no functional driving</b> and <b>no autonomous judgment</b> beyond the pixel diff. It will not click, submit, route, or tell you a CTA is broken — <em>you</em> load and script the page with an existing test or the <code>@percy/cli</code>. Percy only answers "did the rendered pixels change vs the approved baseline?" — and even that verdict is finalised by a human approving or rejecting each flagged diff.</p></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="flow">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v6l4 2"/><circle cx="12" cy="12" r="9"/></svg></span>Approved‑baseline model</h3><p>The baseline is the <b>last approved build</b> — dynamic, not a fixed golden image. Each new build diffs against it; approving a build makes it the next baseline.</p></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="9" r="2"/><path d="M6 8v8M6 14c6 0 6-5 12-5"/></svg></span>Branch‑aware baselines</h3><p>Feature branches track <b>separate baselines</b>, so changes on <code>main</code> don't pollute a branch's diff. Percy uses PR/commit metadata to pick the right baseline.</p></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></span>Auto‑approve on main</h3><p>Builds on the production branch are <b>auto‑approved by default</b>; "approval‑required branches" force human sign‑off. (Don't set one branch as both.)</p></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></span>Deterministic detect, human verdict</h3><p>Unchanged snapshots <b>pass without review</b>; a human <b>approves / requests changes</b> only on flagged diffs. Approvals are per‑snapshot and generally irreversible.</p></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v5"/></svg></span>Snapshot‑level approval</h3><p>You approve a <b>snapshot</b> (which bundles all its browser × width screenshots), not an individual screenshot — and an identical snapshot is reviewed only once across a branch.</p></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 3v12M18 9v12"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="6" r="3"/></svg></span>SCM status checks</h3><p>GitHub / GitLab / Bitbucket PR checks stay <b>pending until visual review</b>; approving in Percy updates the commit/PR status — a natural CI gate.</p></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg></span>
+        <div><h4>What "100% covered" means for Percy</h4><p>For a Snurra check, Percy is 100% reliable at the <b>deterministic half</b> — detecting whether a page's rendered appearance departed from its approved baseline. The <em>acceptability</em> of a flagged change is a human decision. So these checks become <b>regression monitors that never miss a visual change</b>, rather than fully autonomous pass/fail checks — which is exactly right for the "unchanged / looks‑right" family and is why the coverage list below is scoped to it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section id="embed">
+    <div class="kicker">02 · Applicability — how it slots into Snurra</div>
+    <h2>Embedding paths, ranked</h2>
+    <p class="lead">Snurra's worker already loads every page in headless Playwright and has an integration seam — a capability + swappable <code>ProviderAdapter</code> over a shared HTTP transport, with Google PageSpeed as the reference slice. Percy <b>inverts</b> the usual flow: the snapshot is captured <em>inline</em> during Snurra's render, then Percy diffs asynchronously and the result comes back by API/webhook. Here's how the realistic ways to wire it in score:</p>
+
+    <div class="fit">
+      <div class="fitrow head"><div>Path</div><div>What it's good for</div><div>Fit</div></div>
+      <div class="fitrow">
+        <div class="name">New "visualRegression" capability via <code>@percy/playwright</code> <small>(snapshot inline in Snurra's existing render)</small></div>
+        <div class="desc">Snurra already renders each page in Playwright — add <code>percySnapshot(page, name)</code> at key states/widths. Percy renders + diffs server‑side; the worker then reads the build result and maps <b>unchanged → pass</b>, <b>changed → "needs review"</b> (a soft flag, not a hard run failure), <b>first‑seen → baseline</b> (not‑applicable until approved). Fits the <code>integrations/</code> engine — the twist is the result is <b>async + baseline‑dependent + human‑adjudicated</b>.</div>
+        <div class="verd"><span class="badge best">Best fit ✓</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Percy on Automate for real Safari / iOS visual <small>(needs the BrowserStack Automate side too)</small></div>
+        <div class="desc">When the visual verdict must be on a <b>real device / real Safari</b> rather than Percy's server render, capture the snapshot inside a BrowserStack Automate session. Higher fidelity and higher cost; reserve it for checks that genuinely need real‑device rendering.</div>
+        <div class="verd"><span class="badge ok">Strong (real‑device)</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Static / sitemap mode via <code>@percy/cli</code> <small>(<code>percy snapshot</code>)</small></div>
+        <div class="desc">Feed a sitemap or static build to <code>percy snapshot</code> to baseline a page set with no test code. Handy for a quick first baseline — but Snurra's audit already renders pages, so the inline SDK path is the better long‑term fit.</div>
+        <div class="verd"><span class="badge cond">Conditional</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Treat Percy as a first‑run pass/fail gate or a functional check</div>
+        <div class="desc">The first run only <b>establishes a baseline</b> (no verdict yet), and Percy can't judge anything non‑visual. Don't route functional, performance, SEO, a11y or security checks through it, and don't expect a verdict before a baseline exists.</div>
+        <div class="verd"><span class="badge no">Don't</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="callout info">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+      <div>
+        <h4>Integration shape (contrast with the PageSpeed &amp; Automate slices)</h4>
+        <p>Unlike PageSpeed (single GET) or BrowserStack Automate (start‑then‑poll), Percy's snapshot is captured <b>inline</b> during Snurra's existing Playwright render — <code>isConfigured()</code> gates on <code>PERCY_TOKEN</code> — then Percy renders/diffs asynchronously and the result arrives via the Percy <b>build API or a webhook</b>. Map <b>unchanged → pass</b>, <b>changed → review‑flagged</b> (never a hard run failure), <b>first‑seen → baseline</b> (not‑applicable). Honour graceful degradation — no token or a Percy outage returns <code>null → not‑applicable</code>. And <b>budget screenshots deliberately</b>: every page × browser × width consumes quota.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTEGRATION / TECHNICAL -->
+  <section id="api">
+    <div class="kicker">03 · Technical detail — SDK, the screenshot math, projects &amp; rate limits</div>
+    <h2>What integrating actually looks like</h2>
+    <p class="lead">Enough to scope an integration spike. Expand for detail:</p>
+
+    <div class="acc open">
+      <button>How a snapshot is captured (the SDK path) <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        You keep your Playwright script; you add a snapshot call and run it under <code>percy exec</code> so the CLI wraps the run and uploads to Percy. Auth is the per‑project <code>PERCY_TOKEN</code> (write‑only).
+        <div class="codeblock mono">
+# 1) snapshot inline during the existing render (Snurra already runs Playwright)<br>
+import { percySnapshot } from '@percy/playwright';<br>
+await page.goto(targetUrl);<br>
+await percySnapshot(page, 'Homepage — hero', { widths:[375,768,1440] });<br><br>
+# 2) run the suite under the Percy CLI (uploads DOM snapshots to Percy's cloud)<br>
+PERCY_TOKEN=xxxxx  percy exec -- npx playwright test<br><br>
+# 3) read the build result back (unchanged → pass, changed → review, new → baseline)<br>
+GET https://percy.io/api/v1/builds/&lt;build_id&gt;     # or receive a webhook
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>The screenshot math — what you actually pay for <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>snapshot</code><span>One page/component <b>state</b> you ask Percy to capture (what the Percy UI counts and what you approve).</span>
+          <code>screenshot</code><span>The <b>billed unit</b>: a snapshot rendered in <b>one browser at one width</b>. <b>screenshots = snapshots × browsers × widths.</b></span>
+          <code>official example</code><span>2 pages × 2 browsers × 3 widths = <b>12 screenshots</b> (shown as 2 snapshots in the UI).</span>
+          <code>failed attempts</code><span><b>Count too</b> — usage is successful + unsuccessful snapshot attempts (Percy opened a browser and tried).</span>
+          <code>planning note</code><span>Enabling all <b>4 browsers × 3 widths</b> is a <b>12× multiplier</b> per page. Scope browsers/widths per check, not globally.</span>
+          <code>App Percy differs</code><span>Native mobile apps bill <b>per device</b> (1 snapshot × 3 devices = 3), not browser × width.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Integration limits — projects &amp; rate limiting <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Projects</code><span><b>Unlimited</b> — on the free plan and every paid plan. A project ties to a git repo and holds its own baselines/token. No cap to design around.</span>
+          <code>Rate limit</code><span><b>90 API requests/second per user</b>; <b>uploads limited to 5 requests/minute per group.</b> (Note: different from Automate's 1,600 req/5 min.)</span>
+          <code>Parallelism</code><span>Shards join one build via <code>PERCY_PARALLEL_NONCE</code> (unique per CI build) + <code>PERCY_PARALLEL_TOTAL</code>. The CLI <code>--parallel</code> flag sets total to <code>-1</code>, so you must call <code>percy build:finalize</code>. A reused nonce → 409.</span>
+          <code>Auth</code><span><code>PERCY_TOKEN</code> — <b>per‑project, write‑only</b>. Read access for results is via the dashboard/API with account credentials.</span>
+          <code>Users</code><span><b>Unlimited</b> on all plans — seats are not a cost lever; screenshots are.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Baseline &amp; approval model (what the result actually means) <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>baseline</code><span>Last <b>approved</b> build — dynamic. First time a snapshot is seen there's no verdict, only a new baseline.</span>
+          <code>branch‑aware</code><span>Feature branches keep separate baselines; Percy uses PR/commit metadata (branch, committer, PR number) to select one.</span>
+          <code>auto‑approve</code><span><code>main</code>/production builds auto‑approved by default; "approval‑required branches" force human sign‑off.</span>
+          <code>verdict</code><span>Unchanged → pass (no review). Changed → a human approves/requests‑changes. Approval is per‑snapshot and carried forward across a branch.</span>
+          <code>SCM gate</code><span>GitHub/GitLab/Bitbucket status check stays pending until the visual review is done; approving updates the SCM status.</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- FRAMEWORKS / INTEGRATIONS -->
+  <section id="integrations">
+    <div class="kicker">04 · SDKs &amp; ecosystem</div>
+    <h2>What it plugs into</h2>
+    <p class="lead">Percy is SDK‑driven and CI‑friendly. For Snurra the relevant fact is simple: <b>there's a first‑class Playwright SDK</b>, so snapshots drop into the existing render with a one‑line call. Filter the ecosystem:</p>
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="intSearch" type="text" placeholder="Search SDKs & integrations…">
+      </div>
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="SDK">SDK</button>
+      <button class="chip" data-cat="CLI/Mode">CLI/Mode</button>
+      <button class="chip" data-cat="CI/CD">CI/CD</button>
+      <button class="chip" data-cat="SCM">SCM</button>
+    </div>
+    <div class="intgrid" id="intGrid"></div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="kicker">05 · Pricing</div>
+    <h2>What it costs</h2>
+    <p class="lead">Percy bills on <b>screenshots per month</b>, not seats or projects (both unlimited). The plan sets your included screenshot quota; the real cost driver is the <b>multiplier</b> — screenshots = snapshots × browsers × widths. Only the free tier and the "starts at 10,000" paid entry are confirmed on BrowserStack's own pages; the dollar figures below are third‑party and mutually inconsistent, so treat them as a planning range, not a quote.</p>
+    <table class="price">
+      <thead><tr><th>Plan / lever</th><th>Included</th><th>Model &amp; notes</th></tr></thead>
+      <tbody>
+        <tr><td class="prod">Free<small>confirmed official</small></td><td><span class="freeword">5,000</span> screenshots/mo</td><td><b>Unlimited users &amp; projects</b>, Chrome/Firefox/Edge/Safari render, responsive testing, ~1 month build history, email support. Enough to pilot a small page set.</td></tr>
+        <tr><td class="prod">Paid — "Desktop"<small>entry paid tier</small></td><td>from <span class="money">10,000</span> screenshots/mo <span style="color:var(--mut2);font-size:12px">(~$199/mo est.*)</span></td><td>Official pages confirm paid <b>"starts at 10,000 screenshots/mo"</b>. The <b>$199/mo (annual)</b> figure is third‑party — verify on the live pricing page.</td></tr>
+        <tr><td class="prod">Paid — "Desktop &amp; Mobile"<small>adds real mobile‑browser visual</small></td><td><span class="money">~25,000</span> screenshots/mo <span style="color:var(--mut2);font-size:12px">(~$599/mo est.*)</span></td><td>Adds real mobile‑browser rendering (Percy on Automate real devices). Screenshot count &amp; <b>$599/mo</b> price are <b>third‑party/approximate</b>.</td></tr>
+        <tr><td class="prod">Enterprise<small>quote</small></td><td><span class="quote">Custom</span></td><td>Access control / SSO, dedicated success management, priority support, custom screenshot volume. Contact sales.</td></tr>
+        <tr><td class="prod">Overage<small>past your quota</small></td><td><span class="quote">per screenshot</span></td><td>Extra screenshots billed at an <b>overage rate BrowserStack does not publish</b> (third‑party estimates ~$0.01–0.036/screenshot — inconsistent). Failed snapshot attempts also count.</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--mut2);font-size:12.5px;margin-top:10px">* Confirmed on BrowserStack's own docs: free = 5,000 screenshots/mo, unlimited users &amp; projects; paid "starts at 10,000 screenshots/mo". Dollar amounts, the 25,000 figure and the overage rate are from third‑party trackers (Jul 2026) and were <b>not verifiable</b> on the JS‑rendered pricing page — verify current numbers with BrowserStack before committing. The dominant variable is the browser × width multiplier, so model your own screenshot burn first.</p>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="coverage">
+    <div class="kicker">06 · Which catalog checks it can cover</div>
+    <h2>Coverage — held to a 100%‑certain bar</h2>
+    <p class="lead">A check is listed <b>only if</b> its verdict reduces to <b>"has the rendered appearance changed vs an approved visual baseline"</b> — the one thing Percy answers deterministically. Every listed check needs an <b>approved baseline</b> and runs as a <b>regression monitor</b>: Percy flags any visual change with certainty, and a human adjudicates whether the change is acceptable. Checks whose verdict also depends on a <b>non‑visual portion</b> — a click, an href, a journey, a business rule — are not listed here, because Percy can't fully cover them on its own. This is only what Percy can cover end‑to‑end.</p>
+
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="covSearch" type="text" placeholder="Search covered checks…">
+      </div>
+    </div>
+    <p class="covcount" id="covCount"></p>
+    <div class="covgrid" id="covGrid"></div>
+
+    <div class="newcov" style="margin-top:32px">
+      <h3 style="font-size:19px;margin:0 0 6px">Additional checks it can cover — <span style="color:var(--mut2);font-weight:600">not in the catalog</span></h3>
+      <p class="lead" style="margin-top:0">Deterministic diffs Percy produces that have <b>no matching entry</b> in <code>checks.ts</code> — candidate additions to the catalog. Percy detects each diff deterministically, but the pass/fail verdict is <b>adjudicated by a human</b> (auto-pass only when there is no diff). Each is referenced.</p>
+      <div class="covgrid" id="newCovGrid"></div>
+    </div>
+
+    <div style="margin-top:18px" class="callout bad">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>
+      <div>
+        <h4>What Percy does NOT cover</h4>
+        <p>Excluded entirely, because a visual‑diff engine cannot deliver these verdicts: <b>functional interactions</b> (clicks, routing, form submit, back/forward, menu behaviour) · <b>performance vitals</b> (LCP/INP/CLS, load time) · <b>SEO facts</b> (title, meta, canonical, sitemap, robots, hreflang) · <b>SSL/TLS &amp; security headers</b> · <b>Accessibility / WCAG</b> (axe, tap‑target geometry) · <b>text/content analysis</b> (readability, duplicate, thin content, placeholder text, copyright year) · <b>all AI‑text / compliance</b> (REMS, ISI, CCPA/GDPR wording, geo <em>content</em>) · <b>route/URL discovery</b> (new/deleted pages, broken links, crawl) · <b>geo‑IP routing</b> · <b>uptime / DNS / domain‑expiry</b> · <b>competitive benchmark</b> · <b>audit‑trail</b>. Also structural: Percy needs a <b>driver</b> (an existing test/CLI to load pages) and an <b>approved baseline</b> — the first run only sets the baseline, and every flagged diff is a <b>human</b> decision.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommend">
+    <div class="kicker">07 · Recommendation</div>
+    <h2>Pick your scenario</h2>
+    <p class="lead">What you want out of Percy decides how you wire and size it. Click the closest match:</p>
+    <div class="picker" id="picker">
+      <button class="scn active" data-s="a">Catch visual regressions on key pages<small>Alert when a page departs from its approved look</small></button>
+      <button class="scn" data-s="b">Automate the manual visual review<small>Turn "Visual review (manual)" checks into baselines</small></button>
+      <button class="scn" data-s="c">Verify responsive layout<small>Same page across widths &amp; browsers</small></button>
+      <button class="scn" data-s="d">Real Safari / iOS visual fidelity<small>Render on real BrowserStack devices</small></button>
+    </div>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="kicker">08 · Sources</div>
+    <h2>References</h2>
+    <p class="lead">Percy facts are from BrowserStack's own Percy docs, gathered 26 Jul 2026. <b>Pricing dollar figures are third‑party and could not be verified</b> on the JS‑rendered pricing page — only the free‑tier quota, "unlimited projects", and the "starts at 10,000 screenshots" entry are confirmed official. Check names are quoted verbatim from <code>feasibility-app/data/checks.ts</code> (the source behind checks‑catalog.vercel.app).</p>
+    <div class="refs">
+      <div class="ref"><a href="https://www.browserstack.com/docs/percy/overview/plans-and-billing" target="_blank" rel="noopener">Percy plans &amp; billing</a><p>Screenshot = snapshot × browser × width; free = 5,000/mo; unlimited users &amp; projects.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/percy/overview/visual-testing-basics" target="_blank" rel="noopener">Visual testing basics</a><p>DOM‑snapshot capture, server‑side render, baseline diff.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/percy/project-settings/cross-browser" target="_blank" rel="noopener">Cross‑browser rendering</a><p>Chrome/Firefox/Edge/Safari by default; no CI‑speed impact; per‑width screenshots.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/percy/advanced-snapshots/responsive-dom" target="_blank" rel="noopener">Responsive DOM snapshots</a><p>Configurable widths; <code>responsiveSnapshotCapture</code> for viewport‑dependent DOM.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/percy/build-results/approval" target="_blank" rel="noopener">Approval workflow</a><p>Baseline = last approved build; auto‑approve on main; human verdict on flagged diffs; snapshot‑level approval.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/percy/baseline-management/git" target="_blank" rel="noopener">Git baseline management</a><p>Branch‑aware baselines; PR/commit metadata selects the baseline.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/percy/api-reference/overview" target="_blank" rel="noopener">Percy API — overview &amp; rate limits</a><p>90 req/s per user; uploads 5 req/min per group.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/percy/troubleshoot/parallel-test-suites" target="_blank" rel="noopener">Parallel test suites</a><p><code>PERCY_PARALLEL_NONCE</code>/<code>_TOTAL</code>; <code>--parallel</code> + <code>percy build:finalize</code>.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/percy/overview/supported-sdks" target="_blank" rel="noopener">Supported SDKs</a><p>Playwright, Selenium, Cypress, Puppeteer, WebdriverIO, Storybook…; <code>@percy/cli</code>; <code>PERCY_TOKEN</code> write‑only.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/blog/percy-on-automate/" target="_blank" rel="noopener">Percy on Automate</a><p>Visual snapshots on 20,000+ real BrowserStack devices; width ignored for mobile.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/pricing?product=percy" target="_blank" rel="noopener">BrowserStack / Percy pricing</a><p>Free 5,000; paid "starts at 10,000 screenshots/mo"; dollar tiers not scrapeable — verify live.</p></div>
+      <div class="ref"><a href="https://checks-catalog.vercel.app/" target="_blank" rel="noopener">Feasibility checks catalog</a><p>The 217‑check catalog this coverage maps against (source: feasibility‑app).</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="disc">
+      <strong>How to read this.</strong> This is an independent capability/integration assessment compiled from public sources for planning purposes — it is not from or endorsed by BrowserStack, and it is not legal advice. Pricing (especially dollar figures and the overage rate), quotas and features change; verify current numbers with BrowserStack before committing. The coverage list is deliberately conservative: checks are included only where a deterministic visual‑diff against an approved baseline makes the change‑detection 100% certain (the acceptability of each flagged change remains a human decision) — it is designed to under‑claim rather than over‑claim.
+    </div>
+    Percy® and BrowserStack® are trademarks of their respective owner. Prepared 26 Jul 2026 · for internal planning.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'),
+    thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var light=root.getAttribute('data-theme')==='light';
+  root.setAttribute('data-theme', light?'dark':'light');
+  thTxt.textContent = light?'Light':'Dark';
+});
+
+// ---- Capability tabs ----
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var k=t.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.getAttribute('data-pane')===k);
+    });
+  });
+});
+
+// ---- Accordions ----
+document.querySelectorAll('.acc>button').forEach(function(b){
+  b.addEventListener('click',function(){ b.parentElement.classList.toggle('open'); });
+});
+
+// ---- SDKs / integrations data + filter ----
+var INTS=[
+  {n:'Playwright',c:'SDK',d:'@percy/playwright — Snurra already runs it; add percySnapshot() inline'},
+  {n:'Selenium',c:'SDK',d:'Java · Ruby · Python · JS · .NET'},
+  {n:'Cypress',c:'SDK',d:'@percy/cypress'},
+  {n:'Puppeteer',c:'SDK',d:'@percy/puppeteer'},
+  {n:'WebdriverIO',c:'SDK',d:'@percy/webdriverio'},
+  {n:'Nightwatch',c:'SDK',d:'@percy/nightwatch'},
+  {n:'Storybook',c:'SDK',d:'Component-level visual testing'},
+  {n:'@percy/cli',c:'CLI/Mode',d:'percy snapshot (sitemap/static) · percy screenshot'},
+  {n:'Percy on Automate',c:'CLI/Mode',d:'Visual snapshots on 20,000+ real BrowserStack devices'},
+  {n:'App Percy',c:'CLI/Mode',d:'Native mobile-app visual (Appium · Maestro · Tosca)'},
+  {n:'GitHub',c:'SCM',d:'PR status checks — pending until visual review'},
+  {n:'GitLab',c:'SCM',d:'MR status checks (GitLab.com + CI)'},
+  {n:'Bitbucket',c:'SCM',d:'PR status checks (Bitbucket Cloud)'},
+  {n:'GitHub Actions',c:'CI/CD',d:'PERCY_PARALLEL_NONCE auto-set for parallel builds'},
+  {n:'Jenkins / CircleCI',c:'CI/CD',d:'Parallel shards join one build via the nonce'}
+];
+var grid=document.getElementById('intGrid'), search=document.getElementById('intSearch'), curCat='all';
+function renderInts(){
+  var q=(search.value||'').toLowerCase();
+  var rows=INTS.filter(function(i){
+    var okc = curCat==='all' || i.c===curCat;
+    var okq = !q || i.n.toLowerCase().indexOf(q)>-1 || i.d.toLowerCase().indexOf(q)>-1;
+    return okc && okq;
+  });
+  grid.innerHTML = rows.length ? rows.map(function(i){
+    return '<div class="intitem"><div class="cat">'+i.c+'</div><h5>'+i.n+'</h5><span>'+i.d+'</span></div>';
+  }).join('') : '<div class="empty">No matches.</div>';
+}
+document.querySelectorAll('#integrations .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#integrations .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); curCat=c.getAttribute('data-cat'); renderInts();
+  });
+});
+search.addEventListener('input',renderInts);
+renderInts();
+
+// ---- Coverage data + filter ----
+// check names are verbatim from feasibility-app/data/checks.ts
+var COV=[
+  {ch:'DOM structure shift detection', p:'Visual Stability', cap:'DOM snapshot diff', gate:[], note:'Percy snapshots the DOM per route and diffs vs the approved baseline — this IS structural-shift detection, caught with certainty.'},
+  {ch:'Unexpected banner / modal introduced on key pages', p:'Visual Stability', cap:'Visual diff', gate:[], note:'A new banner / consent layer / promo modal changes rendered pixels — Percy flags it against baseline; a human confirms it’s unexpected.'},
+  {ch:'Key page content matches last approved baseline', p:'Content Change Detection', cap:'Approved-baseline diff', gate:[], note:'Percy’s core model: snapshot homepage/product pages, diff vs the last approved baseline, alert on any visible change.'},
+  {ch:'Hero and product images unchanged', p:'Content Change Detection', cap:'Visual diff', gate:[], note:'An image swap changes rendered pixels — caught with certainty against the approved baseline.'},
+  {ch:'Hero headline renders correctly', p:'Homepage', cap:'Visual diff', gate:[], note:'A cut-off, missing or reflowed headline shows as a diff vs the approved baseline.'},
+  {ch:'Navigation adapts correctly at 768px tablet', p:'Responsive', cap:'Responsive-width render', gate:['width 768px'], note:'Percy renders at a configured 768px width and diffs the collapsed nav vs the tablet baseline — exactly the visual adapts-correctly verdict.'},
+  {ch:'Responsive / cross-browser spot check', p:'Manual UX QA', cap:'Cross-browser render', gate:[], note:'Percy renders each snapshot across Chrome/Firefox/Edge/Safari and configured widths and diffs each — the automated form of the visual spot-check.'},
+  {ch:'Unexpected blocking overlay / modal detection', p:'UX & Behaviour', cap:'Visual diff', gate:[], note:'A new full-viewport overlay/modal is a dominant pixel diff — Percy surfaces it against the approved baseline.'},
+  {ch:'Critical element presence baseline check', p:'Visual Stability', cap:'Visual diff', gate:[], note:'A removed hero/CTA/nav/footer element yields a visual diff vs the approved baseline — Percy catches it with certainty.'}
+];
+var covGrid=document.getElementById('covGrid'), covSearch=document.getElementById('covSearch'),
+    covCount=document.getElementById('covCount'), curCov='all';
+function renderCov(){
+  var q=(covSearch.value||'').toLowerCase();
+  var rows=COV.filter(function(i){
+    return !q || i.ch.toLowerCase().indexOf(q)>-1 || i.p.toLowerCase().indexOf(q)>-1 || i.cap.toLowerCase().indexOf(q)>-1;
+  });
+  covCount.innerHTML='Showing <b style="color:var(--ink)">'+rows.length+'</b> of '+COV.length+' checks Percy can cover';
+  covGrid.innerHTML = rows.length ? rows.map(function(i){
+    var gates=(i.gate||[]).map(function(g){
+      return '<span class="gate">'+g+'</span>';
+    }).join('');
+    return '<div class="covitem"><div class="top"><div><h5>'+i.ch+'</h5>'+
+      '<div class="pil">'+i.p+' · <span class="capname">'+i.cap+'</span></div></div></div>'+
+      '<p>'+i.note+'</p>'+(gates?('<div>'+gates+'</div>'):'')+'</div>';
+  }).join('') : '<div class="empty">No checks match that filter.</div>';
+}
+covSearch.addEventListener('input',renderCov);
+renderCov();
+
+// ---- Additional checks NOT in the catalog (candidate new checks) ----
+var NEWCOV=[
+  {name:'Visual regression — rendered page differs pixel-wise from the approved baseline', cap:'DOM re-render + pixel diff', note:'Re-renders the captured DOM server-side and pixel-diffs it against the last approved baseline. The catalog’s visual-stability checks are DOM/element-based, not full-render pixel diffs.', ref:'browserstack.com/docs/percy — visual testing basics'},
+  {name:'Responsive visual rendering diff at specific viewport widths (e.g. 375 / 768 / 1280 px)', cap:'Multi-width re-render', note:'Renders the same DOM at each configured width and diffs each against its own per-width baseline. Catalog responsive checks are functional layout checks, not per-width pixel diffs.', ref:'browserstack.com/docs/percy — cross-browser (widths)'},
+  {name:'Cross-browser visual rendering diff (Chrome / Firefox / Edge / Safari)', cap:'Per-browser re-render', note:'Re-renders the captured DOM per browser and diffs each independently, surfacing browser-specific rendering differences. No catalog equivalent for automated per-browser pixel diff.', ref:'browserstack.com/docs/percy — cross-browser'},
+  {name:'Per-build / per-PR visual status check that blocks a commit until visual changes are reviewed', cap:'Build diff + SCM status', note:'Generates a build per commit/PR, diffs new screenshots vs the base build, and posts a GitHub/GitLab/Bitbucket status check that stays pending until reviewed. Catalog change-detection is scan-to-scan, not commit-gated.', ref:'browserstack.com/docs/percy — approval workflow'}
+];
+(function(){
+  var g=document.getElementById('newCovGrid'); if(!g) return;
+  g.innerHTML=NEWCOV.map(function(i){
+    return '<div class="covitem"><div class="top"><div><h5>'+i.name+'</h5>'+
+      '<div class="pil"><span class="capname">'+i.cap+'</span></div></div><span class="gate">new</span></div>'+
+      '<p>'+i.note+'</p><div class="pil" style="margin-top:8px">↳ <span class="capname">'+i.ref+'</span></div></div>';
+  }).join('');
+})();
+
+// ---- Scenario recommender ----
+var RECS={
+  a:{label:'Recommended path',h:'A "visualRegression" capability using @percy/playwright inline in Snurra’s render',
+     p:'Snurra already loads every page in headless Playwright. Add percySnapshot() at key states; Percy renders + diffs server-side; the worker maps unchanged → pass, changed → review-flagged.',
+     s:['Install @percy/playwright; gate isConfigured() on PERCY_TOKEN.','Snapshot key pages/states during the existing audit render.','Read the build result via the Percy API/webhook; unchanged→pass, changed→"needs review", first-seen→baseline (not-applicable).']},
+  b:{label:'Recommended path',h:'Convert the "Visual review (manual)" checks to Percy baselines',
+     p:'The manual visual checks — hero headline renders, hero/product images unchanged — become deterministic regression monitors once an approved baseline exists.',
+     s:['Establish + approve a baseline per key page (and per locale).','Let Percy auto-approve on the production branch; require sign-off on changes.','Surface flagged diffs into the audit UI as "changed since baseline".']},
+  c:{label:'Recommended path',h:'Configure widths × browsers deliberately — mind the multiplier',
+     p:'Percy renders the same snapshot at every configured width across the browser set. That covers the responsive-layout checks across configured widths — but screenshots = snapshots × browsers × widths, so cost scales fast.',
+     s:['Pick the minimum widths/browsers each check needs (don’t enable all 4×3 blindly).','Use responsiveSnapshotCapture where the DOM changes by viewport.','Budget screenshots against the 5,000 free / 10,000-plus paid quota.']},
+  d:{label:'Recommended path',h:'Percy on Automate for real-device visual fidelity',
+     p:'When the visual verdict must be on real Safari/iOS (not Percy’s server render), capture snapshots inside a BrowserStack Automate session — 20,000+ real devices.',
+     s:['Stand up the Automate side (see the BrowserStack Automate analysis).','Snapshot from the Automate session; note width is ignored for mobile (real screen).','Reserve POA for checks that genuinely need real-device rendering — it costs more.']}
+};
+function showRec(k){
+  var r=RECS[k];
+  document.getElementById('rec').innerHTML =
+    '<div class="rlabel">'+r.label+'</div><h3>'+r.h+'</h3><p>'+r.p+'</p><ul class="steps"><li>'+r.s.join('</li><li>')+'</li></ul>';
+}
+document.querySelectorAll('.scn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.scn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active'); showRec(b.getAttribute('data-s'));
+  });
+});
+showRec('a');
+</script>
+</body>
+</html>

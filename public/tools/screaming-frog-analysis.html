@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Screaming Frog SEO Spider — Capabilities & Embedding Analysis</title>
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#0f1630; --panel:#131c3a; --panel2:#18234a;
+    --line:#25315c; --line2:#33427a;
+    --ink:#eaf0ff; --mut:#9db0d8; --mut2:#6f83b3;
+    --brand:#4f8cff; --brand2:#7aa8ff; --accent:#22d3aa;
+    --warn:#ffb020; --bad:#ff5d6c; --good:#22d3aa;
+    --chip:#1b2649; --shadow:0 12px 40px rgba(0,0,0,.45);
+    --radius:16px;
+  }
+  html[data-theme="light"]{
+    --bg:#eef2fb; --bg2:#e6ecfa; --panel:#ffffff; --panel2:#f4f7ff;
+    --line:#d6def2; --line2:#c3cfec; --ink:#101a33; --mut:#41527a; --mut2:#6b7aa3;
+    --chip:#eef2fd; --shadow:0 12px 34px rgba(20,40,90,.12);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 700px at 80% -10%,rgba(79,140,255,.18),transparent 60%),
+               radial-gradient(900px 600px at -10% 10%,rgba(34,211,170,.10),transparent 55%),
+               var(--bg);
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--brand2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 22px}
+
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(79,140,255,.5)}
+  .logo .mark svg{width:18px;height:18px}
+  nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
+  nav.links a:hover{background:var(--chip); color:var(--ink); text-decoration:none}
+  .tbtn{border:1px solid var(--line2); background:var(--chip); color:var(--ink); border-radius:9px;
+    padding:7px 10px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; gap:6px; align-items:center}
+  .tbtn:hover{border-color:var(--brand)}
+
+  .hero{padding:46px 0 26px}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:var(--chip);
+    border:1px solid var(--line2); padding:6px 12px; border-radius:999px}
+  h1{font-size:40px; line-height:1.12; margin:16px 0 10px; letter-spacing:-.5px}
+  h1 .grad{background:linear-gradient(120deg,var(--brand2),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--mut); font-size:17px; max-width:810px}
+  .meta{margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; color:var(--mut2); font-size:13px}
+  .meta b{color:var(--mut)}
+
+  .tldr{margin-top:26px; border:1px solid var(--line2); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:var(--shadow); overflow:hidden}
+  .tldr .hd{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line);
+    font-weight:800; letter-spacing:.3px}
+  .tldr .hd .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,170,.18)}
+  .tldr .bd{padding:18px 20px; color:var(--mut); font-size:15.5px}
+  .tldr .bd strong{color:var(--ink)}
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .vcard{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .vcard h4{margin:0 0 4px; font-size:13px; color:var(--mut2); text-transform:uppercase; letter-spacing:.08em}
+  .vcard p{margin:0; font-size:14px; color:var(--ink)}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; margin-top:8px}
+  .pill.good{background:rgba(34,211,170,.14); color:var(--good); border:1px solid rgba(34,211,170,.35)}
+  .pill.warn{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.35)}
+  .pill.bad{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.35)}
+
+  section{padding:34px 0; border-top:1px solid var(--line)}
+  .kicker{font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--brand2)}
+  h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.3px}
+  .lead{color:var(--mut); max-width:880px; margin:0 0 20px}
+
+  .tabs{display:flex; gap:8px; margin:6px 0 18px; flex-wrap:wrap}
+  .tab{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:9px 16px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:14px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--accent)); color:#04122a; border-color:transparent}
+  .tabpane{display:none; animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .grid{display:grid; gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:16.5px; display:flex; align-items:center; gap:9px}
+  .card .ic{width:30px;height:30px;border-radius:9px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .card .ic svg{width:17px;height:17px;stroke:var(--brand2)}
+  .card p{margin:0; color:var(--mut); font-size:14px}
+  .tag{font-size:11px; font-weight:700; color:var(--mut2); background:var(--chip); border:1px solid var(--line2);
+    padding:2px 8px; border-radius:6px; margin-right:6px; display:inline-block; margin-top:8px}
+
+  .fit{overflow:hidden; border:1px solid var(--line); border-radius:14px}
+  .fitrow{display:grid; grid-template-columns:1.4fr 2.2fr .9fr; gap:0; border-bottom:1px solid var(--line)}
+  .fitrow:last-child{border-bottom:0}
+  .fitrow.head{background:var(--chip); font-weight:800; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut2)}
+  .fitrow>div{padding:14px 16px}
+  .fitrow .name{font-weight:700; color:var(--ink)}
+  .fitrow .name small{display:block; font-weight:500; color:var(--mut2); margin-top:3px}
+  .fitrow .desc{color:var(--mut); font-size:14px; border-left:1px solid var(--line); border-right:1px solid var(--line)}
+  .fitrow .verd{display:flex; align-items:center; justify-content:center}
+  .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
+  .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .badge.ok{background:rgba(79,140,255,.16); color:var(--brand2); border:1px solid rgba(79,140,255,.4)}
+  .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
+
+  .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
+  .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
+  .callout.info{background:rgba(79,140,255,.08); border-color:rgba(79,140,255,.4)}
+  .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
+  .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
+  .callout.warn .cic{background:rgba(255,176,32,.16)}
+  .callout.info .cic{background:rgba(79,140,255,.16)}
+  .callout.bad .cic{background:rgba(255,93,108,.16)}
+  .callout h4{margin:0 0 5px; font-size:15.5px}
+  .callout p{margin:0; color:var(--mut); font-size:14.5px}
+  .callout.warn h4{color:var(--warn)}
+  .callout.bad h4{color:var(--bad)}
+  .callout .cic svg{width:19px;height:19px}
+
+  .picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
+  .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
+  .scn.active{border-color:var(--brand); background:rgba(79,140,255,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(79,140,255,.12)}
+  .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
+  .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
+  .rec h3{margin:6px 0 6px; font-size:18px}
+  .rec p{margin:0 0 8px; color:var(--mut); font-size:14.5px}
+  .rec .steps{margin:8px 0 0; padding-left:18px; color:var(--mut); font-size:14px}
+  .rec .steps li{margin:3px 0}
+
+  .filterbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--chip);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 12px}
+  .search input{border:0; background:transparent; color:var(--ink); font-size:14px; width:100%; outline:none}
+  .chip{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:7px 12px; border-radius:999px;
+    cursor:pointer; font-size:12.5px; font-weight:700}
+  .chip.active{background:var(--brand); color:#04122a; border-color:transparent}
+  .intgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .intitem{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px}
+  .intitem h5{margin:0 0 3px; font-size:14px}
+  .intitem span{font-size:12px; color:var(--mut2)}
+  .intitem .cat{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--brand2)}
+  .empty{color:var(--mut2); font-size:14px; padding:16px; text-align:center; grid-column:1/-1}
+
+  .covgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .covitem{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px; position:relative}
+  .covitem .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .covitem h5{margin:0; font-size:14.5px; color:var(--ink); font-weight:700; line-height:1.3}
+  .covitem .pil{font-size:10px; color:var(--mut2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+  .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
+  .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
+  .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .ttag.redundant{background:rgba(79,140,255,.14); color:var(--brand2); border:1px solid rgba(79,140,255,.4)}
+  .ttag.partial{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
+    border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
+  .capname{color:var(--accent); font-weight:700}
+  .covcount{font-size:12.5px; color:var(--mut2); margin:0 0 10px}
+
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:10px; background:var(--panel)}
+  .acc>button{width:100%; text-align:left; background:transparent; border:0; color:var(--ink); padding:15px 18px;
+    font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .acc>button .ar{transition:transform .2s; color:var(--mut2)}
+  .acc.open>button .ar{transform:rotate(90deg)}
+  .acc .panel{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc.open .panel{max-height:1600px}
+  .acc .panel .inner{padding:0 18px 18px; color:var(--mut); font-size:14px}
+  code,.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px}
+  .codeblock{background:#0a1024; border:1px solid var(--line2); border-radius:10px; padding:13px 15px;
+    overflow:auto; color:#cfe0ff; margin:10px 0}
+  html[data-theme="light"] .codeblock{background:#0d1530; color:#dbe6ff}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:8px 0}
+  .kv code{color:var(--accent)}
+  .kv span{color:var(--mut)}
+
+  table.price{width:100%; border-collapse:collapse; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.price th,table.price td{padding:13px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top}
+  table.price th{background:var(--chip); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut2)}
+  table.price td.prod{font-weight:700; color:var(--ink)}
+  table.price td.prod small{display:block; font-weight:500; color:var(--mut2); margin-top:2px}
+  .money{font-weight:800; color:var(--accent)}
+  .quote{color:var(--warn); font-weight:700}
+  .freeword{color:var(--good); font-weight:800}
+
+  .refs{columns:2; column-gap:26px}
+  .refs .ref{break-inside:avoid; margin-bottom:12px; padding-left:14px; border-left:2px solid var(--line2)}
+  .refs .ref a{font-weight:600; font-size:13.5px}
+  .refs .ref p{margin:2px 0 0; color:var(--mut2); font-size:12px}
+
+  footer{padding:30px 0 60px; color:var(--mut2); font-size:12.5px; border-top:1px solid var(--line)}
+  .disc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px}
+
+  @media(max-width:860px){
+    .g2,.g3,.verdict,.intgrid,.covgrid{grid-template-columns:1fr}
+    .fitrow{grid-template-columns:1fr}
+    .fitrow .desc{border-left:0;border-right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .refs{columns:1}
+    h1{font-size:31px}
+    nav.links{display:none}
+  }
+  @media print{
+    header.top,.tbtn,.picker,.filterbar{display:none!important}
+    .tabpane{display:block!important} .acc .panel{max-height:none!important}
+    body{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="#04122a" stroke-width="1.8"/><path d="M16 16l4.5 4.5" stroke="#04122a" stroke-width="1.8" stroke-linecap="round"/><path d="M7.5 11h7M11 7.5v7" stroke="#04122a" stroke-width="1.4"/></svg></span>
+      Screaming Frog SEO Spider <span style="color:var(--mut2);font-weight:600">· Embedding Analysis</span>
+    </div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#embed">Embedding</a>
+      <a href="#api">Automation</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#coverage">Checks covered</a>
+      <a href="#recommend">Recommendation</a>
+      <a href="#refs">Sources</a>
+    </nav>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Light</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <span class="eyebrow">● Product & Integration Assessment</span>
+    <h1>Screaming Frog SEO Spider, assessed for <span class="grad">embedding into Snurra</span></h1>
+    <p class="sub">Screaming Frog is a <b>desktop crawler</b> — a deterministic HTML/technical‑SEO engine that crawls a site and extracts titles, meta, canonicals, redirects, hreflang, structured data, links, response headers and more. It is best‑in‑class at what it does — and the one thing that shapes its fit for Snurra is that it is a <b>desktop/CLI application with no cloud or REST API</b>. This page maps its capabilities, how it would slot into Snurra's worker, what it costs, and — held to a strict 100%‑certain bar — exactly which feasibility‑catalog checks it can cover.</p>
+    <div class="meta">
+      <span><b>Prepared:</b> 26 Jul 2026</span>
+      <span><b>Use case:</b> Deterministic technical‑SEO / crawl signal for the Snurra Site Audit</span>
+      <span><b>Catalog:</b> feasibility‑app · 217 checks</span>
+    </div>
+
+    <div class="tldr">
+      <div class="hd"><span class="dot"></span> Bottom line up front</div>
+      <div class="bd">
+        Screaming Frog is a <strong>deterministic desktop crawler</strong>, not a service — and that shapes embedding. There is <strong>no REST API</strong>: automating it means running the licensed binary <strong>headless via CLI/scheduler</strong> on a machine you control, then parsing the <strong>CSV / Excel / Google‑Sheets exports</strong> it writes (there is no JSON output, no endpoint to call). It can cover <strong>48 catalog checks</strong> as deterministic HTML/crawl extractions — hreflang validation, near‑duplicate / readability / thin‑content, third‑party resource status &amp; timing, new‑script &amp; new/deleted‑page diffs, security headers and mixed content, plus the full SEO‑crawl and axe‑core accessibility surface. It does <strong>zero</strong> functional, visual, geo‑IP, uptime or native‑performance work (it only re‑exposes Google PSI), and it cannot judge compliance <em>meaning</em>.
+        <div class="verdict">
+          <div class="vcard"><h4>Technical fit</h4><p>Deterministic, thorough crawler — but <b>desktop/CLI only, no API</b>. Embed = run headless + parse CSV/Sheets exports.</p><span class="pill warn">CLI‑only</span></div>
+          <div class="vcard"><h4>What it covers</h4><p><b>48 checks</b> — the full SEO‑crawl &amp; axe‑core surface plus hreflang, content‑quality, resource health and change‑detection.</p><span class="pill good">Broad crawl</span></div>
+          <div class="vcard"><h4>Cost</h4><p><b>£199/user·yr</b> unlocks everything (free = 500 URLs, no config/API/JS). Cheap software; the real cost is running the binary.</p><span class="pill good">Low licence cost</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="kicker">01 · What Screaming Frog actually does</div>
+    <h2>Capabilities</h2>
+    <p class="lead">Two layers matter for embedding: what the <b>crawler extracts</b> (the deterministic HTML/technical‑SEO facts) and its <b>automation surface</b> (how a backend could drive a desktop app with no API). Toggle between them:</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="crawl">The crawler &amp; what it extracts</button>
+      <button class="tab" data-tab="auto">Automation &amp; integration surface</button>
+    </div>
+
+    <div class="tabpane active" data-pane="crawl">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>Core SEO extraction</h3><p>Titles, meta descriptions, H1/H2 (missing / duplicate / length / multiple), <b>response codes &amp; redirect chains/loops</b>, canonicals, meta‑robots / X‑Robots directives, and <b>indexability</b> status — the technical‑SEO staples.</p><span class="tag">Titles/meta</span><span class="tag">Redirects</span><span class="tag">Indexability</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h6l2-8 2 16 2-8h6"/></svg></span>hreflang validation</h3><p>Not just extraction — it <b>validates</b> return/confirmation links and flags incorrect language‑region codes across the crawl.</p><span class="tag">Return tags</span><span class="tag">hreflang</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 12l2 2 4-4"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></span>Structured‑data validation</h3><p>JSON‑LD, Microdata &amp; RDFa validated against <b>Schema.org + Google Rich Results</b>, with errors / warnings per property. (Enable in config; licensed.)</p><span class="tag">Schema.org</span><span class="tag">Rich Results</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></span>Content analysis</h3><p><b>Word count</b>, <b>Flesch readability</b>, exact (MD5) + <b>near‑duplicate</b> pages (default 90% threshold, post‑crawl Crawl Analysis), and spell/grammar in 25+ languages.</p><span class="tag">Readability</span><span class="tag">Near‑dupes</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Security tab</h3><p>Flags <b>mixed content</b>, insecure forms, <b>missing security headers</b> (CSP / X‑Frame‑Options / HSTS), and HTTP→HTTPS — read straight from response headers.</p><span class="tag">Mixed content</span><span class="tag">Headers</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 9h.01M15 9h.01M8 14s1.5 2 4 2 4-2 4-2"/></svg></span>Accessibility (v21+)</h3><p>Embeds <b>Deque axe‑core</b> (90+ rules, WCAG 2.0/2.1/2.2 A→AAA) with JS rendering — a full accessibility audit inside the crawl.</p><span class="tag">axe‑core</span><span class="tag">WCAG</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 17l6-6-6-6M12 19h8"/></svg></span>JS render &amp; custom extraction</h3><p>Headless <b>Chromium</b> rendering; <b>custom extraction</b> (XPath / CSSPath / regex) and custom source‑code search — how you pull any bespoke element or token.</p><span class="tag">Chromium</span><span class="tag">XPath/CSS/regex</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>APIs it consumes</h3><p>Pulls in <b>GA4, Search Console, PageSpeed Insights</b> (Core Web Vitals lab+field), Ahrefs / Majestic / Moz, and can pipe content to <b>OpenAI / Gemini</b> via custom JS.</p><span class="tag">GA4 · GSC · PSI</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></span>Standards it validates against</h3><p><b>robots.txt</b> (Googlebot-parity, wildcard <code>*</code>/<code>$</code>) · <b>XML Sitemaps</b> · <b>hreflang</b> (HTML/header/sitemap, language-region &amp; return links) · <b>Schema.org</b> JSON-LD/Microdata/RDFa validated against <b>Google's 25+ rich-result features</b> · <b>Core Web Vitals</b> via PSI (Lighthouse + CrUX) · <b>axe-core / WCAG 2.0–2.2</b> A/AA/AAA (v21+) · the official <b>AMP Validator</b> · HTTP response-code classification.</p><span class="tag">Schema.org</span><span class="tag">hreflang</span><span class="tag">axe-core / WCAG</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout warn">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M12 3l9 16H3l9-16z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+        <div><h4>The defining constraint (for embedding)</h4><p>Screaming Frog is a <b>desktop application with no cloud or REST API</b>. It never runs as a service you call — you install the binary and drive it via CLI / scheduler on a machine you control, then parse the CSV / XLSX / Google‑Sheets files it writes. And it is deterministic <b>static/rendered HTML analysis</b>: it does not click, submit forms, judge visuals, route by country IP, or measure performance itself (it re‑exposes Google PSI). Its verdict for any check is whatever its crawl deterministically extracted.</p></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="auto">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></span>Command line (headless)</h3><p><code>--crawl &lt;url&gt;</code> · <code>--headless</code> · <code>--config</code> · <code>--output-folder</code> · <code>--export-tabs</code> · <code>--bulk-export</code> · <code>--save-crawl</code> · <code>--export-format csv|xls|xlsx</code>. Headless/CLI <b>needs a licence</b>.</p><span class="tag">Headless</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Scheduler</h3><p><b>File &gt; Scheduling</b> — one‑off or recurring crawls, run headless, with pre‑set config, auth and API connections, and <b>automatic export</b> of tabs/bulk‑exports/reports.</p><span class="tag">Recurring</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 4h12l4 4v12H4z"/><path d="M8 13h8M8 17h5"/></svg></span>Exports</h3><p><b>CSV / Excel / Google Sheets</b> + bulk exports + reports (Crawl Overview, Issues, Structured Data, Accessibility) + Looker Studio. <b>No native JSON.</b></p><span class="tag">CSV/XLSX/Sheets</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/></svg></span>Storage &amp; scale</h3><p><b>Database mode (SSD)</b> is default — ≈2M URLs on SSD + 4GB RAM. <b>Memory mode</b> ≈100k URLs. Crawl‑limit default 5M (500 free).</p><span class="tag">~2M URLs</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 18L18 6M8 6h10v10"/></svg></span>No REST API</h3><p>There is <b>no endpoint</b> to trigger a crawl or pull results. The only control paths are the local CLI and the scheduler; results come out as files.</p><span class="tag">Files, not endpoints</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>Consumes (not exposes) APIs</h3><p>It pulls GA4 / GSC / PSI / Sheets / Ahrefs / Majestic / Moz / OpenAI‑Gemini <b>into</b> the crawl — none of these let you drive SF remotely.</p><span class="tag">Inbound only</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+        <div><h4>How Snurra would actually drive it</h4><p>Because there is no API, the worker (or a dedicated sidecar VM/container) runs the binary — e.g. <code>screamingfrogseospider --headless --crawl &lt;url&gt; --config &lt;cfg&gt; --export-tabs … --output-folder …</code> — on a schedule, then <b>ingests the CSV/Sheets outputs</b> into neutral check inputs. That is heavier than an HTTP adapter (a licensed binary + RAM/SSD + headless Chrome per run), so run it on a schedule off the hot path rather than inline per request.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section id="embed">
+    <div class="kicker">02 · Applicability — how it slots into Snurra</div>
+    <h2>Embedding paths, ranked</h2>
+    <p class="lead">Snurra's other integrations (PageSpeed, BrowserStack, Percy) are all HTTP services behind a <code>ProviderAdapter</code>. Screaming Frog is not — so the "adapter" is a <b>process runner</b> around a licensed desktop binary. Here's how the realistic ways to wire it in rank:</p>
+
+    <div class="fit">
+      <div class="fitrow head"><div>Path</div><div>What it's good for</div><div>Fit</div></div>
+      <div class="fitrow">
+        <div class="name">Headless CLI sidecar for the crawl/extraction checks <small>(scheduled crawl → parse CSV)</small></div>
+        <div class="desc">Run SF headless on a schedule for the checks it delivers as deterministic extractions — hreflang validation, near‑duplicate / readability / thin‑content, third‑party resource status &amp; timing, new‑script &amp; new/deleted‑page diffs, security headers, CDN cache headers, and the SEO‑crawl surface. Ingest the exported CSVs into neutral check inputs.</div>
+        <div class="verd"><span class="badge best">Best fit ✓</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Scheduled deep technical‑SEO audit <small>(analyst‑driven, report‑style)</small></div>
+        <div class="desc">A periodic full crawl with everything on, exporting the Issues / Crawl‑Overview / Structured‑Data reports for a human to review — a deep‑dive artifact alongside Snurra's per‑run audit, not a per‑run check feed.</div>
+        <div class="verd"><span class="badge ok">Good (batch)</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Accessibility via SF's axe‑core <small>(v21+)</small></div>
+        <div class="desc">SF v21+ embeds the Deque axe‑core engine (WCAG 2.0–2.2). Enable JS rendering + Accessibility and export the violations — it needs a licence and extra RAM, so turn it on when you want a11y run inside the crawl.</div>
+        <div class="verd"><span class="badge cond">Conditional</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Expect real‑time results or run it inline per request</div>
+        <div class="desc">SF is a <b>batch crawler</b> — a full crawl takes minutes and needs the binary + RAM/SSD + headless Chrome. It can't back a real‑time or per‑request check; schedule it off the hot path and read the exports.</div>
+        <div class="verd"><span class="badge no">Don't</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="callout info">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+      <div>
+        <h4>Integration shape (contrast with the API tools)</h4>
+        <p>Unlike PSI / BrowserStack / Percy, SF has no endpoint — the "adapter" <b>spawns the licensed binary headless</b> (needs a licence key, a config with first‑run terms pre‑accepted, enough RAM/SSD, and headless Chrome), waits for the crawl, then parses the exported CSV/XLSX/Google‑Sheet files. Gate <code>isConfigured()</code> on the binary + licence being present on the host; degrade to <code>not‑applicable</code> if absent or the crawl times out. One crawl per instance (RAM/SSD‑bound); schedule it <b>off the hot path</b>, never inline in a page‑audit request.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUTOMATION / TECHNICAL -->
+  <section id="api">
+    <div class="kicker">03 · Technical detail — CLI, scale, "projects" &amp; rate limiting</div>
+    <h2>What integrating actually looks like</h2>
+    <p class="lead">Enough to scope an integration spike. Expand for detail:</p>
+
+    <div class="acc open">
+      <button>Driving it headless — the CLI <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        Automation is the installed binary run with no GUI. Headless/CLI <b>requires a licence</b>, and on a server the first‑run terms acceptance must be pre‑set in the config.
+        <div class="codeblock mono">
+# run a headless crawl and export the tabs/bulk-exports Snurra needs<br>
+screamingfrogseospider \<br>
+&nbsp;&nbsp;--crawl https://example.com \<br>
+&nbsp;&nbsp;--headless \<br>
+&nbsp;&nbsp;--config /cfg/checks.seospiderconfig \<br>
+&nbsp;&nbsp;--export-tabs "Hreflang:All,Response Codes:All,Content:Near Duplicates" \<br>
+&nbsp;&nbsp;--bulk-export "Security:Mixed Content" \<br>
+&nbsp;&nbsp;--export-format csv \<br>
+&nbsp;&nbsp;--output-folder /crawls --timestamped-output --overwrite<br><br>
+# → Snurra ingests the CSVs from /crawls/&lt;timestamp&gt;/ into neutral check inputs
+        </div>
+        Other flags: <code>--crawl-list</code>, <code>--save-crawl</code>/<code>--load-crawl</code> (<code>.seospider</code>), <code>--save-report</code>, <code>--create-sitemap</code>, and scheduler‑linked <code>--project-name</code>/<code>--task-name</code>/<code>--google-drive-account</code>.
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Storage modes &amp; scale <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Database mode (SSD)</code><span><b>Default.</b> Writes the crawl to disk — ≈<b>2M URLs</b> with an SSD + 4GB RAM allocated; scales with disk/RAM.</span>
+          <code>Memory mode (RAM)</code><span>≈10k–100k URLs at 2GB; "a couple hundred thousand" at 8GB. Faster for small crawls, RAM‑bound.</span>
+          <code>Crawl limits</code><span>Limit Crawl Total default <b>5M</b> (licensed) / <b>500</b> (free); Max URL length 10,000; Max links per URL 10,000; configurable crawl depth.</span>
+          <code>Rule of thumb</code><span>&lt;200k URLs → 8GB RAM fine; &gt;1M URLs → SSD database mode + 16GB+.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>"Projects" &amp; rate limiting (crawl speed, not an API quota) <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Projects</code><span><b>No cloud "project" object.</b> Crawls are local <code>.seospider</code> files; the scheduler organises runs by <b>project name + task name</b> (which double as the Google‑Drive export folders). That's the closest analog.</span>
+          <code>Concurrency</code><span>One crawl per running instance. Parallel crawls = launch <b>multiple headless instances</b> — bounded by CPU/RAM/disk, not by an explicit licence quota.</span>
+          <code>Rate limit</code><span><b>Politeness, not a quota.</b> Configuration &gt; Speed: <b>Max Threads</b> (default 5) and <b>Max URI/s</b> throttle requests so you don't overload the crawled server.</span>
+          <code>robots.txt</code><span>Respect (default) / Ignore / Ignore‑but‑report, per user‑agent. Note: SF does <b>not</b> honour the robots <code>crawl-delay</code> directive — throttle manually via Speed (third‑party‑reported).</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Licence &amp; feature gating <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Free</code><span><b>500 URLs/crawl</b>, and crawls can't be saved — <b>no configuration, JS rendering, custom extraction/search, API integrations, scheduling, or structured‑data / accessibility validation.</b> Basic crawl only.</span>
+          <code>Licensed</code><span>Removes the 500‑URL cap (unlimited, RAM/SSD‑bound) and unlocks <b>everything</b> above — all the covered checks live behind the licence.</span>
+          <code>Term &amp; seats</code><span><b>£199 / user / year</b> (~€245 / ~$279); 1‑year term; <b>per individual person</b> (multi‑device under "reasonable use"); teams need one licence each.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>APIs it consumes (not an API it exposes) <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Google GA4 / GSC</code><span>Pull analytics &amp; Search Console data into the crawl (also enables orphan‑page detection).</span>
+          <code>PageSpeed Insights</code><span>The <b>only</b> performance data — Lighthouse lab + CrUX field (Core Web Vitals). SF measures nothing itself.</span>
+          <code>Ahrefs / Majestic / Moz</code><span>External link metrics per URL.</span>
+          <code>OpenAI / Gemini</code><span>Pipe crawled content to an LLM you configure (custom JS) — a judgment layer, not SF's own deterministic output.</span>
+          <code>Google Sheets</code><span>Export target (<code>gsheet</code> format) — outbound, for results.</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <section id="integrations">
+    <div class="kicker">04 · Feature &amp; ecosystem map</div>
+    <h2>What it extracts &amp; plugs into</h2>
+    <p class="lead">A quick map of the engine's surface — extraction features, the APIs it consumes, the automation hooks, and export targets. Filter it:</p>
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="intSearch" type="text" placeholder="Search features & integrations…">
+      </div>
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="Extraction">Extraction</button>
+      <button class="chip" data-cat="Integration">Integration</button>
+      <button class="chip" data-cat="Automation">Automation</button>
+      <button class="chip" data-cat="Export">Export</button>
+    </div>
+    <div class="intgrid" id="intGrid"></div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="kicker">05 · Pricing</div>
+    <h2>What it costs</h2>
+    <p class="lead">The software is cheap and simple — a per‑user annual licence. The real cost of <em>embedding</em> is operational: running a licensed binary headless (with Chrome) on a VM/container with enough RAM/SSD per crawl.</p>
+    <table class="price">
+      <thead><tr><th>Plan / lever</th><th>Price</th><th>Model &amp; notes</th></tr></thead>
+      <tbody>
+        <tr><td class="prod">Free<small>evaluation</small></td><td><span class="freeword">Free</span> · 500 URLs/crawl</td><td>Basic crawl only. <b>No saved crawls, no configuration, no JS rendering, no custom extraction/search, no API integrations, no scheduling, no structured‑data / accessibility validation.</b> Not enough to embed.</td></tr>
+        <tr><td class="prod">Licence<small>per user / year</small></td><td><span class="money">£199</span>/yr <span style="color:var(--mut2);font-size:12px">(~€245 / ~$279)</span></td><td>Removes the 500‑URL cap (unlimited, RAM/SSD‑bound) and unlocks config, JS rendering, custom extraction, GA4/GSC/PSI, scheduling, crawl comparison, near‑duplicates, structured‑data + axe‑core accessibility, spell/grammar. 1‑year term. <b>All the covered checks live here.</b></td></tr>
+        <tr><td class="prod">Volume (5+)<small>tiered per licence</small></td><td><span class="quote">~£189→lower</span></td><td>Per‑licence price drops at 5+ (official EUR: €235 for 5–9, €219 for 10–19, €209 for 20+). GBP tier figures are third‑party/approximate.</td></tr>
+        <tr><td class="prod">Per‑user terms<small>licensing model</small></td><td><span class="quote">1 user</span></td><td>Per individual person; one user may install on <b>multiple devices</b> under "reasonable use". <b>One crawl per running instance</b>; parallel crawls = multiple instances. Teams = one licence each.</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--mut2);font-size:12.5px;margin-top:10px">£199/yr (€245 / ~$279) and the 500‑URL free cap are confirmed on Screaming Frog's own pricing page &amp; FAQ (Jul 2026). GBP volume‑tier figures are third‑party/approximate. The dominant embedding cost is <b>operational</b> — a licensed headless binary + Chrome + RAM/SSD per crawl on a machine you run — not the licence fee.</p>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="coverage">
+    <div class="kicker">06 · Which catalog checks it can cover</div>
+    <h2>Coverage — held to a 100%‑certain bar</h2>
+    <p class="lead">A check is listed <b>only if</b> Screaming Frog can produce its verdict as a <b>deterministic HTML/crawl extraction</b> (a fact parsed from markup, response codes/headers, links, hreflang, structured data, a crawl diff, or a configured custom extraction) — <b>no functional interaction, visual, geo‑IP, performance‑measurement or content‑meaning judgment</b>. Checks where SF extracts only part of the signal — the full verdict needing config or another tool — are not listed here; this is the set SF can cover end‑to‑end.</p>
+
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="covSearch" type="text" placeholder="Search covered checks…">
+      </div>
+    </div>
+    <p class="covcount" id="covCount"></p>
+    <div class="covgrid" id="covGrid"></div>
+
+    <div class="newcov" style="margin-top:32px">
+      <h3 style="font-size:19px;margin:0 0 6px">Additional checks it can cover — <span style="color:var(--mut2);font-weight:600">not in the catalog</span></h3>
+      <p class="lead" style="margin-top:0">Deterministic checks Screaming Frog produces that have <b>no matching entry</b> in <code>checks.ts</code> — candidate additions to the catalog. Each is referenced.</p>
+      <div class="covgrid" id="newCovGrid"></div>
+    </div>
+
+    <div style="margin-top:18px" class="callout bad">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>
+      <div>
+        <h4>What Screaming Frog does NOT cover</h4>
+        <p>Excluded, because a crawler cannot deliver these verdicts: <b>functional / interaction</b> (clicks, form submits, user flows, consent‑accept) · <b>visual regression</b> (Percy's turf) · <b>Core Web Vitals / performance</b> — SF only <em>re‑exposes Google PSI</em>, not its own measurement · <b>IP‑geolocation / geo‑routing</b> (proxy‑only; BrowserStack's turf) · <b>SSL cert validity / expiry, DNS &amp; domain‑whois</b> (SSL Labs / RDAP) · <b>uptime / continuous monitoring</b> (it's batch‑crawl, not a monitor) · <b>consent/cookie‑timing</b> checks (needs a consent‑accept flow) · and <b>compliance <em>meaning</em></b> (REMS, ISI, GDPR wording — SF can pipe text to OpenAI/Gemini, but that judgment is the LLM's, not SF's deterministic output). Structural limits: <b>no REST API</b> (run the binary), and the free tier caps at 500 URLs.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommend">
+    <div class="kicker">07 · Recommendation</div>
+    <h2>Pick your scenario</h2>
+    <p class="lead">SF is a batch crawler with no API — the recommendation is about where it earns its keep and how to wire it in. Click the closest match:</p>
+    <div class="picker" id="picker">
+      <button class="scn active" data-s="a">Cover the crawl/extraction checks<small>hreflang, content‑quality, resource health</small></button>
+      <button class="scn" data-s="b">Deep periodic technical audit<small>Scheduled full crawl → exports</small></button>
+      <button class="scn" data-s="c">Accessibility (axe‑core)<small>Run a11y inside the crawl</small></button>
+      <button class="scn" data-s="d">Mind the operational cost<small>batch binary + RAM/SSD per run</small></button>
+    </div>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="kicker">08 · Sources</div>
+    <h2>References</h2>
+    <p class="lead">Screaming Frog facts are from screamingfrog.co.uk (product page, pricing, FAQ, user guide &amp; tutorials), gathered 26 Jul 2026. GBP volume‑tier figures and the <code>crawl-delay</code> handling note are third‑party/approximate. Check names are quoted verbatim from <code>feasibility-app/data/checks.ts</code> (the source behind checks‑catalog.vercel.app).</p>
+    <div class="refs">
+      <div class="ref"><a href="https://www.screamingfrog.co.uk/seo-spider/" target="_blank" rel="noopener">SEO Spider — product page</a><p>Full feature list: crawl, redirects, hreflang, structured data, content, security, integrations.</p></div>
+      <div class="ref"><a href="https://www.screamingfrog.co.uk/seo-spider/pricing/" target="_blank" rel="noopener">Pricing</a><p>£199/yr (€245 / ~$279); volume tiers at 5+; 1‑year term.</p></div>
+      <div class="ref"><a href="https://www.screamingfrog.co.uk/seo-spider/faq/" target="_blank" rel="noopener">FAQ</a><p>Free 500‑URL cap &amp; restricted features; licence unlocks; per‑user terms; JS‑render licensed.</p></div>
+      <div class="ref"><a href="https://www.screamingfrog.co.uk/seo-spider/user-guide/general/" target="_blank" rel="noopener">User guide — general</a><p>CLI, scheduling, exports, storage modes &amp; scale, Google Sheets.</p></div>
+      <div class="ref"><a href="https://www.screamingfrog.co.uk/seo-spider/user-guide/tabs/" target="_blank" rel="noopener">User guide — tabs</a><p>Indexability / Indexability Status columns; Flesch readability.</p></div>
+      <div class="ref"><a href="https://www.screamingfrog.co.uk/seo-spider/user-guide/configuration/" target="_blank" rel="noopener">User guide — configuration</a><p>Speed (max threads / URI‑per‑second), robots.txt handling, proxy.</p></div>
+      <div class="ref"><a href="https://www.screamingfrog.co.uk/seo-spider/tutorials/structured-data-testing-validation/" target="_blank" rel="noopener">Structured‑data validation</a><p>JSON‑LD / Microdata / RDFa vs Schema.org + Google Rich Results.</p></div>
+      <div class="ref"><a href="https://www.screamingfrog.co.uk/seo-spider/tutorials/how-to-check-for-duplicate-content/" target="_blank" rel="noopener">Duplicate &amp; near‑duplicate content</a><p>MD5 exact + 90% near‑duplicate threshold via Crawl Analysis.</p></div>
+      <div class="ref"><a href="https://www.screamingfrog.co.uk/seo-spider/tutorials/how-to-audit-core-web-vitals/" target="_blank" rel="noopener">Core Web Vitals (via PSI)</a><p>Performance comes only from the PageSpeed Insights API — not native.</p></div>
+      <div class="ref"><a href="https://www.screamingfrog.co.uk/seo-spider/tutorials/how-to-perform-a-web-accessibility-audit/" target="_blank" rel="noopener">Accessibility audit (axe‑core)</a><p>v21+ embeds Deque axe‑core; WCAG 2.0–2.2; needs licence + JS rendering.</p></div>
+      <div class="ref"><a href="https://www.screamingfrog.co.uk/seo-spider/user-guide/general/#command-line" target="_blank" rel="noopener">Command‑line interface</a><p>Headless flags: <code>--crawl</code>, <code>--headless</code>, <code>--config</code>, <code>--export-tabs</code>, <code>--bulk-export</code>…</p></div>
+      <div class="ref"><a href="https://checks-catalog.vercel.app/" target="_blank" rel="noopener">Feasibility checks catalog</a><p>The 217‑check catalog this coverage maps against (source: feasibility‑app).</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="disc">
+      <strong>How to read this.</strong> This is an independent capability/integration assessment compiled from public sources for planning purposes — it is not from or endorsed by Screaming Frog Ltd, and it is not legal advice. Pricing, features (SF ships frequently — e.g. axe‑core landed in v21) and limits change; verify current figures with Screaming Frog before committing. The coverage list is deliberately conservative: checks are included only where a deterministic crawl extraction makes the verdict 100% certain — it is designed to under‑claim rather than over‑claim.
+    </div>
+    Screaming Frog® is a trademark of Screaming Frog Ltd. Prepared 26 Jul 2026 · for internal planning.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'),
+    thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var light=root.getAttribute('data-theme')==='light';
+  root.setAttribute('data-theme', light?'dark':'light');
+  thTxt.textContent = light?'Light':'Dark';
+});
+
+// ---- Capability tabs ----
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var k=t.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.getAttribute('data-pane')===k);
+    });
+  });
+});
+
+// ---- Accordions ----
+document.querySelectorAll('.acc>button').forEach(function(b){
+  b.addEventListener('click',function(){ b.parentElement.classList.toggle('open'); });
+});
+
+// ---- Feature / ecosystem data + filter ----
+var INTS=[
+  {n:'Core SEO extraction',c:'Extraction',d:'Titles/meta/H1, redirects, canonicals, directives, indexability'},
+  {n:'hreflang validation',c:'Extraction',d:'Return/confirmation links + language-region code checks'},
+  {n:'Structured-data validation',c:'Extraction',d:'JSON-LD/Microdata/RDFa vs Schema.org + Google Rich Results'},
+  {n:'Near-duplicate & readability',c:'Extraction',d:'Exact MD5 + 90% near-dupe; Flesch; word count; spell/grammar'},
+  {n:'Security tab',c:'Extraction',d:'Mixed content, insecure forms, missing security headers'},
+  {n:'axe-core Accessibility (v21+)',c:'Extraction',d:'Deque axe-core, WCAG 2.0–2.2 (licence + JS render)'},
+  {n:'Custom extraction',c:'Extraction',d:'XPath / CSSPath / regex + custom source-code search'},
+  {n:'JavaScript rendering',c:'Extraction',d:'Headless Chromium for JS-rich sites'},
+  {n:'Google Analytics 4',c:'Integration',d:'Pull GA4 data into the crawl'},
+  {n:'Google Search Console',c:'Integration',d:'GSC data + orphan-page detection'},
+  {n:'PageSpeed Insights',c:'Integration',d:'The only performance data — Lighthouse lab + CrUX field'},
+  {n:'Ahrefs / Majestic / Moz',c:'Integration',d:'External link metrics per URL'},
+  {n:'OpenAI / Gemini',c:'Integration',d:'Pipe content to an LLM via custom JS (judgment layer)'},
+  {n:'Command line (headless)',c:'Automation',d:'--crawl / --headless / --config / --export-tabs …'},
+  {n:'Scheduler',c:'Automation',d:'File > Scheduling — recurring headless crawls + auto-export'},
+  {n:'CSV / Excel / Google Sheets',c:'Export',d:'Tab, bulk & report exports (no native JSON)'},
+  {n:'Looker Studio report',c:'Export',d:'Crawl report export for dashboards'}
+];
+var grid=document.getElementById('intGrid'), search=document.getElementById('intSearch'), curCat='all';
+function renderInts(){
+  var q=(search.value||'').toLowerCase();
+  var rows=INTS.filter(function(i){
+    var okc = curCat==='all' || i.c===curCat;
+    var okq = !q || i.n.toLowerCase().indexOf(q)>-1 || i.d.toLowerCase().indexOf(q)>-1;
+    return okc && okq;
+  });
+  grid.innerHTML = rows.length ? rows.map(function(i){
+    return '<div class="intitem"><div class="cat">'+i.c+'</div><h5>'+i.n+'</h5><span>'+i.d+'</span></div>';
+  }).join('') : '<div class="empty">No matches.</div>';
+}
+document.querySelectorAll('#integrations .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#integrations .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); curCat=c.getAttribute('data-cat'); renderInts();
+  });
+});
+search.addEventListener('input',renderInts);
+renderInts();
+
+// ---- Coverage data + filter ----
+// check names are verbatim from feasibility-app/data/checks.ts
+var COV=[
+  {ch:'Faceted-filter URL & index behaviour', p:'Technical SEO & Redirects', cap:'Crawl + parameter config', gate:['config'], note:'SF crawls parameterised/faceted URLs and reports their indexability & canonical handling deterministically.'},
+  {ch:'No placeholder text on any page', p:'Content', cap:'Custom Search', gate:['licence'], note:'SF Custom Search sweeps all crawled page text for tokens (lorem ipsum, TBD, TODO, [placeholder]) — a pure deterministic match.'},
+  {ch:'Copyright year current across all pages', p:'Content Change Detection', cap:'Custom Extraction', gate:['licence'], note:'SF Custom Extraction pulls the footer year across every crawled page; the current-year compare is a trivial post-step.'},
+  {ch:'No mixed content warnings in browser', p:'Security', cap:'Security tab', gate:[], note:'SF’s Security report flags http:// resources on https pages directly.'},
+  {ch:'Security response headers present on server', p:'Security', cap:'Response headers', gate:[], note:'SF extracts response headers per URL; the Security tab flags missing CSP/X-Frame-Options/HSTS. Presence is deterministic (a graded score is Observatory’s).'},
+  {ch:'CDN serving assets correctly — not falling to origin', p:'SSL & Domain Health', cap:'Response headers', gate:['config'], note:'SF reads cache headers (cf-cache-status / x-cache / age) per URL via header extraction.'},
+  {ch:'hreflang tags correct for all served locales', p:'Performance & SEO', cap:'hreflang validation', gate:[], note:'Flagship SF feature: extracts link[rel=alternate][hreflang] and validates return/confirmation links + language-region codes across the crawl.'},
+  {ch:'All third-party scripts loading — no 404s', p:'Third-Party Script Health', cap:'Response codes (resources)', gate:[], note:'SF crawls JS/CSS/resource URLs and reports status codes — a 404 script is flagged.'},
+  {ch:'No unexpected new scripts appeared since last scan', p:'Third-Party Script Health', cap:'Crawl comparison', gate:['2 crawls'], note:'SF Crawl Comparison diffs two crawls and surfaces new resource URLs vs the prior crawl.'},
+  {ch:'No third-party script loading slower than 3 seconds', p:'Third-Party Script Health', cap:'Response Time column', gate:[], note:'SF records per-URL Response Time; threshold at 3s. (SF timing = server response time.)'},
+  {ch:'Accessibility statement & key policy presence', p:'Accessibility', cap:'Custom Extraction + link crawl', gate:['licence'], note:'SF’s link inventory + Custom Extraction confirm an Accessibility-Statement / privacy / cookie policy link is present. (This is link presence, not the axe engine.)'},
+  {ch:'Content readability score', p:'Content Quality', cap:'Readability (Flesch)', gate:['licence'], note:'SF computes Flesch Reading Ease per page natively. (Flesch Reading Ease, not Kincaid grade.)'},
+  {ch:'Duplicate content similarity across pages', p:'Content Quality', cap:'Near-duplicates', gate:['licence','Crawl Analysis'], note:'SF detects exact (MD5) + near-duplicate pages at a configurable 90% similarity threshold (post-crawl Crawl Analysis).'},
+  {ch:'Thin-content detection', p:'Content Quality', cap:'Word count', gate:[], note:'SF reports word count per page; threshold for thin pages.'},
+  {ch:'Outdated date / stale reference detection', p:'Content Quality', cap:'Custom Search', gate:['licence'], note:'SF Custom Search flags stale date/year patterns and expired campaign strings across the crawl — deterministic pattern match.'},
+  {ch:'No new pages published unexpectedly', p:'Content Change Detection', cap:'Crawl comparison', gate:['2 crawls'], note:'SF Crawl Comparison surfaces new URLs vs the previous crawl.'},
+  {ch:'No pages deleted or returning 404 unexpectedly', p:'Content Change Detection', cap:'Crawl comparison + status', gate:['2 crawls'], note:'SF Crawl Comparison + response codes flag removed URLs / newly-404 pages vs the prior crawl.'},
+  {ch:'Broken links & 404 scan', p:'Technical SEO & Redirects', cap:'Response codes', gate:[], note:'SF’s 4xx/5xx report flags broken links across the crawl.'},
+  {ch:'Redirect chains + legacy/sunset domain surface', p:'Technical SEO & Redirects', cap:'Redirect audit', gate:[], note:'SF’s redirect-chains/loops report surfaces redirect chains and legacy domains.'},
+  {ch:'Indexation (robots, sitemap, canonicals)', p:'Technical SEO & Redirects', cap:'Indexability', gate:[], note:'SF’s Indexability / Indexability-Status columns report robots / sitemap / canonical indexation.'},
+  {ch:'Metadata completeness (title/desc/H1/alt)', p:'Technical SEO & Redirects', cap:'SEO extraction', gate:[], note:'SF flags missing / duplicate / length issues on title, description, H1 and alt.'},
+  {ch:'Structured data / schema presence', p:'Technical SEO & Redirects', cap:'Structured data', gate:[], note:'SF extracts JSON-LD / Microdata / RDFa structured data.'},
+  {ch:'Canonical self-referential check', p:'Technical SEO & Redirects', cap:'Canonicals', gate:[], note:'SF’s canonical analysis reports self-referential canonicals.'},
+  {ch:'Heading outline / hierarchy & multiple-H1', p:'Technical SEO & Redirects', cap:'Headings', gate:[], note:'SF reports H1/H2 (missing / duplicate / multiple).'},
+  {ch:'Charset meta present', p:'Technical SEO & Redirects', cap:'SEO extraction', gate:[], note:'SF reports content-type / charset per page.'},
+  {ch:'Low-quality anchor text', p:'Technical SEO & Redirects', cap:'Anchor text', gate:[], note:'SF extracts all anchor text, flagging generic "click here".'},
+  {ch:'Structured-data JSON validity', p:'Technical SEO & Redirects', cap:'Structured-data validation', gate:[], note:'SF validates structured data vs Schema.org + Google Rich Results.'},
+  {ch:'Open Graph / Twitter-card tags present', p:'Technical SEO & Redirects', cap:'SEO extraction', gate:[], note:'SF extracts Open Graph / Twitter-card tags.'},
+  {ch:'HTTP automatically redirects to HTTPS', p:'Security', cap:'Redirect audit', gate:[], note:'SF’s Security tab flags HTTP→HTTPS redirect behaviour.'},
+  {ch:'Privacy policy link in footer of every Ex-US page', p:'Security', cap:'Link crawl', gate:[], note:'SF’s link inventory confirms the privacy-policy footer link per page.'},
+  {ch:'HTTP redirects to HTTPS correctly on all paths', p:'SSL & Domain Health', cap:'Redirect audit', gate:[], note:'SF checks the HTTP→HTTPS redirect per path.'},
+  {ch:'Unique title tag present on every page', p:'Performance & SEO', cap:'SEO extraction', gate:[], note:'SF’s duplicate-title report flags non-unique titles.'},
+  {ch:'Meta description present and correct length', p:'Performance & SEO', cap:'SEO extraction', gate:[], note:'SF’s meta-description report flags missing / wrong-length descriptions.'},
+  {ch:'robots.txt does not block important pages', p:'Performance & SEO', cap:'robots.txt', gate:[], note:'SF parses robots.txt and reports blocked URLs.'},
+  {ch:'XML sitemap accessible', p:'Performance & SEO', cap:'Sitemaps', gate:[], note:'SF crawls / audits the XML sitemap.'},
+  {ch:'Canonical tags point to correct regional URL', p:'Performance & SEO', cap:'Canonicals', gate:[], note:'SF extracts the canonical tag per page.'},
+  {ch:'HTML lang present + valid (BCP-47)', p:'Accessibility', cap:'lang extraction', gate:[], note:'SF extracts the html lang attribute per page.'},
+  {ch:'No infinite redirect loop on direct regional URL', p:'Geo Detection', cap:'Redirect audit', gate:[], note:'SF’s redirect-loop detection flags infinite loops.'},
+  {ch:'Full-site crawl & URL inventory', p:'IA & Structure', cap:'Crawl', gate:[], note:'SF’s core function — a full-site crawl and URL inventory.'},
+  {ch:'Internal link graph / cross-linking', p:'IA & Structure', cap:'Inlinks/outlinks', gate:[], note:'SF builds the internal-link graph (inlinks / outlinks).'},
+  {ch:'Document & resource link inventory', p:'IA & Structure', cap:'Resource inventory', gate:[], note:'SF classifies and inventories PDF / Word / media resource links.'},
+  {ch:'No broken internal links (404 errors)', p:'Navigation', cap:'Response codes', gate:[], note:'SF’s internal 4xx report flags broken internal links.'},
+  {ch:'Colour contrast meets 4.5:1 ratio', p:'Accessibility', cap:'axe-core (v21+)', gate:['licence','JS render'], note:'SF v21+ embeds Deque axe-core, which flags colour-contrast failures (licence + JS render).'},
+  {ch:'All interactive elements keyboard accessible', p:'Accessibility', cap:'axe-core (v21+)', gate:['licence','JS render'], note:'SF’s embedded axe-core flags keyboard-accessibility structural rules (licence + JS render).'},
+  {ch:'Skip navigation link present', p:'Accessibility', cap:'axe-core (v21+)', gate:['licence','JS render'], note:'SF’s embedded axe-core flags a missing skip-navigation link (licence + JS render).'},
+  {ch:'Axe scan shows zero critical violations', p:'Accessibility', cap:'axe-core (v21+)', gate:['licence','JS render'], note:'SF runs the Deque axe-core engine and reports critical violations (licence + JS render).'},
+  {ch:'All product images have descriptive alt text', p:'Accessibility', cap:'axe-core / alt', gate:['licence','JS render'], note:'SF (axe-core) flags missing alt text; "descriptive" still needs a human (licence + JS render).'},
+  {ch:'Automated WCAG scan on key pages', p:'Accessibility', cap:'axe-core (v21+)', gate:['licence','JS render'], note:'SF’s accessibility audit runs axe-core WCAG rules on scanned pages (licence + JS render).'}
+];
+var covGrid=document.getElementById('covGrid'), covSearch=document.getElementById('covSearch'),
+    covCount=document.getElementById('covCount'), curCov='all';
+function renderCov(){
+  var q=(covSearch.value||'').toLowerCase();
+  var rows=COV.filter(function(i){
+    return !q || i.ch.toLowerCase().indexOf(q)>-1 || i.p.toLowerCase().indexOf(q)>-1 || i.cap.toLowerCase().indexOf(q)>-1;
+  });
+  covCount.innerHTML='Showing <b style="color:var(--ink)">'+rows.length+'</b> of '+COV.length+' checks Screaming Frog can cover';
+  covGrid.innerHTML = rows.length ? rows.map(function(i){
+    var gates=(i.gate||[]).map(function(g){
+      return '<span class="gate">'+g+'</span>';
+    }).join('');
+    return '<div class="covitem"><div class="top"><div><h5>'+i.ch+'</h5>'+
+      '<div class="pil">'+i.p+' · <span class="capname">'+i.cap+'</span></div></div></div>'+
+      '<p>'+i.note+'</p>'+(gates?('<div>'+gates+'</div>'):'')+'</div>';
+  }).join('') : '<div class="empty">No checks match that filter.</div>';
+}
+covSearch.addEventListener('input',renderCov);
+renderCov();
+
+// ---- Additional checks NOT in the catalog (candidate new checks) ----
+var NEWCOV=[
+  {name:'Orphan URLs — pages with no internal inbound links', cap:'Crawl Analysis + Sitemap/GA/GSC join', note:'Surfaces URLs present in the sitemap / GA / GSC but reachable by no internal link. The catalog has an internal-link-graph check but no dedicated orphan-page verdict.', ref:'screamingfrog.co.uk — find orphan pages'},
+  {name:'Crawl depth — pages more than N clicks from the start URL', cap:'Internal tab crawl-depth', note:'Reports how many clicks each URL is from the start URL (blank = never reached internally). No catalog equivalent for click-depth.', ref:'screamingfrog.co.uk — user guide (tabs)'},
+  {name:'AMP validation errors (official AMP Validator)', cap:'Integrated AMP Validator', note:'Validates AMP URLs against the official AMP Validator and flags amphtml links with non-200 responses. The catalog has no AMP check.', ref:'screamingfrog.co.uk — SEO Spider features'},
+  {name:'Pagination (rel="next" / rel="prev") issues', cap:'Pagination audit', note:'Checks rel=next/prev markup and common paginated-series setup problems. No catalog equivalent.', ref:'screamingfrog.co.uk — SEO Spider features'},
+  {name:'Sitemap lists non-indexable / orphaned / missing URLs', cap:'Crawl-vs-Sitemap comparison', note:'Compares the crawl against the XML sitemap and flags sitemap URLs that are non-indexable, orphaned, or missing from the crawl — finer than the catalog’s "XML sitemap accessible" presence check.', ref:'screamingfrog.co.uk — user guide (tabs)'}
+];
+(function(){
+  var g=document.getElementById('newCovGrid'); if(!g) return;
+  g.innerHTML=NEWCOV.map(function(i){
+    return '<div class="covitem"><div class="top"><div><h5>'+i.name+'</h5>'+
+      '<div class="pil"><span class="capname">'+i.cap+'</span></div></div><span class="gate">new</span></div>'+
+      '<p>'+i.note+'</p><div class="pil" style="margin-top:8px">↳ <span class="capname">'+i.ref+'</span></div></div>';
+  }).join('');
+})();
+
+// ---- Scenario recommender ----
+var RECS={
+  a:{label:'Recommended path',h:'Headless CLI sidecar for the crawl/extraction checks',
+     p:'SF earns its keep on the checks it delivers as deterministic extractions — hreflang validation, near-duplicate/readability/thin-content, third-party resource status/timing, new-script & new/deleted-page diffs, security headers, CDN cache headers.',
+     s:['Run screamingfrogseospider --headless on a schedule (licensed binary + a config with terms pre-accepted).','Enable the relevant configs (hreflang, Content>Duplicates, Custom Search, Security).','Ingest the CSV / Google-Sheets exports into neutral check inputs; degrade to not-applicable on absence/timeout.']},
+  b:{label:'Recommended path',h:'Scheduled full crawl for analyst-driven deep audits',
+     p:'For a periodic, comprehensive technical-SEO + accessibility snapshot (not per-run checks), schedule a full crawl with all configs on and export the Issues / Crawl-Overview / Accessibility reports.',
+     s:['Use database storage mode (SSD) for large sites (~2M URLs).','Auto-export reports to Google Sheets / Looker Studio.','Treat it as a deep-dive artifact, separate from Snurra’s per-run audit.']},
+  c:{label:'Recommended path',h:'Run axe-core accessibility inside the crawl',
+     p:'SF v21+ embeds Deque axe-core (WCAG 2.0–2.2), so a11y violations come out of the same crawl — with a licence, JS rendering enabled, and extra RAM.',
+     s:['Enable JS rendering + Accessibility in the SF config.','Export the Accessibility report (violations by WCAG rule / severity).','Budget the extra RAM/time that JS rendering adds per crawl.']},
+  d:{label:'Recommended path',h:'Mind the operational cost — batch binary, not an API',
+     p:'SF has no endpoint; each run spawns the licensed binary with headless Chrome and RAM/SSD, and a crawl takes minutes. Plan it as a scheduled batch job, never an inline per-request call.',
+     s:['Run one crawl per instance; parallelism = more instances (CPU/RAM/disk-bound).','Use database storage mode (SSD) for large sites (~2M URLs).','Schedule crawls off the hot path and ingest the exports asynchronously.']}
+};
+function showRec(k){
+  var r=RECS[k];
+  document.getElementById('rec').innerHTML =
+    '<div class="rlabel">'+r.label+'</div><h3>'+r.h+'</h3><p>'+r.p+'</p><ul class="steps"><li>'+r.s.join('</li><li>')+'</li></ul>';
+}
+document.querySelectorAll('.scn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.scn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active'); showRec(b.getAttribute('data-s'));
+  });
+});
+showRec('a');
+</script>
+</body>
+</html>

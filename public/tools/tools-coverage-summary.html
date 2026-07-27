@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tool Coverage — Summary</title>
+<style>
+  :root{
+    --bg:#0a0f1c; --panel:#0f1626; --panel2:#131c30; --ink:#eef3ff; --mut:#aeb9d2; --mut2:#7d8aa8;
+    --line:#20293f; --brand:#4f8cff; --brand2:#8b5cf6; --grad1:#5b9bff; --grad2:#a78bfa;
+    --good:#34d399; --warn:#fbbf24; --bad:#f87171; --chip:#16203a;
+  }
+  html[data-theme="light"]{
+    --bg:#f5f7fc; --panel:#ffffff; --panel2:#f0f4fb; --ink:#111a2e; --mut:#41506e; --mut2:#6b7794;
+    --line:#e2e8f4; --chip:#eef3fc;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+  a{color:var(--brand);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code{background:var(--chip);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font:12.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink)}
+  /* header */
+  header.top{position:sticky;top:0;z-index:20;background:color-mix(in oklab,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .topbar{display:flex;align-items:center;justify-content:space-between;height:56px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px}
+  .mark{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--grad1),var(--grad2));display:grid;place-items:center}
+  .mark svg{width:14px;height:14px}
+  .tbtn{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:6px 11px;font-size:12.5px;cursor:pointer}
+  .tbtn:hover{color:var(--ink)}
+  /* hero */
+  .hero{padding:40px 0 20px}
+  .eyebrow{display:inline-block;font-size:12px;letter-spacing:.06em;color:var(--brand);background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:4px 11px;margin-bottom:16px}
+  h1{font-size:32px;line-height:1.15;margin:0 0 12px;letter-spacing:-.02em}
+  .grad{background:linear-gradient(120deg,var(--grad1),var(--grad2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--mut);font-size:15.5px;max-width:760px;margin:0}
+  /* totals */
+  .totals{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:26px 0 8px}
+  .tot{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .tot .big{font-size:30px;font-weight:800;letter-spacing:-.02em}
+  .tot .big small{font-size:16px;color:var(--mut2);font-weight:700}
+  .tot .lab{color:var(--mut2);font-size:12.5px;margin-top:4px}
+  .barout{height:7px;border-radius:6px;background:var(--chip);border:1px solid var(--line);margin-top:11px;overflow:hidden}
+  .barin{height:100%;background:linear-gradient(90deg,var(--grad1),var(--grad2))}
+  /* section */
+  section{padding:26px 0 40px}
+  .kicker{font-size:12px;letter-spacing:.08em;color:var(--mut2);text-transform:uppercase;margin-bottom:8px}
+  h2{font-size:21px;margin:0 0 6px}
+  .lead{color:var(--mut);margin:0 0 18px;font-size:14px}
+  /* tool rows */
+  .rows{display:flex;flex-direction:column;gap:12px}
+  .row{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .rowhead{display:grid;grid-template-columns:1fr auto auto;gap:16px;align-items:center;padding:16px 18px;cursor:pointer}
+  .rowhead:hover{background:var(--panel2)}
+  .rname{font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px}
+  .rident{color:var(--mut2);font-size:12.5px;margin-top:3px}
+  .rcost{color:var(--mut);font-size:12.5px;margin-top:7px}
+  .rcost b{color:var(--ink);font-weight:600}
+  .nums{display:flex;align-items:center;gap:10px;white-space:nowrap}
+  .cnum{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1}
+  .cnum small{font-size:11.5px;color:var(--mut2);font-weight:600;display:block;letter-spacing:.02em}
+  .nbadge{background:var(--chip);border:1px solid var(--line);color:var(--brand);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700}
+  .caret{color:var(--mut2);transition:transform .2s;font-size:13px}
+  .row.open .caret{transform:rotate(90deg)}
+  .panel{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .row.open .panel{max-height:3200px}
+  .pinner{padding:4px 18px 20px;border-top:1px solid var(--line)}
+  .block{margin-top:18px}
+  .block h4{margin:0 0 9px;font-size:13px;letter-spacing:.03em;text-transform:uppercase;color:var(--mut2)}
+  .block h4 .c{color:var(--brand);font-weight:800}
+  .checks{columns:2;column-gap:26px}
+  @media(max-width:640px){.checks{columns:1}.totals{grid-template-columns:1fr}.rowhead{grid-template-columns:1fr auto}}
+  .checks .ci{break-inside:avoid;display:flex;gap:8px;padding:3px 0;font-size:13px;color:var(--mut)}
+  .checks .ci svg{flex:0 0 auto;margin-top:3px}
+  .checks.newc .ci{color:var(--ink)}
+  .kv{display:grid;grid-template-columns:130px 1fr;gap:8px 14px;font-size:13.5px}
+  .kv code{white-space:nowrap}
+  .kv span{color:var(--mut)}
+  .lims{margin:0;padding-left:18px;color:var(--mut);font-size:13.5px}
+  .lims li{margin:4px 0}
+  .open-full{display:inline-flex;align-items:center;gap:6px;margin-top:16px;background:var(--chip);border:1px solid var(--line);border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600}
+  footer{border-top:1px solid var(--line);padding:26px 0 50px;color:var(--mut2);font-size:12.5px}
+  .pill{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;border:1px solid var(--line)}
+  .pill.good{color:var(--good)} .pill.warn{color:var(--warn)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h11M4 17h7" stroke="#04122a" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+      Tool coverage <span style="color:var(--mut2);font-weight:600">· summary</span>
+    </div>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Light</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <span class="eyebrow">● Site-Audit tool evaluations · index</span>
+    <h1>Which tools cover <span class="grad">how many checks</span></h1>
+    <p class="sub">A comparison index of the six vendor tools evaluated for embedding into the Snurra Site&#8209;Audit. Each row shows how many feasibility&#8209;catalog checks the tool can 100% cover; expand it to see the actual checks, the checks it covers that aren't in the catalog yet, its cost, how it integrates, and its limitations. Every figure traces to that tool's full analysis page.</p>
+
+    <div class="totals">
+      <div class="tot"><div class="big" id="totUnion">–<small> / 217</small></div><div class="lab">distinct catalog checks coverable across all six tools (union)</div><div class="barout"><div class="barin" id="totBar" style="width:0"></div></div></div>
+      <div class="tot"><div class="big" id="totTools">6</div><div class="lab">tools evaluated · <span id="totSum">–</span> tool→check mappings (with overlaps)</div></div>
+      <div class="tot"><div class="big" id="totNew">–</div><div class="lab">net-new checks these tools cover that the catalog doesn't have yet</div></div>
+    </div>
+  </div>
+
+  <section>
+    <div class="kicker">Tools · sorted by catalog checks covered</div>
+    <h2>The six tools</h2>
+    <p class="lead">Click a row to expand. "Catalog checks" are held to a 100%-certain bar (verbatim from <code>feasibility-app/data/checks.ts</code>); "net-new" are deterministic checks the tool covers that have no catalog entry — candidate additions.</p>
+    <div class="rows" id="rows"></div>
+  </section>
+
+  <footer class="wrap" style="border:0;padding-left:0;padding-right:0">
+    Prepared 28 Jul 2026 · for internal planning. Catalog check names are verbatim from <code>feasibility-app/data/checks.ts</code> (217 checks); counts, cost, integration and limitations are drawn from each tool's own <code>&lt;tool&gt;-analysis.html</code>. Some pricing figures are third-party/approximate or gated — see the individual analysis page for sourcing.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'), thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var light=root.getAttribute('data-theme')==='light';
+  root.setAttribute('data-theme', light?'dark':'light');
+  thTxt.textContent = light?'Light':'Dark';
+});
+
+// ---- Data (check lists verbatim from each *-analysis.html COV[]/NEWCOV[]) ----
+var TOOLS=[
+  {
+    name:"Screaming Frog SEO Spider", file:"screaming-frog-analysis.html",
+    ident:"Desktop SEO crawler — technical-SEO / on-page / indexation audit",
+    costShort:"Free ≤500 URLs · £199/yr per user",
+    cost:"Free tier crawls up to 500 URLs per crawl. Paid licence £199/year (≈€245) per individual user — unlimited URLs (bounded only by RAM/SSD); bulk discounts from 5 licences.",
+    integ:{"Input":"A URL — it crawls the site with a local binary (GUI or headless CLI).","API":"No hosted REST API. Automate via the CLI (--crawl / --headless / --config / --export-tabs) and ingest CSV / XLSX / Google-Sheets exports.","Adapter fit":"Run the binary on a VM/sidecar on a schedule, then parse the export files — heavier than an HTTP adapter (licensed binary + RAM/SSD + headless Chrome per crawl)."},
+    lims:["No hosted API — files, not endpoints; needs a machine you control.","Per-user licence; heavier to run than an HTTP call.","Static / rendered-HTML analysis only — no functional, visual, geo-IP or performance verdicts (it re-exposes Google PSI)."],
+    cov:["Faceted-filter URL & index behaviour","No placeholder text on any page","Copyright year current across all pages","No mixed content warnings in browser","Security response headers present on server","CDN serving assets correctly — not falling to origin","hreflang tags correct for all served locales","All third-party scripts loading — no 404s","No unexpected new scripts appeared since last scan","No third-party script loading slower than 3 seconds","Accessibility statement & key policy presence","Content readability score","Duplicate content similarity across pages","Thin-content detection","Outdated date / stale reference detection","No new pages published unexpectedly","No pages deleted or returning 404 unexpectedly","Broken links & 404 scan","Redirect chains + legacy/sunset domain surface","Indexation (robots, sitemap, canonicals)","Metadata completeness (title/desc/H1/alt)","Structured data / schema presence","Canonical self-referential check","Heading outline / hierarchy & multiple-H1","Charset meta present","Low-quality anchor text","Structured-data JSON validity","Open Graph / Twitter-card tags present","HTTP automatically redirects to HTTPS","Privacy policy link in footer of every Ex-US page","HTTP redirects to HTTPS correctly on all paths","Unique title tag present on every page","Meta description present and correct length","robots.txt does not block important pages","XML sitemap accessible","Canonical tags point to correct regional URL","HTML lang present + valid (BCP-47)","No infinite redirect loop on direct regional URL","Full-site crawl & URL inventory","Internal link graph / cross-linking","Document & resource link inventory","No broken internal links (404 errors)","Colour contrast meets 4.5:1 ratio","All interactive elements keyboard accessible","Skip navigation link present","Axe scan shows zero critical violations","All product images have descriptive alt text","Automated WCAG scan on key pages"],
+    newcov:["Orphan URLs — pages with no internal inbound links","Crawl depth — pages more than N clicks from the start URL","AMP validation errors (official AMP Validator)","Pagination (rel=\"next\" / rel=\"prev\") issues","Sitemap lists non-indexable / orphaned / missing URLs"]
+  },
+  {
+    name:"ObservePoint", file:"observepoint-analysis.html",
+    ident:"Real-Chrome tag / analytics / consent-governance scanner",
+    costShort:"Usage-based (page scans + journeys), quote · free ≈300 pages",
+    cost:"Usage-based and quote-oriented — billed on annual page scans + Journeys executed, not seats. Free ≈300 pages to prototype. Published dollar tiers are third-party/approximate; confirm by quote.",
+    integ:{"Input":"A start URL — renders every page in real Chrome and audits tags/cookies/requests/data-layer.","API":"Documented REST API (api.observepoint.com, api_key, v2/v3) with webhooks on run completion and scheduling. ~100–600 req/min per key.","Adapter fit":"Fits the ProviderAdapter as async: trigger a pre-built audit/journey → webhook (or poll runs) → fetch the report."},
+    lims:["No compliance meaning, no visual regression, no SSL/DNS/uptime verdicts.","Runs consume the page-scan budget; an Allow-Overages toggle can block runs.","Async only — never an inline per-request call; schedule off the hot path."],
+    cov:["GA4 tag present and firing correctly post-consent","No duplicate pageview events being fired","Key conversion events configured and firing","Data going to correct GA4 property not staging","No analytics data collected before GDPR consent (Ex-US)","All third-party scripts loading — no 404s","No unexpected new scripts appeared since last scan","No third-party script loading slower than 3 seconds","Consent platform (OneTrust Cookiebot etc.) loading correctly","No tracking cookies set before user consent","No analytics firing before GDPR consent","Cookie consent / pre-consent tracking check","No mixed content warnings in browser","CMP loads before any tracking scripts fire","Analytics fires only after user gives consent","Consent event fired in DataLayer after acceptance","Third-party scripts / martech footprint","JavaScript console errors on key pages","Zero JavaScript errors on page load","Frontend error logging integration check","JavaScript bundle / chunk load failure detection","No new pages published unexpectedly","Profiling cookies off by default (Ex-US)","Broken links & 404 scan","No broken internal links (404 errors)","Full-site crawl & URL inventory","Internal link graph / cross-linking","Document & resource link inventory","Click-test of button-shaped / JS-nav elements","PI PDF downloads correctly (US)","REMS enrollment external link works (US)","SmPC and PIL download links work (Ex-US)","EMA external link opens correctly (Ex-US)","Metadata completeness (title/desc/H1/alt)","Unique title tag present on every page","Meta description present and correct length","Structured data / schema presence","Structured-data JSON validity","Automated WCAG scan on key pages"],
+    newcov:["Analytics tag present on the expected % of pages site-wide (missing-tag detection)","Data-layer variable present and matches an expected value (exact or regex)","Data-layer variable correctly maps into the analytics tag","Tag load order / execution sequencing","Unapproved / rogue tag or cookie vs an approved allowlist","Consent enforcement behavior across opt-in / opt-out / GPC"]
+  },
+  {
+    name:"SEMrush", file:"semrush-analysis.html",
+    ident:"SEO / marketing-intelligence SaaS — Site Audit cloud crawler",
+    costShort:"Pro $139.95 / Guru $249.95 / Business $499.95 per mo",
+    cost:"Pro $139.95 / Guru $249.95 / Business $499.95 per month. The Site Audit API is a Business-plan add-on, metered in API units; projects are capped per plan (Pro 5 / Guru 15 / Business 40).",
+    integ:{"Input":"A URL / project — Site Audit cloud crawler (140+ checks).","API":"Site Audit API: launch a scan → poll for the snapshot → fetch per-URL issues (api.semrush.com). 10 req/s + 10 concurrent, unit-metered.","Adapter fit":"Fits the ProviderAdapter as async launch-then-poll; API access requires the Business plan."},
+    lims:["API is a Business-plan add-on, unit-metered (10 req/s, 10 concurrent).","WCAG is a separate App Center app, not the Site Audit API.","Core Web Vitals are lab-only on a 10-page sample; project caps per plan."],
+    cov:["Broken links & 404 scan","Redirect chains + legacy/sunset domain surface","Indexation (robots, sitemap, canonicals)","Metadata completeness (title/desc/H1/alt)","Structured data / schema presence","Charset meta present","Canonical self-referential check","Heading outline / hierarchy & multiple-H1","Structured-data JSON validity","Unique title tag present on every page","Meta description present and correct length","robots.txt does not block important pages","XML sitemap accessible","Canonical tags point to correct regional URL","hreflang tags correct for all served locales","No broken internal links (404 errors)","Full-site crawl & URL inventory","Internal link graph / cross-linking","HTTP automatically redirects to HTTPS","No mixed content warnings in browser","HTTPS valid with no browser security warnings","SSL certificate valid with no browser warnings","SSL certificate not expiring within 30 days","HTTP redirects to HTTPS correctly on all paths","Duplicate content similarity across pages","Thin-content detection","No infinite redirect loop on direct regional URL","Viewport meta valid (zoom not disabled)","Visibility snapshot (rankings overview)","Strategic SEO (backlinks, full rankings)"],
+    newcov:["AMP page validity (40+ AMP-specific checks)","Orphaned pages — no incoming internal links","Crawl depth — pages more than 3 clicks from the homepage","Low text-to-HTML ratio","Sitemap lists non-indexable / broken / non-canonical URLs","Toxic backlink detection (toxicity score)"]
+  },
+  {
+    name:"BrowserStack Automate", file:"browserstack-automate-analysis.html",
+    ident:"Real-browser / real-device automation grid (runs your test code)",
+    costShort:"Per parallel test; unlimited users (figures third-party)",
+    cost:"Priced per parallel test/session with unlimited users; base plans include 1 parallel. Dollar figures are third-party/unverified (~$99–249/mo desktop → desktop+mobile). IP geolocation is Enterprise-tier.",
+    integ:{"Input":"Your own Selenium/Playwright/Cypress test code — code-in, not URL-in.","API":"REST API (Basic auth) exposes builds / sessions / HAR logs. Rate 1600 req/5min per user, 160/s per IP.","Adapter fit":"Runs your script on the grid; it only verdicts what your script asserts — its value is the real environment + captured artifacts."},
+    lims:["No autonomous scanning — it only asserts what your script checks.","Parallel-test cap per plan; queued tests drop after 15 min.","IP geolocation is Enterprise-tier for Automate."],
+    cov:["US IP automatically serves US version","UK IP automatically serves UK version","EU IP serves correct regional version","Geo-redirect uses 302 temporary not 301 permanent","Geo-override preference persisted during session","Visitor can override geo-detection manually","Zero JavaScript errors on page load","JavaScript console errors on key pages","JavaScript bundle / chunk load failure detection","No mixed content warnings in browser","All third-party scripts loading — no 404s","No third-party script loading slower than 3 seconds","Back and forward browser navigation works","Hero CTA buttons functional","HCP nav item present and routes correctly","Switching region routes to correct content","Required field validation fires on empty submission","Broken interactive components detection","Nav + key journey click-through (desktop)","Mobile menu / nav component behaviour","Touch-target sizing & tap accuracy","PI and SmPC documents accessible on mobile","Cookie consent banner usable on mobile","No layout overflow at 1440px desktop","Critical element presence baseline check","Client vs server render check","Cookie preferences remembered across sessions","Contact form submits and shows confirmation","Contact / RFP form submission test"],
+    newcov:["Real-device rendering on a named physical iOS/Android device","Behind-login / staging / firewalled-site testing via the Local tunnel","Precise GPS-location (lat/long) behavior for mobile apps","Rendering at an exact desktop screen resolution on a real browser","Browser-version-specific rendering regression (exact / latest-1 / beta)"]
+  },
+  {
+    name:"Percy", file:"percy-analysis.html",
+    ident:"Visual regression — pixel diff vs an approved baseline",
+    costShort:"Free 5,000 screenshots/mo · then metered per screenshot",
+    cost:"Free plan 5,000 screenshots/month (unlimited users/projects). Paid tiers add screenshots; usage beyond is metered per screenshot (a screenshot = one browser×width render). Exact paid prices are JS-rendered/unverified.",
+    integ:{"Input":"A test SDK embedded in your suite (@percy/playwright etc.) — it snapshots the DOM during a test, not a plain URL.","API":"REST API (PERCY_TOKEN) for builds / snapshots / approvals. Re-renders server-side and pixel-diffs vs the baseline.","Adapter fit":"Needs a driver to load pages and an approved baseline; a human approves/rejects each flagged diff."},
+    lims:["Needs a driver + an approved baseline; the first run only sets the baseline.","Every flagged diff is a human decision (auto-pass only when there's no diff).","No functional, performance, SEO, accessibility or content verdicts."],
+    cov:["DOM structure shift detection","Unexpected banner / modal introduced on key pages","Key page content matches last approved baseline","Hero and product images unchanged","Hero headline renders correctly","Navigation adapts correctly at 768px tablet","Responsive / cross-browser spot check","Unexpected blocking overlay / modal detection","Critical element presence baseline check"],
+    newcov:["Visual regression — rendered page differs pixel-wise from the approved baseline","Responsive visual rendering diff at specific viewport widths (e.g. 375 / 768 / 1280 px)","Cross-browser visual rendering diff (Chrome / Firefox / Edge / Safari)","Per-build / per-PR visual status check that blocks a commit until visual changes are reviewed"]
+  },
+  {
+    name:"ImmuniWeb", file:"immuniweb-analysis.html",
+    ident:"AI-driven security / SSL / privacy-compliance scanner (URL-in)",
+    costShort:"Community free (50 req/24h/IP) · commercial API from $200/mo",
+    cost:"Community Edition free (all tools + PDF); free Website API capped at 50 req/24h/IP. Commercial Website API from $200/mo. Paid products (EUR list): Neuron €595/yr per target; Discovery €1,495–4,495/mo; On-Demand / MobileSuite €995–14,995 per pentest.",
+    integ:{"Input":"A URL / domain — free Website / SSL / Dark-Web tests take a URL in, no code or credentials.","API":"Documented REST APIs with an async job/poll shape (POST to start → poll get_result); rich per-check JSON (grade + score). Also an iwtools CLI/Docker for CI.","Adapter fit":"Fits the ProviderAdapter as start-then-poll; CVE-level detail needs a paid API key."},
+    lims:["Free API capped at 50 requests / 24h / IP — schedule + cache, never inline per request.","CVE / software-version detail is gated behind a paid API key.","Security / SSL / privacy scanner only — no analytics, visual, performance, accessibility or content verdicts."],
+    cov:["Security response headers present on server","SSL validity + security headers","HTTPS valid with no browser security warnings","No mixed content warnings in browser","SSL certificate valid with no browser warnings","SSL certificate not expiring within 30 days"],
+    newcov:["HTTP security header correctness — per-directive (CSP unsafe/wildcard, HSTS max-age/preload)","Cookies missing Secure / HttpOnly / SameSite flags (+ __Secure-/__Host- prefix validity)","Insecure HTTP methods enabled (TRACE / TRACK / PUT / DELETE / CONNECT)","Known-CVE vulnerabilities in detected CMS / JS components (CVE + CVSS) [premium]","PCI-DSS 4.0 non-intrusive compliance scan (Req 6.3 / 6.4)","GDPR technical compliance quick-scan (privacy policy, SSL, cookie flags, consent banner)","DNSSEC configuration present","Subresource Integrity (SRI) presence + hash validation","Weak TLS ciphers / protocols + post-quantum-crypto readiness","Dark-web leaked / stolen credentials for the domain"]
+  }
+];
+
+var CATALOG_TOTAL=217;
+
+function check(txt){ return '<div class="ci"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--good)" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg><span>'+txt+'</span></div>'; }
+function newc(txt){ return '<div class="ci"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg><span>'+txt+'</span></div>'; }
+
+var rowsEl=document.getElementById('rows');
+TOOLS.forEach(function(t,idx){
+  var cov=t.cov.length, nc=t.newcov.length;
+  var kv=Object.keys(t.integ).map(function(k){ return '<code>'+k+'</code><span>'+t.integ[k]+'</span>'; }).join('');
+  var row=document.createElement('div');
+  row.className='row';
+  row.innerHTML=
+    '<div class="rowhead" data-i="'+idx+'">'+
+      '<div>'+
+        '<div class="rname">'+t.name+'</div>'+
+        '<div class="rident">'+t.ident+'</div>'+
+        '<div class="rcost"><b>Cost:</b> '+t.costShort+'</div>'+
+      '</div>'+
+      '<div class="nums">'+
+        '<div class="cnum" style="text-align:right">'+cov+'<small>catalog checks</small></div>'+
+        '<span class="nbadge">+'+nc+' new</span>'+
+      '</div>'+
+      '<div class="caret">▸</div>'+
+    '</div>'+
+    '<div class="panel"><div class="pinner">'+
+      '<div class="block"><h4>Catalog checks covered <span class="c">'+cov+'</span></h4><div class="checks">'+t.cov.map(check).join('')+'</div></div>'+
+      '<div class="block"><h4>Additional checks it can cover — not in the catalog <span class="c">'+nc+'</span></h4><div class="checks newc">'+t.newcov.map(newc).join('')+'</div></div>'+
+      '<div class="block"><h4>Cost</h4><p style="margin:0;color:var(--mut);font-size:13.5px">'+t.cost+'</p></div>'+
+      '<div class="block"><h4>Integration</h4><div class="kv">'+kv+'</div></div>'+
+      '<div class="block"><h4>Limitations</h4><ul class="lims"><li>'+t.lims.join('</li><li>')+'</li></ul></div>'+
+      '<a class="open-full" href="'+t.file+'">Open full analysis →</a>'+
+    '</div></div>';
+  rowsEl.appendChild(row);
+});
+
+document.querySelectorAll('.rowhead').forEach(function(h){
+  h.addEventListener('click',function(){ h.parentElement.classList.toggle('open'); });
+});
+
+// ---- Totals ----
+var union={}, sum=0, newsum=0;
+TOOLS.forEach(function(t){ t.cov.forEach(function(c){ union[c]=1; }); sum+=t.cov.length; newsum+=t.newcov.length; });
+var u=Object.keys(union).length;
+document.getElementById('totUnion').innerHTML=u+'<small> / '+CATALOG_TOTAL+'</small>';
+document.getElementById('totBar').style.width=(u/CATALOG_TOTAL*100).toFixed(1)+'%';
+document.getElementById('totSum').textContent=sum;
+document.getElementById('totNew').textContent=newsum;
+</script>
+</body>
+</html>

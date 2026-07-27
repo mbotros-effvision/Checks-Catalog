@@ -10,6 +10,7 @@ const TABS = [
   { href: '/', label: 'Checks Catalog' },
   { href: '/mamta', label: 'Mamta Checks' },
   { href: '/comparison', label: 'Comparison' },
+  { href: '/tools-analysis', label: 'Tools Analysis' },
 ];
 
 function isActive(pathname: string, href: string): boolean {

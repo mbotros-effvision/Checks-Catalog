@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ObservePoint — Capabilities &amp; Embedding Analysis</title>
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#0f1630; --panel:#131c3a; --panel2:#18234a;
+    --line:#25315c; --line2:#33427a;
+    --ink:#eaf0ff; --mut:#9db0d8; --mut2:#6f83b3;
+    --brand:#4f8cff; --brand2:#7aa8ff; --accent:#22d3aa;
+    --warn:#ffb020; --bad:#ff5d6c; --good:#22d3aa;
+    --chip:#1b2649; --shadow:0 12px 40px rgba(0,0,0,.45);
+    --radius:16px;
+  }
+  html[data-theme="light"]{
+    --bg:#eef2fb; --bg2:#e6ecfa; --panel:#ffffff; --panel2:#f4f7ff;
+    --line:#d6def2; --line2:#c3cfec; --ink:#101a33; --mut:#41527a; --mut2:#6b7aa3;
+    --chip:#eef2fd; --shadow:0 12px 34px rgba(20,40,90,.12);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 700px at 80% -10%,rgba(79,140,255,.18),transparent 60%),
+               radial-gradient(900px 600px at -10% 10%,rgba(34,211,170,.10),transparent 55%),
+               var(--bg);
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--brand2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 22px}
+
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(79,140,255,.5)}
+  .logo .mark svg{width:18px;height:18px}
+  nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
+  nav.links a:hover{background:var(--chip); color:var(--ink); text-decoration:none}
+  .tbtn{border:1px solid var(--line2); background:var(--chip); color:var(--ink); border-radius:9px;
+    padding:7px 10px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; gap:6px; align-items:center}
+  .tbtn:hover{border-color:var(--brand)}
+
+  .hero{padding:46px 0 26px}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:var(--chip);
+    border:1px solid var(--line2); padding:6px 12px; border-radius:999px}
+  h1{font-size:40px; line-height:1.12; margin:16px 0 10px; letter-spacing:-.5px}
+  h1 .grad{background:linear-gradient(120deg,var(--brand2),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--mut); font-size:17px; max-width:810px}
+  .meta{margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; color:var(--mut2); font-size:13px}
+  .meta b{color:var(--mut)}
+
+  .tldr{margin-top:26px; border:1px solid var(--line2); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:var(--shadow); overflow:hidden}
+  .tldr .hd{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line);
+    font-weight:800; letter-spacing:.3px}
+  .tldr .hd .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,170,.18)}
+  .tldr .bd{padding:18px 20px; color:var(--mut); font-size:15.5px}
+  .tldr .bd strong{color:var(--ink)}
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .vcard{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .vcard h4{margin:0 0 4px; font-size:13px; color:var(--mut2); text-transform:uppercase; letter-spacing:.08em}
+  .vcard p{margin:0; font-size:14px; color:var(--ink)}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; margin-top:8px}
+  .pill.good{background:rgba(34,211,170,.14); color:var(--good); border:1px solid rgba(34,211,170,.35)}
+  .pill.warn{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.35)}
+  .pill.bad{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.35)}
+
+  section{padding:34px 0; border-top:1px solid var(--line)}
+  .kicker{font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--brand2)}
+  h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.3px}
+  .lead{color:var(--mut); max-width:880px; margin:0 0 20px}
+
+  .tabs{display:flex; gap:8px; margin:6px 0 18px; flex-wrap:wrap}
+  .tab{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:9px 16px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:14px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--accent)); color:#04122a; border-color:transparent}
+  .tabpane{display:none; animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .grid{display:grid; gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:16.5px; display:flex; align-items:center; gap:9px}
+  .card .ic{width:30px;height:30px;border-radius:9px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .card .ic svg{width:17px;height:17px;stroke:var(--brand2)}
+  .card p{margin:0; color:var(--mut); font-size:14px}
+  .tag{font-size:11px; font-weight:700; color:var(--mut2); background:var(--chip); border:1px solid var(--line2);
+    padding:2px 8px; border-radius:6px; margin-right:6px; display:inline-block; margin-top:8px}
+
+  .fit{overflow:hidden; border:1px solid var(--line); border-radius:14px}
+  .fitrow{display:grid; grid-template-columns:1.4fr 2.2fr .9fr; gap:0; border-bottom:1px solid var(--line)}
+  .fitrow:last-child{border-bottom:0}
+  .fitrow.head{background:var(--chip); font-weight:800; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut2)}
+  .fitrow>div{padding:14px 16px}
+  .fitrow .name{font-weight:700; color:var(--ink)}
+  .fitrow .name small{display:block; font-weight:500; color:var(--mut2); margin-top:3px}
+  .fitrow .desc{color:var(--mut); font-size:14px; border-left:1px solid var(--line); border-right:1px solid var(--line)}
+  .fitrow .verd{display:flex; align-items:center; justify-content:center}
+  .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
+  .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .badge.ok{background:rgba(79,140,255,.16); color:var(--brand2); border:1px solid rgba(79,140,255,.4)}
+  .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
+
+  .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
+  .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
+  .callout.info{background:rgba(79,140,255,.08); border-color:rgba(79,140,255,.4)}
+  .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
+  .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
+  .callout.warn .cic{background:rgba(255,176,32,.16)}
+  .callout.info .cic{background:rgba(79,140,255,.16)}
+  .callout.bad .cic{background:rgba(255,93,108,.16)}
+  .callout h4{margin:0 0 5px; font-size:15.5px}
+  .callout p{margin:0; color:var(--mut); font-size:14.5px}
+  .callout.warn h4{color:var(--warn)}
+  .callout.bad h4{color:var(--bad)}
+  .callout .cic svg{width:19px;height:19px}
+
+  .picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
+  .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
+  .scn.active{border-color:var(--brand); background:rgba(79,140,255,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(79,140,255,.12)}
+  .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
+  .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
+  .rec h3{margin:6px 0 6px; font-size:18px}
+  .rec p{margin:0 0 8px; color:var(--mut); font-size:14.5px}
+  .rec .steps{margin:8px 0 0; padding-left:18px; color:var(--mut); font-size:14px}
+  .rec .steps li{margin:3px 0}
+
+  .filterbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--chip);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 12px}
+  .search input{border:0; background:transparent; color:var(--ink); font-size:14px; width:100%; outline:none}
+  .chip{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:7px 12px; border-radius:999px;
+    cursor:pointer; font-size:12.5px; font-weight:700}
+  .chip.active{background:var(--brand); color:#04122a; border-color:transparent}
+  .intgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .intitem{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px}
+  .intitem h5{margin:0 0 3px; font-size:14px}
+  .intitem span{font-size:12px; color:var(--mut2)}
+  .intitem .cat{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--brand2)}
+  .empty{color:var(--mut2); font-size:14px; padding:16px; text-align:center; grid-column:1/-1}
+
+  .covgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .covitem{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px; position:relative}
+  .covitem .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .covitem h5{margin:0; font-size:14.5px; color:var(--ink); font-weight:700; line-height:1.3}
+  .covitem .pil{font-size:10px; color:var(--mut2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+  .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
+  .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
+  .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .ttag.redundant{background:rgba(79,140,255,.14); color:var(--brand2); border:1px solid rgba(79,140,255,.4)}
+  .ttag.partial{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
+    border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
+  .capname{color:var(--accent); font-weight:700}
+  .covcount{font-size:12.5px; color:var(--mut2); margin:0 0 10px}
+
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:10px; background:var(--panel)}
+  .acc>button{width:100%; text-align:left; background:transparent; border:0; color:var(--ink); padding:15px 18px;
+    font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .acc>button .ar{transition:transform .2s; color:var(--mut2)}
+  .acc.open>button .ar{transform:rotate(90deg)}
+  .acc .panel{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc.open .panel{max-height:1600px}
+  .acc .panel .inner{padding:0 18px 18px; color:var(--mut); font-size:14px}
+  code,.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px}
+  .codeblock{background:#0a1024; border:1px solid var(--line2); border-radius:10px; padding:13px 15px;
+    overflow:auto; color:#cfe0ff; margin:10px 0}
+  html[data-theme="light"] .codeblock{background:#0d1530; color:#dbe6ff}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:8px 0}
+  .kv code{color:var(--accent)}
+  .kv span{color:var(--mut)}
+
+  table.price{width:100%; border-collapse:collapse; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.price th,table.price td{padding:13px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top}
+  table.price th{background:var(--chip); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut2)}
+  table.price td.prod{font-weight:700; color:var(--ink)}
+  table.price td.prod small{display:block; font-weight:500; color:var(--mut2); margin-top:2px}
+  .money{font-weight:800; color:var(--accent)}
+  .quote{color:var(--warn); font-weight:700}
+  .freeword{color:var(--good); font-weight:800}
+
+  .refs{columns:2; column-gap:26px}
+  .refs .ref{break-inside:avoid; margin-bottom:12px; padding-left:14px; border-left:2px solid var(--line2)}
+  .refs .ref a{font-weight:600; font-size:13.5px}
+  .refs .ref p{margin:2px 0 0; color:var(--mut2); font-size:12px}
+
+  footer{padding:30px 0 60px; color:var(--mut2); font-size:12.5px; border-top:1px solid var(--line)}
+  .disc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px}
+
+  @media(max-width:860px){
+    .g2,.g3,.verdict,.intgrid,.covgrid{grid-template-columns:1fr}
+    .fitrow{grid-template-columns:1fr}
+    .fitrow .desc{border-left:0;border-right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .refs{columns:1}
+    h1{font-size:31px}
+    nav.links{display:none}
+  }
+  @media print{
+    header.top,.tbtn,.picker,.filterbar{display:none!important}
+    .tabpane{display:block!important} .acc .panel{max-height:none!important}
+    body{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="#04122a" stroke-width="1.8"/><path d="M16 16l4.5 4.5" stroke="#04122a" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="11" r="2.4" fill="#04122a"/></svg></span>
+      ObservePoint <span style="color:var(--mut2);font-weight:600">· Embedding Analysis</span>
+    </div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#embed">Embedding</a>
+      <a href="#api">API</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#coverage">Checks covered</a>
+      <a href="#recommend">Recommendation</a>
+      <a href="#refs">Sources</a>
+    </nav>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Light</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <span class="eyebrow">● Product &amp; Integration Assessment</span>
+    <h1>ObservePoint, assessed for <span class="grad">embedding into Snurra</span></h1>
+    <p class="sub">ObservePoint is a <b>cloud website-scanning &amp; data-governance platform</b> — it renders every page in a <b>real Chrome browser</b> and audits the <b>tags, cookies, network requests and data layer</b> to validate that analytics/marketing tags fire correctly and privacy rules are met. It is a <b>true SaaS with a well-documented REST API</b> (audits, journeys, webhooks) — so it embeds cleanly behind an HTTP adapter. Its strengths are <b>tag/analytics integrity, consent / pre‑consent tracking, and third‑party script health</b>. This page maps its capabilities, how it slots into Snurra's worker, what it costs, and — held to a strict 100%‑certain bar — precisely which feasibility‑catalog checks it can cover.</p>
+    <div class="meta">
+      <span><b>Prepared:</b> 26 Jul 2026</span>
+      <span><b>Use case:</b> Tag / analytics / consent governance for the Snurra Site Audit</span>
+      <span><b>Catalog:</b> feasibility‑app · 217 checks</span>
+    </div>
+
+    <div class="tldr">
+      <div class="hd"><span class="dot"></span> Bottom line up front</div>
+      <div class="bd">
+        ObservePoint renders every page in <strong>real Chrome</strong> and audits the tags, cookies, network requests and data layer. It can cover <strong>39 catalog checks</strong>, and its strength is the <strong>tag/analytics/consent</strong> family — GA4 firing post‑consent, duplicate pageviews, correct‑property (tid) validation, pre‑consent cookie/analytics firing, third‑party script 404s &amp; timing, CMP load order, dataLayer consent events, martech footprint and console errors. It is a <strong>real SaaS with a documented REST API</strong> (base <code>api.observepoint.com</code>, <code>api_key</code> auth, v2/v3), <strong>webhooks on run completion</strong>, and scheduling — so it embeds like PSI/BrowserStack, just two‑phase (trigger → webhook/poll → fetch report). Pricing is <strong>usage‑based (page scans + journeys), quote‑oriented</strong> — plan carefully around the volume budget. It does <strong>not</strong> judge compliance <em>meaning</em> or do visual regression.
+        <div class="verdict">
+          <div class="vcard"><h4>Technical fit</h4><p>Clean HTTP fit — <b>documented REST API + webhooks</b>. Two‑phase: trigger audit/journey → webhook on completion → fetch report.</p><span class="pill good">API‑native</span></div>
+          <div class="vcard"><h4>What it covers</h4><p><b>39 checks</b> — its strength is the tag/analytics/consent family (GA4, duplicates, pre‑consent, script health).</p><span class="pill good">Tag &amp; consent</span></div>
+          <div class="vcard"><h4>Cost</h4><p><b>Usage‑based &amp; quote‑oriented</b> (page scans + journeys). Free ≈300 pages; published figures are third‑party. Watch the overage budget.</p><span class="pill warn">Volume‑metered</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="kicker">01 · What ObservePoint actually does</div>
+    <h2>Capabilities</h2>
+    <p class="lead">Two layers matter for embedding: what the <b>scanner validates</b> (the tags, cookies, requests and data layer it captures in a real browser) and its <b>automation surface</b> (the REST API, webhooks and scheduling a backend drives it through). Toggle between them:</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="scan">The scanner &amp; what it validates</button>
+      <button class="tab" data-tab="auto">Automation &amp; API surface</button>
+    </div>
+
+    <div class="tabpane active" data-pane="scan">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></span>Audits (site scan)</h3><p>Crawls a designated site in <b>real Chrome</b>, capturing a per‑page <b>Request Log</b> — every network request with its tags, cookies initiated, origin, size, load time, status code and <b>geo</b>. The tag‑governance core.</p><span class="tag">Real browser</span><span class="tag">Request Log</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h6"/></svg></span>Web Journeys</h3><p>Scripted <b>multi‑step flows</b> (login, add‑to‑cart, form submit) built from actions + custom JS, validating firing tags, variables, cookies, console errors and dataLayer <b>at each step</b>. <b>ClickAll+</b> expands to click every element.</p><span class="tag">Multi‑step</span><span class="tag">Per‑step rules</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 12l2 2 4-4"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></span>Tag &amp; Variable Rules</h3><p>Assert a given tag <b>fires</b> on a page and that specific request variables <b>match expected values</b> (GA4 present, <code>tid</code> = production property, event params correct). Global or step‑scoped; bulk‑applied via labels.</p><span class="tag">Assertions</span><span class="tag">Standards</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Consent Categories</h3><p>Approved / unapproved lists of <b>cookies, tags &amp; request domains</b>; simulates <b>opt‑in / opt‑out / GPC / 3rd‑party‑blocked</b> states across OneTrust, TrustArc, Tealium &amp; custom CMPs. Flags tags &amp; cookies firing <b>before consent</b>.</p><span class="tag">Pre‑consent</span><span class="tag">CMP validation</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg></span>Data Layer validation</h3><p>Snapshots the <b>dataLayer</b> at each page/step; Rules assert expected variables and values — e.g. a <b>consent event</b> fired after acceptance, no duplicate pageview events.</p><span class="tag">dataLayer</span><span class="tag">Rules</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></span>Console &amp; errors</h3><p>The <b>Browser Console Logs</b> report captures all console messages, groups them by type/severity/volume and <b>maps errors to the tags they break</b> — plus failed (4xx/5xx) resource requests.</p><span class="tag">Console</span><span class="tag">Error mapping</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>Automated WCAG</h3><p><b>71 tests across 28/56 WCAG guidelines</b> (2.0/2.1/2.2, A→AAA), rolled into an account‑wide accessibility report. Automated coverage only — full conformance still needs manual testing.</p><span class="tag">WCAG 2.0–2.2</span><span class="tag">Automated</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>Web Vitals &amp; light SEO</h3><p>Captures <b>LCP / FCP / CLS / TTFB</b> + per‑tag latency (monitoring, not tuning), and a <b>light SEO app</b> (titles, meta, JSON‑LD, broken links).</p><span class="tag">CWV capture</span><span class="tag">Light SEO</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8"/></svg></span>Real device &amp; geo</h3><p><b>Real Device Testing</b> (LiveConnect) runs on actual devices — "not emulation" — and audits/journeys can run from <b>server‑side geolocations</b> (London, Dublin, Frankfurt, N. California…) for consent/geo testing.</p><span class="tag">Real devices</span><span class="tag">Geo</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M12 3l9 16H3l9-16z" transform="rotate(180 12 12)"/><path d="M12 8v5M12 16h.01"/></svg></span>
+        <div><h4>The defining strength (for embedding)</h4><p>ObservePoint's verdict for a tag/consent check is a <b>deterministic capture</b> in a real browser: the request fired (or didn't), the cookie was set (or wasn't), the dataLayer variable equalled X, the tag firing precedes consent (or follows it) — <b>no human, AI‑text or visual judgment</b>. That deterministic tag/consent capture is where it is strongest; its newer automated WCAG, light SEO‑metadata and Web‑Vitals features are real too.</p></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="auto">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></span>REST API (v2 / v3)</h3><p>Base <code>https://api.observepoint.com</code>; <b>v3 preferred</b>. Trigger &amp; sync audits and journeys, fetch runs and page‑summary reports, load results into BI. Swagger UI published.</p><span class="tag">JSON</span><span class="tag">v2/v3</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Auth — API key</h3><p>Header <code>Authorization: api_key &lt;KEY&gt;</code>; keys are <b>user‑level</b> from the profile page. Not OAuth. <code>application/json</code> (PATCH uses <code>json‑patch+json</code>).</p><span class="tag">api_key</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 12a8 8 0 018-8M20 12a8 8 0 01-8 8"/><path d="M12 8v4l3 2"/></svg></span>Webhooks</h3><p>Fire on <b>run completion</b> (success or fail) with <code>{itemId, itemType, runId}</code> — then query the API for detail. Retries up to 4×. This is the clean "done" signal for an async adapter.</p><span class="tag">Run complete</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Scheduling</h3><p>Recurring audits &amp; journeys — preset or custom date/time. Vendor guidance: <b>daily</b> key funnels, <b>weekly</b> template audits, <b>quarterly</b> full‑site crawls.</p><span class="tag">Recurring</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>Rate limits</h3><p>Documented: ≈<b>100–600 req/min per endpoint</b> (up to 1,000 on some), enforced <b>per API key</b>; over‑limit returns <b>429</b> → wait‑and‑retry. Unusually transparent for the category.</p><span class="tag">429 + retry</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>Ecosystem hooks</h3><p><b>Slack</b> &amp; <b>Jira</b> alerts, <b>CI/CD</b> via API, a <b>Tealium</b> partner integration (auto‑scan on tag change), and BI export (PowerBI / Tableau / Looker / Domo).</p><span class="tag">Slack · Jira · CI</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+        <div><h4>How Snurra would actually drive it</h4><p>A <code>ProviderAdapter</code> like the PSI one, but <b>two‑phase</b>: <code>buildRequest()</code> POSTs to trigger a pre‑built audit/journey run; a <b>webhook</b> (or a poll of <code>/web-audits/{id}/runs</code>) signals completion; then <code>mapResponse()</code> fetches the page‑summary / report and maps tag/consent findings into neutral check inputs. Gate <code>isConfigured()</code> on the <code>api_key</code>; degrade to <code>not‑applicable</code> if absent or a run fails. Because billing is <b>usage‑based (page scans)</b>, schedule scans <b>off the hot path</b> and respect the account's overage budget — never trigger a full audit inline in a page‑audit request.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section id="embed">
+    <div class="kicker">02 · Applicability — how it slots into Snurra</div>
+    <h2>Embedding paths, ranked</h2>
+    <p class="lead">ObservePoint fits Snurra's existing pattern well — it is an HTTP service behind a <code>ProviderAdapter</code>, like PageSpeed / BrowserStack / Percy — with one twist: runs are <b>asynchronous</b> (trigger → webhook/poll → fetch). The ranking is driven by <em>where</em> it adds the most signal: the tag/analytics/consent family.</p>
+
+    <div class="fit">
+      <div class="fitrow head"><div>Path</div><div>What it's good for</div><div>Fit</div></div>
+      <div class="fitrow">
+        <div class="name">REST adapter for the tag/analytics/consent slice <small>(scheduled audit → webhook → fetch report)</small></div>
+        <div class="desc">Run scheduled Audits (+ Journeys for conversion events) for the <b>tag/analytics/consent</b> checks — GA4 firing post‑consent, duplicate pageviews, correct‑property, pre‑consent cookie/analytics, third‑party 404s &amp; timing, CMP load order, dataLayer consent event, martech footprint, console/chunk errors. Map the report into neutral check inputs.</div>
+        <div class="verd"><span class="badge best">Best fit ✓</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Consent &amp; privacy scanning across geos <small>(opt‑in / opt‑out / GPC per region)</small></div>
+        <div class="desc">Use Consent Categories with server‑side geolocation to run paired opt‑in / opt‑out / GPC audits — the strongest way to power the pre‑consent‑tracking, cookie‑before‑consent and CMP‑load‑order checks, per region.</div>
+        <div class="verd"><span class="badge ok">Strong</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Journeys for conversion‑event &amp; funnel validation <small>(scripted multi‑step)</small></div>
+        <div class="desc">Scripted flows trigger and validate form‑submit / download conversion events + dataLayer values that a headless single‑page crawl can't reach — the catalog's &gt;12h "key conversion events" build.</div>
+        <div class="verd"><span class="badge ok">Good</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Trigger full audits inline on the per‑request hot path</div>
+        <div class="desc">Runs are async and billed against the page‑scan budget. Firing an audit inside a page‑audit request burns quota and blocks on a slow scan — schedule audits off the hot path and read results via webhook.</div>
+        <div class="verd"><span class="badge no">Don't</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="callout info">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+      <div>
+        <h4>Integration shape (contrast with the sync tools)</h4>
+        <p>Like PSI it's an HTTP adapter, but unlike PSI's single GET it is <b>async</b>: the adapter triggers a pre‑configured audit/journey, waits on the <b>webhook</b> (<code>{itemId,itemType,runId}</code>) or polls the runs endpoint, then fetches the page‑summary/report and maps it. Config lives in ObservePoint (the audit's start pages, rules, consent categories, geo) — the adapter references it by ID. Gate <code>isConfigured()</code> on the <code>api_key</code>; back off on <code>429</code>; and because runs consume the <b>page‑scan budget</b>, keep them scheduled and off the per‑request path.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API / TECHNICAL -->
+  <section id="api">
+    <div class="kicker">03 · Technical detail — API, rate limits, "projects" &amp; licensing</div>
+    <h2>What integrating actually looks like</h2>
+    <p class="lead">Enough to scope an integration spike. Expand for detail:</p>
+
+    <div class="acc open">
+      <button>The REST API — auth, resources, versions <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        Base <code>https://api.observepoint.com</code>, JSON, <b>v2 and v3</b> (v3 preferred — better pagination/filtering). Auth is a <b>user‑level API key</b>.
+        <div class="codeblock mono">
+# trigger a pre-built audit run, then fetch its report on webhook<br>
+curl -X POST https://api.observepoint.com/v3/web-audits/&lt;auditId&gt;/runs \<br>
+&nbsp;&nbsp;-H "Authorization: api_key $OP_KEY" \<br>
+&nbsp;&nbsp;-H "Content-Type: application/json"<br><br>
+# webhook payload on completion → { itemId, itemType:"audit", runId }<br>
+curl https://api.observepoint.com/v3/reports/page-summary/pages?auditId=&lt;id&gt;&amp;runId=&lt;run&gt; \<br>
+&nbsp;&nbsp;-H "Authorization: api_key $OP_KEY"
+        </div>
+        Confirmed resources: <code>web-audits</code>, audit <code>runs</code>, <code>reports/page-summary/pages</code>, <code>journeys</code> (incl. LiveConnect Journeys), plus a separate <b>Grid Reporting API</b>. The docs state the API exposes "all ObservePoint functionality and data"; the full endpoint catalog (rules, cookies, domains, alerts) is implied but was verified only for audits / runs / reports / journeys.
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Rate limits &amp; async execution <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Rate limit</code><span>≈<b>100–600 requests/min per endpoint</b> (up to 1,000 on some), enforced <b>per API key</b>. Over‑limit → <b>HTTP 429</b>; guidance is wait‑and‑retry (seconds, up to ~5 min).</span>
+          <code>Execution</code><span><b>Asynchronous.</b> Triggering a run returns quickly; the actual scan completes later and signals via <b>webhook</b> (retries 4×) or the runs endpoint. Design the adapter as trigger‑then‑await.</span>
+          <code>Screenshots</code><span>Journeys capture per‑step screenshots (default 8s settle wait, extendable). Full‑page capture on standard audits is not clearly documented.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>"Projects", scale &amp; usage‑based licensing <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Organisation</code><span><b>No "project" object.</b> Work is organised into <b>Folders → Sub‑folders</b> (journeys must live in a sub‑folder) plus <b>Labels</b> for cross‑cutting grouping. That's the closest analog.</span>
+          <code>Scale unit</code><span>Licensing is <b>by volume, not a fixed audit count</b> — primarily <b>pages scanned (annual)</b> and <b>Journeys executed</b>, tracked in a Usage Report with pacing and threshold alerts.</span>
+          <code>Overages</code><span>An admin <b>"Allow Overages"</b> toggle blocks any run — one‑time, scheduled, or <b>API‑initiated</b> — that would exceed the budget. The adapter must expect runs to be refused when near the cap.</span>
+          <code>Concurrency</code><span>No per‑key concurrency figure is published; the practical limiter is the page‑scan budget + the API rate limit, not an instance count.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Real browser, real device &amp; geolocation <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Rendering</code><span>Every page renders in <b>real Chrome</b> (not HTTP fetch) — ObservePoint can be detected as bot traffic, so allow‑listing may be needed on protected sites.</span>
+          <code>Real devices</code><span><b>Real Device Testing</b> (LiveConnect) runs on actual connected devices — explicitly "not emulation" — for cross‑browser / cross‑app validation.</span>
+          <code>Geolocation</code><span>Server‑side location simulation (London, Dublin, Frankfurt, Northern California, and others) — used heavily for consent / geo‑privacy audits. Audit config also records viewport sizes &amp; user agents.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Webhooks, scheduling &amp; ecosystem <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Webhooks</code><span>Fire on audit/journey run completion (success or fail): <code>{itemId, itemType, runId}</code>. Configure via API (<code>webHookUrl</code>) or the Data Sources screen.</span>
+          <code>Scheduling</code><span>Initial schedule + frequency (preset or custom) on both audits and journeys.</span>
+          <code>Slack / Jira</code><span>Alerts to Slack channels; auto‑file Jira issues — via email‑to‑channel/issue and webhooks (Slack email needs a paid Slack plan).</span>
+          <code>Tealium</code><span>Formal partner integration — auto‑trigger scans when tags change in Tealium.</span>
+          <code>BI</code><span>Load results into PowerBI / Tableau / Looker / Domo via the API / Grid Reporting API. No native data‑warehouse (e.g. Snowflake) connector was found.</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <section id="integrations">
+    <div class="kicker">04 · Feature &amp; ecosystem map</div>
+    <h2>What it scans &amp; plugs into</h2>
+    <p class="lead">A quick map of the platform's surface — scanning engines, the validation layers, the automation hooks and ecosystem integrations. Filter it:</p>
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="intSearch" type="text" placeholder="Search features & integrations…">
+      </div>
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="Scanning">Scanning</button>
+      <button class="chip" data-cat="Validation">Validation</button>
+      <button class="chip" data-cat="Automation">Automation</button>
+      <button class="chip" data-cat="Integration">Integration</button>
+    </div>
+    <div class="intgrid" id="intGrid"></div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="kicker">05 · Pricing</div>
+    <h2>What it costs</h2>
+    <p class="lead">Pricing is <b>usage‑based and quote‑oriented</b>: the official page is a volume calculator driven by annual <b>page‑scan volume</b> (and Journeys executed), not a fixed seat/audit count. Only the mechanism is officially grounded — the dollar figures below are <b>third‑party and approximate</b>; verify with a quote before committing.</p>
+    <table class="price">
+      <thead><tr><th>Plan / lever</th><th>Price</th><th>Model &amp; notes</th></tr></thead>
+      <tbody>
+        <tr><td class="prod">Free<small>entry</small></td><td><span class="freeword">Free</span> · ≈300 pages</td><td>Form‑gated "first 300 pages free". Enough to prototype the adapter, not to run production audits. (One stale third‑party listing says 1,000 — treat 300 as current.)</td></tr>
+        <tr><td class="prod">Essentials<small>third‑party figure</small></td><td><span class="quote">~$599</span>/mo</td><td>Up to ≈4,000 page scans/mo. <b>Approximate, third‑party‑sourced</b> — not an official ObservePoint list price.</td></tr>
+        <tr><td class="prod">Professional<small>third‑party figure</small></td><td><span class="quote">~$2,400</span>/mo</td><td>Up to ≈20,000 page scans/mo. <b>Approximate, third‑party‑sourced.</b></td></tr>
+        <tr><td class="prod">Enterprise<small>custom</small></td><td><span class="quote">Custom quote</span></td><td>20,000+ page scans. No published list price. A third‑party tracker cites ~$72k/yr average — <b>unofficial, low‑confidence estimate; do not treat as fact</b>.</td></tr>
+        <tr><td class="prod">Metering<small>how it's billed</small></td><td><span class="money">Volume</span></td><td>Billed on <b>pages scanned (annual)</b> + <b>Journeys executed</b>, tracked in a Usage Report with pacing/threshold alerts and an admin <b>Allow‑Overages</b> toggle that blocks over‑budget runs (incl. API‑initiated). Seats are not the primary metered dimension.</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--mut2);font-size:12.5px;margin-top:10px">Only the <b>mechanism</b> (volume calculator, free ≈300 pages, Enterprise = custom) is grounded in ObservePoint's own pricing page. The Essentials / Professional / Enterprise dollar figures are <b>third‑party (G2 / Tekpon) and approximate</b> — gathered 26 Jul 2026 — and should be confirmed by quote. The real embedding constraint is the <b>page‑scan budget</b>: scans must be scheduled and metered, not fired per page‑audit request.</p>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="coverage">
+    <div class="kicker">06 · Which catalog checks it can cover</div>
+    <h2>Coverage — held to a 100%‑certain bar</h2>
+    <p class="lead">A check is listed <b>only if</b> ObservePoint can produce its verdict as a <b>deterministic capture</b> in its real‑browser scan — a tag request that did/didn't fire, a cookie set/not‑set relative to consent, a dataLayer variable's value, a request status/timing, a resource inventory, or a scripted journey outcome — <b>no content‑meaning, visual, or human judgment</b>. Checks where ObservePoint captures only part of the signal — the exact verdict needing a configured Rule or Journey it can't guarantee — are not listed here; this is the set it can cover end‑to‑end.</p>
+
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="covSearch" type="text" placeholder="Search covered checks…">
+      </div>
+    </div>
+    <p class="covcount" id="covCount"></p>
+    <div class="covgrid" id="covGrid"></div>
+
+    <div class="newcov" style="margin-top:32px">
+      <h3 style="font-size:19px;margin:0 0 6px">Additional checks it can cover — <span style="color:var(--mut2);font-weight:600">not in the catalog</span></h3>
+      <p class="lead" style="margin-top:0">Deterministic checks ObservePoint covers that have <b>no matching entry</b> in <code>checks.ts</code> — candidate additions to the catalog. Each is referenced.</p>
+      <div class="covgrid" id="newCovGrid"></div>
+    </div>
+
+    <div style="margin-top:18px" class="callout bad">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>
+      <div>
+        <h4>What ObservePoint does NOT cover (for Snurra)</h4>
+        <p>Excluded, because ObservePoint can't deliver these verdicts on its own: <b>compliance <em>meaning</em></b> (CCPA‑vs‑GDPR wording, REMS / ISI / PI, privacy‑policy content — these are AI‑text judgments, not deterministic captures) · <b>geo <em>content correctness</em></b> (it can set the geo, but "US visitor must not see EU content" is an AI/human verdict) · <b>visual regression</b> · <b>SSL cert validity / expiry, DNS &amp; domain‑whois</b> · <b>uptime monitoring</b> (it schedules scans, it isn't a 1‑min monitor) · and <b>Core‑Web‑Vitals as a performance verdict</b> (it captures LCP/CLS/TTFB in a single render but is a monitor, not a profiling/optimisation tool).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommend">
+    <div class="kicker">07 · Recommendation</div>
+    <h2>Pick your scenario</h2>
+    <p class="lead">ObservePoint earns its slot on the tag/analytics/consent family — the recommendation is about pointing it at that strength. Click the closest match:</p>
+    <div class="picker" id="picker">
+      <button class="scn active" data-s="a">Cover the tag/analytics/consent gaps<small>GA4, duplicates, pre‑consent, script health</small></button>
+      <button class="scn" data-s="b">Consent &amp; privacy across geos<small>opt‑in / opt‑out / GPC audits</small></button>
+      <button class="scn" data-s="c">Journeys for conversion events<small>scripted funnel + dataLayer validation</small></button>
+      <button class="scn" data-s="d">Schedule scans &amp; manage the budget<small>off the hot path; watch overages</small></button>
+    </div>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="kicker">08 · Sources</div>
+    <h2>References</h2>
+    <p class="lead">ObservePoint facts are from observepoint.com, the Help Center (help.observepoint.com) and the API docs (api-docs.observepoint.com), gathered 26 Jul 2026. Pricing dollar figures are third‑party (G2 / Tekpon) and approximate — only the volume‑calculator mechanism and free ≈300‑page tier are officially grounded. Check names are quoted verbatim from <code>feasibility-app/data/checks.ts</code> (the source behind checks‑catalog.vercel.app).</p>
+    <div class="refs">
+      <div class="ref"><a href="https://www.observepoint.com/" target="_blank" rel="noopener">ObservePoint — home</a><p>Positioning: "automated website scanner for privacy, accessibility, tag accuracy, and more."</p></div>
+      <div class="ref"><a href="https://api-docs.observepoint.com/" target="_blank" rel="noopener">API docs</a><p>Base URL, api_key auth, v2/v3, web‑audits / runs / reports / journeys, Swagger UI.</p></div>
+      <div class="ref"><a href="https://api-docs.observepoint.com/sections/rate-limiting" target="_blank" rel="noopener">API rate limiting</a><p>≈100–1,000 req/min per key; 429 + wait‑and‑retry.</p></div>
+      <div class="ref"><a href="https://help.observepoint.com/en/collections/8629157-audits" target="_blank" rel="noopener">Audits</a><p>Full‑site scans, Request Log, broken pages/links, scheduling.</p></div>
+      <div class="ref"><a href="https://help.observepoint.com/en/collections/8937081-journeys" target="_blank" rel="noopener">Journeys</a><p>Scripted multi‑step flows, actions, per‑step validation, screenshots.</p></div>
+      <div class="ref"><a href="https://help.observepoint.com/en/articles/10301079-analytics-validation-implementation-guide" target="_blank" rel="noopener">Analytics validation</a><p>Tag firing, duplicate/broken/slow tags, GA4, data‑layer, Standards.</p></div>
+      <div class="ref"><a href="https://help.observepoint.com/en/articles/9100036-applying-rules-to-audits-and-journeys" target="_blank" rel="noopener">Rules &amp; Standards</a><p>Tag &amp; Variable Rules — assert a tag fires and its request variables match.</p></div>
+      <div class="ref"><a href="https://help.observepoint.com/en/articles/9090970-consent-categories" target="_blank" rel="noopener">Consent Categories</a><p>Approved/unapproved cookies·tags·domains; opt‑in/opt‑out/GPC; pre‑consent detection.</p></div>
+      <div class="ref"><a href="https://help.observepoint.com/en/articles/9104269-validating-consent-managers" target="_blank" rel="noopener">Validating consent managers</a><p>OneTrust / TrustArc / Tealium / custom CMP simulation; geolocations.</p></div>
+      <div class="ref"><a href="https://help.observepoint.com/en/articles/9100627-page-details-report" target="_blank" rel="noopener">Page Details report</a><p>Request Log fields (tags, cookies, size, load time, status, geo); Web Vitals capture.</p></div>
+      <div class="ref"><a href="https://help.observepoint.com/en/articles/9085185-browser-console-logs-report" target="_blank" rel="noopener">Browser Console Logs report</a><p>Console errors grouped &amp; mapped to the tags they break.</p></div>
+      <div class="ref"><a href="https://help.observepoint.com/en/articles/9406562-observepoint-automated-wcag-accessibility-testing" target="_blank" rel="noopener">Automated WCAG testing</a><p>71 tests, 28/56 guidelines, WCAG 2.0–2.2 A/AA/AAA; manual testing still required.</p></div>
+      <div class="ref"><a href="https://help.observepoint.com/en/articles/9101509-webhooks" target="_blank" rel="noopener">Webhooks</a><p>Fire on run completion: {itemId, itemType, runId}; 4× retry.</p></div>
+      <div class="ref"><a href="https://help.observepoint.com/en/articles/9089293-usage-report" target="_blank" rel="noopener">Usage report</a><p>Volume licensing — page scans + journeys; overages toggle blocks over‑budget runs.</p></div>
+      <div class="ref"><a href="https://www.observepoint.com/pricing/" target="_blank" rel="noopener">Pricing calculator</a><p>Volume‑based; free ≈300 pages; Enterprise = custom. (Dollar tiers below are third‑party.)</p></div>
+      <div class="ref"><a href="https://checks-catalog.vercel.app/" target="_blank" rel="noopener">Feasibility checks catalog</a><p>The 217‑check catalog this coverage maps against (source: feasibility‑app).</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="disc">
+      <strong>How to read this.</strong> This is an independent capability/integration assessment compiled from public sources for planning purposes — it is not from or endorsed by ObservePoint, and it is not legal advice. Pricing and features change (ObservePoint has recently added automated WCAG, light SEO and Web‑Vitals capture); the dollar figures here are third‑party and approximate — verify with a quote before committing. The coverage list is deliberately conservative: checks are included only where a deterministic real‑browser capture makes the verdict 100% certain.
+    </div>
+    ObservePoint® is a trademark of ObservePoint, LLC. Prepared 26 Jul 2026 · for internal planning.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'),
+    thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var light=root.getAttribute('data-theme')==='light';
+  root.setAttribute('data-theme', light?'dark':'light');
+  thTxt.textContent = light?'Light':'Dark';
+});
+
+// ---- Capability tabs ----
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var k=t.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.getAttribute('data-pane')===k);
+    });
+  });
+});
+
+// ---- Accordions ----
+document.querySelectorAll('.acc>button').forEach(function(b){
+  b.addEventListener('click',function(){ b.parentElement.classList.toggle('open'); });
+});
+
+// ---- Feature / ecosystem data + filter ----
+var INTS=[
+  {n:'Audits (site scan)',c:'Scanning',d:'Full-site crawl in real Chrome — request log, tags, cookies, links, status'},
+  {n:'Web Journeys',c:'Scanning',d:'Scripted multi-step flows (login/cart/form) with per-step validation'},
+  {n:'ClickAll+',c:'Scanning',d:'Interaction expansion — click every element on audited/journey pages'},
+  {n:'Real Device Testing (LiveConnect)',c:'Scanning',d:'Runs on actual devices — not emulation; cross-browser/app'},
+  {n:'Server-side geolocation',c:'Scanning',d:'Simulate visitor location (London, Dublin, Frankfurt, N. California…)'},
+  {n:'Request Log',c:'Validation',d:'Every request — tags, cookies, origin, size, load time, status, geo'},
+  {n:'Tag & Variable Rules',c:'Validation',d:'Assert a tag fires and request variables match expected values'},
+  {n:'Consent Categories',c:'Validation',d:'Approved/unapproved cookies·tags·domains; opt-in/opt-out/GPC simulation'},
+  {n:'Data Layer validation',c:'Validation',d:'Snapshot dataLayer per step; assert variables/values via Rules'},
+  {n:'Browser Console Logs report',c:'Validation',d:'All console errors, grouped, mapped to the tags they break'},
+  {n:'Automated WCAG testing',c:'Validation',d:'71 tests, 28/56 guidelines, WCAG 2.0–2.2'},
+  {n:'Core Web Vitals capture',c:'Validation',d:'LCP/FCP/CLS/TTFB + per-tag latency (monitoring, not tuning)'},
+  {n:'Light SEO app',c:'Validation',d:'Titles, meta descriptions, JSON-LD structured data, broken links'},
+  {n:'REST API (v2/v3)',c:'Automation',d:'api.observepoint.com — api_key auth; trigger audits/journeys, fetch reports'},
+  {n:'Webhooks',c:'Automation',d:'Fire on run completion → {itemId,itemType,runId}; query API for detail'},
+  {n:'Scheduling',c:'Automation',d:'Recurring audits/journeys — daily funnels, weekly templates, quarterly crawls'},
+  {n:'CI/CD integration',c:'Automation',d:'Run audits/journeys from a pipeline via the API'},
+  {n:'Slack & Jira',c:'Integration',d:'Alerts to Slack channels; auto-file Jira issues (email/webhook)'},
+  {n:'Tealium partner integration',c:'Integration',d:'Auto-trigger scans when tags change in Tealium'},
+  {n:'BI export (PowerBI/Tableau/Looker/Domo)',c:'Integration',d:'Load audit results into BI via API / Grid Reporting API'},
+  {n:'Tag & Cookie Debugger (Chrome)',c:'Integration',d:'Free browser extension for ad-hoc tag/cookie inspection'}
+];
+var grid=document.getElementById('intGrid'), search=document.getElementById('intSearch'), curCat='all';
+function renderInts(){
+  var q=(search.value||'').toLowerCase();
+  var rows=INTS.filter(function(i){
+    var okc = curCat==='all' || i.c===curCat;
+    var okq = !q || i.n.toLowerCase().indexOf(q)>-1 || i.d.toLowerCase().indexOf(q)>-1;
+    return okc && okq;
+  });
+  grid.innerHTML = rows.length ? rows.map(function(i){
+    return '<div class="intitem"><div class="cat">'+i.c+'</div><h5>'+i.n+'</h5><span>'+i.d+'</span></div>';
+  }).join('') : '<div class="empty">No matches.</div>';
+}
+document.querySelectorAll('#integrations .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#integrations .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); curCat=c.getAttribute('data-cat'); renderInts();
+  });
+});
+search.addEventListener('input',renderInts);
+renderInts();
+
+// ---- Coverage data + filter ----
+// check names are verbatim from feasibility-app/data/checks.ts
+var COV=[
+  {ch:'GA4 tag present and firing correctly post-consent', p:'Analytics & Tag Integrity', cap:'Audit + Consent Categories', gate:['audit'], note:'ObservePoint detects the GA4 tag and its /collect request per page, and opt-in/opt-out audits confirm it fires only after consent.'},
+  {ch:'No duplicate pageview events being fired', p:'Analytics & Tag Integrity', cap:'Duplicate-tag detection', gate:[], note:'Standards flag duplicate tag requests — two GA4 pageviews on one page — natively.'},
+  {ch:'Key conversion events configured and firing', p:'Analytics & Tag Integrity', cap:'Web Journeys', gate:['journey'], note:'A Journey triggers the conversion interaction (form submit / download) and a step-scoped Rule asserts the event request/dataLayer fires.'},
+  {ch:'Data going to correct GA4 property not staging', p:'Analytics & Tag Integrity', cap:'Tag & Variable Rules', gate:[], note:'A Rule asserts the captured measurement ID (tid=G-XXXX) equals the expected production property.'},
+  {ch:'No analytics data collected before GDPR consent (Ex-US)', p:'Analytics & Tag Integrity', cap:'Consent Categories (opt-out)', gate:['audit'], note:'A pre-audit opt-out action, then expect no analytics request to fire — ObservePoint’s core consent test.'},
+  {ch:'All third-party scripts loading — no 404s', p:'Third-Party Script Health', cap:'Request Log (status)', gate:[], note:'The Request Log records every resource with its status code; 4xx/5xx scripts are flagged.'},
+  {ch:'No unexpected new scripts appeared since last scan', p:'Third-Party Script Health', cap:'Consent Categories + trending', gate:['approved list'], note:'Anything not on the approved tag/domain list is flagged unapproved; run-over-run trending surfaces newly-appeared tags.'},
+  {ch:'No third-party script loading slower than 3 seconds', p:'Third-Party Script Health', cap:'Per-request load time', gate:[], note:'The Request Log records per-request load time and Standards alert on slow-loading tags; threshold at 3s.'},
+  {ch:'Consent platform (OneTrust Cookiebot etc.) loading correctly', p:'Third-Party Script Health', cap:'CMP validation', gate:[], note:'ObservePoint validates OneTrust/TrustArc/Tealium/custom CMPs and flags a missing/broken consent tag.'},
+  {ch:'No tracking cookies set before user consent', p:'Security', cap:'Consent Categories (opt-out)', gate:['audit'], note:'Cookie inventory on an opt-out/pre-consent state flags any tracking cookie set before acceptance — ObservePoint’s core privacy scan.'},
+  {ch:'No analytics firing before GDPR consent', p:'Security', cap:'Consent Categories (opt-out)', gate:['audit'], note:'An opt-out audit expects zero analytics requests pre-consent.'},
+  {ch:'Cookie consent / pre-consent tracking check', p:'Security', cap:'Consent Categories', gate:['audit'], note:'The umbrella pre-consent tracking test — cookies + tags + request domains before acceptance. Directly ObservePoint’s Website Privacy Scan.'},
+  {ch:'No mixed content warnings in browser', p:'Security', cap:'Request Log (scheme)', gate:['config'], note:'The Request Log exposes each resource’s URL; http:// resources on an https page are visible and flaggable.'},
+  {ch:'CMP loads before any tracking scripts fire', p:'GDPR Compliance', cap:'Tag load order', gate:[], note:'ObservePoint records request order and confirms the CMP request precedes any tracking tag.'},
+  {ch:'Analytics fires only after user gives consent', p:'GDPR Compliance', cap:'Consent Categories (opt-in)', gate:['audit'], note:'An opt-in audit confirms analytics fires after acceptance while opt-out confirms silence — the paired consent test.'},
+  {ch:'Consent event fired in DataLayer after acceptance', p:'GDPR Compliance', cap:'Data Layer validation', gate:['journey'], note:'A Rule asserts the consent event/variable appears in the dataLayer snapshot after the accept action.'},
+  {ch:'Third-party scripts / martech footprint', p:'Platform & Tech / Code Health', cap:'Tag/technology inventory', gate:[], note:'ObservePoint’s flagship — a full inventory of marketing/analytics tags and third-party domains per page.'},
+  {ch:'JavaScript console errors on key pages', p:'Platform & Tech / Code Health', cap:'Browser Console Logs report', gate:[], note:'Captures all console messages, grouped by type/severity and mapped to the tags they break.'},
+  {ch:'Zero JavaScript errors on page load', p:'Performance & SEO', cap:'Browser Console Logs report', gate:[], note:'The Console Logs report flags pages emitting JS errors on load.'},
+  {ch:'Frontend error logging integration check', p:'Observability', cap:'Tag/technology inventory', gate:[], note:'The tag inventory detects error-logging vendors (Sentry/Datadog) present on key pages.'},
+  {ch:'JavaScript bundle / chunk load failure detection', p:'Observability', cap:'Request Log + Console', gate:[], note:'Failed chunk requests appear in the Request Log (4xx/5xx) and as console chunk-load errors.'},
+  {ch:'No new pages published unexpectedly', p:'Content Change Detection', cap:'Audit crawl + run comparison', gate:['2 runs'], note:'The audit’s page inventory, diffed across scheduled runs, surfaces URLs that weren’t in the prior scan.'},
+  {ch:'Profiling cookies off by default (Ex-US)', p:'Security', cap:'Consent Categories', gate:['audit'], note:'On a fresh Ex-US opt-out state, cookie inventory flags advertising/profiling cookies set without opt-in.'},
+  {ch:'Broken links & 404 scan', p:'Technical SEO & Redirects', cap:'Audit link scan', gate:[], note:'ObservePoint’s audit reports broken pages/links and 404s across the crawl.'},
+  {ch:'No broken internal links (404 errors)', p:'Navigation', cap:'Audit link scan', gate:[], note:'The audit flags internal links returning 4xx.'},
+  {ch:'Full-site crawl & URL inventory', p:'IA & Structure', cap:'Audit crawl', gate:[], note:'ObservePoint audits crawl the site and inventory its URLs.'},
+  {ch:'Internal link graph / cross-linking', p:'IA & Structure', cap:'Audit crawl', gate:[], note:'ObservePoint records the page-to-page links discovered during the audit.'},
+  {ch:'Document & resource link inventory', p:'IA & Structure', cap:'Request Log', gate:[], note:'The Request Log inventories document and resource links.'},
+  {ch:'Click-test of button-shaped / JS-nav elements', p:'IA & Structure', cap:'Journeys / ClickAll+', gate:[], note:'ObservePoint Journeys / ClickAll+ click button-shaped and JS-nav elements.'},
+  {ch:'PI PDF downloads correctly (US)', p:'Forms & CTAs', cap:'Audit link scan', gate:[], note:'A link scan confirms the PI PDF link resolves (not a 404).'},
+  {ch:'REMS enrollment external link works (US)', p:'Forms & CTAs', cap:'Audit link scan', gate:[], note:'A link scan confirms the REMS enrollment link resolves.'},
+  {ch:'SmPC and PIL download links work (Ex-US)', p:'Forms & CTAs', cap:'Audit link scan', gate:[], note:'A link scan confirms the SmPC / PIL document links resolve.'},
+  {ch:'EMA external link opens correctly (Ex-US)', p:'Forms & CTAs', cap:'Audit link scan', gate:[], note:'A link scan confirms the EMA external link resolves.'},
+  {ch:'Metadata completeness (title/desc/H1/alt)', p:'Technical SEO & Redirects', cap:'Light SEO app', gate:[], note:'ObservePoint’s light SEO app captures page title and meta description.'},
+  {ch:'Unique title tag present on every page', p:'Performance & SEO', cap:'Light SEO app', gate:[], note:'ObservePoint’s SEO app captures each page’s title.'},
+  {ch:'Meta description present and correct length', p:'Performance & SEO', cap:'Light SEO app', gate:[], note:'ObservePoint’s SEO app captures each page’s meta description.'},
+  {ch:'Structured data / schema presence', p:'Technical SEO & Redirects', cap:'JSON-LD validation', gate:[], note:'ObservePoint validates JSON-LD structured data on the page.'},
+  {ch:'Structured-data JSON validity', p:'Technical SEO & Redirects', cap:'JSON-LD validation', gate:[], note:'ObservePoint’s JSON-LD validation checks structured-data validity.'},
+  {ch:'Automated WCAG scan on key pages', p:'Accessibility', cap:'Automated WCAG (71 tests)', gate:[], note:'ObservePoint runs its own automated WCAG engine (71 tests, 28/56 guidelines) on scanned pages.'}
+];
+var covGrid=document.getElementById('covGrid'), covSearch=document.getElementById('covSearch'),
+    covCount=document.getElementById('covCount'), curCov='all';
+function renderCov(){
+  var q=(covSearch.value||'').toLowerCase();
+  var rows=COV.filter(function(i){
+    return !q || i.ch.toLowerCase().indexOf(q)>-1 || i.p.toLowerCase().indexOf(q)>-1 || i.cap.toLowerCase().indexOf(q)>-1;
+  });
+  covCount.innerHTML='Showing <b style="color:var(--ink)">'+rows.length+'</b> of '+COV.length+' checks ObservePoint can cover';
+  covGrid.innerHTML = rows.length ? rows.map(function(i){
+    var gates=(i.gate||[]).map(function(g){
+      return '<span class="gate">'+g+'</span>';
+    }).join('');
+    return '<div class="covitem"><div class="top"><div><h5>'+i.ch+'</h5>'+
+      '<div class="pil">'+i.p+' · <span class="capname">'+i.cap+'</span></div></div></div>'+
+      '<p>'+i.note+'</p>'+(gates?('<div>'+gates+'</div>'):'')+'</div>';
+  }).join('') : '<div class="empty">No checks match that filter.</div>';
+}
+covSearch.addEventListener('input',renderCov);
+renderCov();
+
+// ---- Additional checks NOT in the catalog (candidate new checks) ----
+var NEWCOV=[
+  {name:'Analytics tag present on the expected % of pages site-wide (missing-tag detection)', cap:'Tag-presence validation', note:'Flags where a GA4/Adobe tag is absent or below expected coverage across the whole crawl — the catalog only checks a tag fires on a given page, not site-wide presence.', ref:'help.observepoint.com — Tag presence validation'},
+  {name:'Data-layer variable present and matches an expected value (exact or regex)', cap:'Tag & Variable Rules (EXPECT)', note:'Asserts a data-layer variable is populated and equals an exact value or regex on matching URLs. The catalog has only consent-event and TCF-string data-layer checks, not generic variable validation.', ref:'help.observepoint.com — Create Tag/Variable Rules'},
+  {name:'Data-layer variable correctly maps into the analytics tag', cap:'Data-layer → tag mapping', note:'Validates that data-layer values are correctly passed into Adobe/GA tag variables — a mapping-integrity verdict with no catalog equivalent.', ref:'help.observepoint.com — Adobe data-layer mapping'},
+  {name:'Tag load order / execution sequencing', cap:'Audit tag-sequence analysis', note:'Monitors the order tags load and execute on a page (e.g. consent manager before analytics). The catalog has no tag-sequencing check.', ref:'help.observepoint.com — Analytics validation guide'},
+  {name:'Unapproved / rogue tag or cookie vs an approved allowlist', cap:'Consent Categories governance', note:'Flags tags or cookies not on an approved allowlist — a governance verdict distinct from the catalog’s "new since last scan" and "malicious script" checks.', ref:'observepoint.com — Consent management'},
+  {name:'Consent enforcement behavior across opt-in / opt-out / GPC', cap:'Consent simulation', note:'Simulates consented vs non-consented visitors (incl. GPC) and verifies tags are actually blocked or allowed accordingly — a behavioral verdict beyond the catalog’s pre-consent presence checks.', ref:'observepoint.com — Consent management'}
+];
+(function(){
+  var g=document.getElementById('newCovGrid'); if(!g) return;
+  g.innerHTML=NEWCOV.map(function(i){
+    return '<div class="covitem"><div class="top"><div><h5>'+i.name+'</h5>'+
+      '<div class="pil"><span class="capname">'+i.cap+'</span></div></div><span class="gate">new</span></div>'+
+      '<p>'+i.note+'</p><div class="pil" style="margin-top:8px">↳ <span class="capname">'+i.ref+'</span></div></div>';
+  }).join('');
+})();
+
+// ---- Scenario recommender ----
+var RECS={
+  a:{label:'Recommended path',h:'REST adapter for the tag/analytics/consent slice',
+     p:'ObservePoint earns its keep on the tag/analytics/consent checks — GA4 firing post-consent, duplicate pageviews, correct-property (tid), pre-consent cookie/analytics firing, third-party script 404s & timing, CMP load order, dataLayer consent event, martech footprint, console/chunk errors.',
+     s:['Pre-build the Audit (start pages, Tag & Variable Rules, Consent Categories) + Journeys in ObservePoint; reference them by ID.','Trigger runs on a schedule via the REST API; await the webhook ({itemId,itemType,runId}).','On completion, fetch the page-summary/report and map tag/consent findings into neutral check inputs; degrade to not-applicable on 429/failure/over-budget.']},
+  b:{label:'Recommended path',h:'Consent & privacy scanning across geos',
+     p:'For the pre-consent tracking, cookie-before-consent and CMP-load-order checks, run paired opt-in / opt-out / GPC audits per region using Consent Categories + server-side geolocation.',
+     s:['Define approved/unapproved cookies, tags & domains as Consent Categories (import OneTrust definitions where available).','Schedule opt-in, opt-out and GPC audits per key geo (e.g. Frankfurt/Dublin for EU).','Map "no tracking before consent / analytics only after consent / profiling off by default" to the opt-out results.']},
+  c:{label:'Recommended path',h:'Journeys for conversion-event & funnel validation',
+     p:'Use scripted multi-step Journeys to reach and validate the events a single-page crawl can\'t — form-submit / download conversion events and their dataLayer values.',
+     s:['Script the funnel as a Journey with actions (navigate, fill, click).','Add step-scoped Tag & Variable Rules asserting the conversion event fires with correct params.','Trigger via API on a schedule; treat a failed step as the check verdict. Mind the per-journey usage cost.']},
+  d:{label:'Recommended path',h:'Schedule scans off the hot path and manage the page-scan budget',
+     p:'Runs are async and billed on page scans + journeys, so treat ObservePoint as a scheduled provider — never an inline per-request call.',
+     s:['Pre-build audits/journeys in ObservePoint; trigger them on a schedule via the API.','Read results via the webhook ({itemId,itemType,runId}); degrade to not-applicable on 429/failure/over-budget.','Watch the Usage Report + Allow-Overages toggle so scheduled runs don\'t blow the volume budget.']}
+};
+function showRec(k){
+  var r=RECS[k];
+  document.getElementById('rec').innerHTML =
+    '<div class="rlabel">'+r.label+'</div><h3>'+r.h+'</h3><p>'+r.p+'</p><ul class="steps"><li>'+r.s.join('</li><li>')+'</li></ul>';
+}
+document.querySelectorAll('.scn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.scn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active'); showRec(b.getAttribute('data-s'));
+  });
+});
+showRec('a');
+</script>
+</body>
+</html>

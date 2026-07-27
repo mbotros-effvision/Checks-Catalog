@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrowserStack Automate API — Capabilities & Embedding Analysis</title>
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#0f1630; --panel:#131c3a; --panel2:#18234a;
+    --line:#25315c; --line2:#33427a;
+    --ink:#eaf0ff; --mut:#9db0d8; --mut2:#6f83b3;
+    --brand:#4f8cff; --brand2:#7aa8ff; --accent:#22d3aa;
+    --warn:#ffb020; --bad:#ff5d6c; --good:#22d3aa;
+    --chip:#1b2649; --shadow:0 12px 40px rgba(0,0,0,.45);
+    --radius:16px;
+  }
+  html[data-theme="light"]{
+    --bg:#eef2fb; --bg2:#e6ecfa; --panel:#ffffff; --panel2:#f4f7ff;
+    --line:#d6def2; --line2:#c3cfec; --ink:#101a33; --mut:#41527a; --mut2:#6b7aa3;
+    --chip:#eef2fd; --shadow:0 12px 34px rgba(20,40,90,.12);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 700px at 80% -10%,rgba(79,140,255,.18),transparent 60%),
+               radial-gradient(900px 600px at -10% 10%,rgba(34,211,170,.10),transparent 55%),
+               var(--bg);
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--brand2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 22px}
+
+  /* Header */
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(79,140,255,.5)}
+  .logo .mark svg{width:18px;height:18px}
+  nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
+  nav.links a:hover{background:var(--chip); color:var(--ink); text-decoration:none}
+  .tbtn{border:1px solid var(--line2); background:var(--chip); color:var(--ink); border-radius:9px;
+    padding:7px 10px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; gap:6px; align-items:center}
+  .tbtn:hover{border-color:var(--brand)}
+
+  /* Hero */
+  .hero{padding:46px 0 26px}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:var(--chip);
+    border:1px solid var(--line2); padding:6px 12px; border-radius:999px}
+  h1{font-size:40px; line-height:1.12; margin:16px 0 10px; letter-spacing:-.5px}
+  h1 .grad{background:linear-gradient(120deg,var(--brand2),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--mut); font-size:17px; max-width:780px}
+  .meta{margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; color:var(--mut2); font-size:13px}
+  .meta b{color:var(--mut)}
+
+  /* TL;DR */
+  .tldr{margin-top:26px; border:1px solid var(--line2); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:var(--shadow); overflow:hidden}
+  .tldr .hd{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line);
+    font-weight:800; letter-spacing:.3px}
+  .tldr .hd .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,170,.18)}
+  .tldr .bd{padding:18px 20px; color:var(--mut); font-size:15.5px}
+  .tldr .bd strong{color:var(--ink)}
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .vcard{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .vcard h4{margin:0 0 4px; font-size:13px; color:var(--mut2); text-transform:uppercase; letter-spacing:.08em}
+  .vcard p{margin:0; font-size:14px; color:var(--ink)}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; margin-top:8px}
+  .pill.good{background:rgba(34,211,170,.14); color:var(--good); border:1px solid rgba(34,211,170,.35)}
+  .pill.warn{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.35)}
+  .pill.bad{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.35)}
+
+  /* Sections */
+  section{padding:34px 0; border-top:1px solid var(--line)}
+  .kicker{font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--brand2)}
+  h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.3px}
+  .lead{color:var(--mut); max-width:860px; margin:0 0 20px}
+
+  /* Tabs */
+  .tabs{display:flex; gap:8px; margin:6px 0 18px; flex-wrap:wrap}
+  .tab{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:9px 16px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:14px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--accent)); color:#04122a; border-color:transparent}
+  .tabpane{display:none; animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .grid{display:grid; gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:16.5px; display:flex; align-items:center; gap:9px}
+  .card .ic{width:30px;height:30px;border-radius:9px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .card .ic svg{width:17px;height:17px;stroke:var(--brand2)}
+  .card p{margin:0; color:var(--mut); font-size:14px}
+  .tag{font-size:11px; font-weight:700; color:var(--mut2); background:var(--chip); border:1px solid var(--line2);
+    padding:2px 8px; border-radius:6px; margin-right:6px; display:inline-block; margin-top:8px}
+
+  /* Fit table */
+  .fit{overflow:hidden; border:1px solid var(--line); border-radius:14px}
+  .fitrow{display:grid; grid-template-columns:1.4fr 2.2fr .9fr; gap:0; border-bottom:1px solid var(--line)}
+  .fitrow:last-child{border-bottom:0}
+  .fitrow.head{background:var(--chip); font-weight:800; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut2)}
+  .fitrow>div{padding:14px 16px}
+  .fitrow .name{font-weight:700; color:var(--ink)}
+  .fitrow .name small{display:block; font-weight:500; color:var(--mut2); margin-top:3px}
+  .fitrow .desc{color:var(--mut); font-size:14px; border-left:1px solid var(--line); border-right:1px solid var(--line)}
+  .fitrow .verd{display:flex; align-items:center; justify-content:center}
+  .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
+  .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .badge.ok{background:rgba(79,140,255,.16); color:var(--brand2); border:1px solid rgba(79,140,255,.4)}
+  .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
+
+  /* Callout */
+  .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
+  .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
+  .callout.info{background:rgba(79,140,255,.08); border-color:rgba(79,140,255,.4)}
+  .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
+  .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
+  .callout.warn .cic{background:rgba(255,176,32,.16)}
+  .callout.info .cic{background:rgba(79,140,255,.16)}
+  .callout.bad .cic{background:rgba(255,93,108,.16)}
+  .callout h4{margin:0 0 5px; font-size:15.5px}
+  .callout p{margin:0; color:var(--mut); font-size:14.5px}
+  .callout.warn h4{color:var(--warn)}
+  .callout.bad h4{color:var(--bad)}
+  .callout .cic svg{width:19px;height:19px}
+
+  /* Scenario picker */
+  .picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
+  .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
+  .scn.active{border-color:var(--brand); background:rgba(79,140,255,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(79,140,255,.12)}
+  .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
+  .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
+  .rec h3{margin:6px 0 6px; font-size:18px}
+  .rec p{margin:0 0 8px; color:var(--mut); font-size:14.5px}
+  .rec .steps{margin:8px 0 0; padding-left:18px; color:var(--mut); font-size:14px}
+  .rec .steps li{margin:3px 0}
+
+  /* Filter grids (integrations + coverage) */
+  .filterbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--chip);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 12px}
+  .search input{border:0; background:transparent; color:var(--ink); font-size:14px; width:100%; outline:none}
+  .chip{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:7px 12px; border-radius:999px;
+    cursor:pointer; font-size:12.5px; font-weight:700}
+  .chip.active{background:var(--brand); color:#04122a; border-color:transparent}
+  .intgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .intitem{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px}
+  .intitem h5{margin:0 0 3px; font-size:14px}
+  .intitem span{font-size:12px; color:var(--mut2)}
+  .intitem .cat{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--brand2)}
+  .empty{color:var(--mut2); font-size:14px; padding:16px; text-align:center; grid-column:1/-1}
+
+  /* Coverage list */
+  .covgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .covitem{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px; position:relative}
+  .covitem .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .covitem h5{margin:0; font-size:14.5px; color:var(--ink); font-weight:700; line-height:1.3}
+  .covitem .pil{font-size:10px; color:var(--mut2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+  .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
+  .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
+  .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .ttag.redundant{background:rgba(79,140,255,.14); color:var(--brand2); border:1px solid rgba(79,140,255,.4)}
+  .ttag.visual{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
+    border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
+  .capname{color:var(--accent); font-weight:700}
+  .covcount{font-size:12.5px; color:var(--mut2); margin:0 0 10px}
+
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:10px; background:var(--panel)}
+  .acc>button{width:100%; text-align:left; background:transparent; border:0; color:var(--ink); padding:15px 18px;
+    font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .acc>button .ar{transition:transform .2s; color:var(--mut2)}
+  .acc.open>button .ar{transform:rotate(90deg)}
+  .acc .panel{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc.open .panel{max-height:1200px}
+  .acc .panel .inner{padding:0 18px 18px; color:var(--mut); font-size:14px}
+  code,.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px}
+  .codeblock{background:#0a1024; border:1px solid var(--line2); border-radius:10px; padding:13px 15px;
+    overflow:auto; color:#cfe0ff; margin:10px 0}
+  html[data-theme="light"] .codeblock{background:#0d1530; color:#dbe6ff}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:8px 0}
+  .kv code{color:var(--accent)}
+  .kv span{color:var(--mut)}
+
+  /* Pricing */
+  table.price{width:100%; border-collapse:collapse; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.price th,table.price td{padding:13px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top}
+  table.price th{background:var(--chip); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut2)}
+  table.price td.prod{font-weight:700; color:var(--ink)}
+  table.price td.prod small{display:block; font-weight:500; color:var(--mut2); margin-top:2px}
+  .money{font-weight:800; color:var(--accent)}
+  .quote{color:var(--warn); font-weight:700}
+  .freeword{color:var(--good); font-weight:800}
+
+  /* References */
+  .refs{columns:2; column-gap:26px}
+  .refs .ref{break-inside:avoid; margin-bottom:12px; padding-left:14px; border-left:2px solid var(--line2)}
+  .refs .ref a{font-weight:600; font-size:13.5px}
+  .refs .ref p{margin:2px 0 0; color:var(--mut2); font-size:12px}
+
+  footer{padding:30px 0 60px; color:var(--mut2); font-size:12.5px; border-top:1px solid var(--line)}
+  .disc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px}
+
+  @media(max-width:860px){
+    .g2,.g3,.verdict,.intgrid,.covgrid{grid-template-columns:1fr}
+    .fitrow{grid-template-columns:1fr}
+    .fitrow .desc{border-left:0;border-right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .refs{columns:1}
+    h1{font-size:31px}
+    nav.links{display:none}
+  }
+  @media print{
+    header.top,.tbtn,.picker,.filterbar{display:none!important}
+    .tabpane{display:block!important} .acc .panel{max-height:none!important}
+    body{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7l8-4 8 4-8 4-8-4z" fill="#04122a" opacity=".3"/><path d="M4 7l8-4 8 4-8 4-8-4zM4 12l8 4 8-4M4 17l8 4 8-4" stroke="#04122a" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+      BrowserStack Automate <span style="color:var(--mut2);font-weight:600">· Embedding Analysis</span>
+    </div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#embed">Embedding</a>
+      <a href="#api">REST API</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#coverage">Checks covered</a>
+      <a href="#recommend">Recommendation</a>
+      <a href="#refs">Sources</a>
+    </nav>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Light</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <span class="eyebrow">● Product & Integration Assessment</span>
+    <h1>BrowserStack Automate API, assessed for <span class="grad">embedding into Snurra</span></h1>
+    <p class="sub">BrowserStack Automate is cloud <b>test-execution infrastructure</b> — it runs <em>your</em> Selenium/Playwright/Cypress scripts on 3,500+ real browser/OS combinations and thousands of real mobile devices, then exposes each session's status, console logs, network logs, screenshots and video over a REST API. This page maps its capabilities, how it would slot into Snurra's audit worker, what it costs, and — held to a strict 100%‑certain bar — exactly which feasibility‑catalog checks it can cover.</p>
+    <div class="meta">
+      <span><b>Prepared:</b> 26 Jul 2026</span>
+      <span><b>Use case:</b> Cross‑browser / real‑device / geo signal for the Snurra Site Audit</span>
+      <span><b>Catalog:</b> feasibility‑app · 217 checks</span>
+    </div>
+
+    <div class="tldr">
+      <div class="hd"><span class="dot"></span> Bottom line up front</div>
+      <div class="bd">
+        BrowserStack is <strong>not a scanner</strong> — it never judges a page on its own. It is an execution grid: you script the assertion, it supplies a <strong>real browser, real device, or a specific country's IP</strong> and captures the artifacts. So its value is <strong>narrow but genuine</strong>: it covers checks that need a <strong>real environment</strong> — real Safari/iOS behaviour, real‑device mobile UX, cross‑browser JS/console differences, and <strong>IP‑geolocation</strong> from a specific country. Everything it covers must reduce to a <strong>deterministic scripted assertion</strong>; it does <strong>zero</strong> security, SEO, a11y‑engine, content, visual‑diff or performance‑vitals scanning.
+        <div class="verdict">
+          <div class="vcard"><h4>Technical fit</h4><p>Clean REST API (Basic auth, JSON); per‑session console + network (HAR) + screenshots + pass/fail.</p><span class="pill good">Strong</span></div>
+          <div class="vcard"><h4>What it covers</h4><p>Real cross‑browser (Safari), real mobile devices, and IP‑geolocation from 60+ countries.</p><span class="pill good">Real environment</span></div>
+          <div class="vcard"><h4>Cost & gating</h4><p>Per parallel session; real devices need the Desktop&amp;Mobile plan; IP‑geo is Enterprise‑only.</p><span class="pill warn">Plan‑gated</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="kicker">01 · What BrowserStack Automate actually does</div>
+    <h2>Capabilities</h2>
+    <p class="lead">Two layers matter for embedding: the <b>execution grid</b> (the real browsers/devices your script runs on) and the <b>REST API</b> (how a backend like Snurra kicks off runs and pulls back results). Toggle between them:</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="grid">The execution grid</button>
+      <button class="tab" data-tab="api">The REST API surface</button>
+    </div>
+
+    <div class="tabpane active" data-pane="grid">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></span>3,500+ browser/OS combos</h3><p>Real Chrome, Firefox, Edge and <b>Safari</b> across Windows &amp; macOS versions — the cross‑browser matrix headless Chromium can't represent.</p><span class="tag">Cross‑browser</span><span class="tag">Real Safari</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></span>Thousands of real devices</h3><p>Physical iOS/Android phones &amp; tablets with real touch, native resolution and real Safari/Chrome mobile. Selected via <code>real_mobile</code> / <code>device</code> / <code>os_version</code>.</p><span class="tag">Real devices</span><span class="tag">Touch</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg></span>IP Geolocation</h3><p>Route session traffic through a chosen country's IP (<code>geoLocation</code>, 60+ countries / 30+ states) to exercise geo‑detection &amp; regional routing. <b>Enterprise‑tier</b> for Automate.</p><span class="tag">60+ countries</span><span class="tag">Enterprise</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5h16v10H4z"/><path d="M8 19h8M12 15v4"/></svg></span>Desktop resolution</h3><p>Set an exact desktop screen resolution per session via the <code>resolution</code> capability (set at start, desktop‑only) — e.g. 1440‑wide overflow probes.</p><span class="tag">resolution</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M5 8l7-5 7 5"/></svg></span>Local Testing</h3><p>Secure tunnel to test internal, staging or behind‑firewall sites that aren't publicly reachable.</p><span class="tag">Staging/internal</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 17l6-6-6-6M12 19h8"/></svg></span>Any framework</h3><p>Selenium, Playwright, Cypress and Appium — you keep your test code; BrowserStack is the grid it runs on. Snurra already speaks Playwright.</p><span class="tag">Playwright</span><span class="tag">Selenium</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></span>Standards it builds on</h3><p>Real browser engines (Chrome/Firefox/Edge/Safari), the <b>W3C WebDriver</b> protocol (Selenium 4 <code>bstack:options</code>), <b>Appium</b> for real mobile, <b>axe-core / WCAG 2.0–2.2</b> A/AA/AAA (BrowserStack Accessibility), and country/state <b>IP geolocation</b>. Automate itself runs <em>your</em> assertions — the standards are the environment it faithfully reproduces.</p><span class="tag">W3C WebDriver</span><span class="tag">Appium</span><span class="tag">axe-core / WCAG</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout warn">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M12 3l9 16H3l9-16z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+        <div><h4>The defining constraint</h4><p>BrowserStack does <b>no autonomous scanning</b>. It will not tell you a page has a broken CTA, a JS error or a mixed‑content resource unless <em>your</em> script asserts it. Every check it "covers" is a deterministic assertion you write and run on its grid — its contribution is the <b>real environment</b> and the <b>captured artifacts</b>, not a verdict.</p></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="api">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Auth &amp; format</h3><p>HTTP Basic auth (<code>username : access_key</code>), JSON responses, standard HTTP status codes. Base host <code>api.browserstack.com</code>.</p></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h12"/></svg></span>Plan · Projects · Builds · Sessions</h3><p>List/get/update/delete across the hierarchy: a <b>project</b> holds <b>builds</b>, a build holds <b>sessions</b>. Query plan usage &amp; parallel limits programmatically.</p></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></span>Session status</h3><p>Each session returns <code>status</code> (<code>passed</code>/<code>failed</code>) plus your marked result — the pass/fail your assertion produced.</p></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 4h16v12H4z"/><path d="M8 20h8"/></svg></span>Console logs</h3><p>Per‑session browser console log (default = errors; Chrome exposes a raw endpoint) — the source for JS‑error &amp; chunk‑load‑failure checks.</p></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h4l2 6 4-12 2 6h6"/></svg></span>Network logs (HAR)</h3><p>Full HAR of requests/responses/status/timing — the source for mixed‑content, script‑404, request‑timing &amp; tag‑firing checks.</p></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg></span>Screenshots &amp; video</h3><p>Automatic step screenshots and a session video, retrievable by URL — evidence for the audit UI.</p></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg></span>
+        <div><h4>Async by nature</h4><p>Unlike a single request/response scanner API, a BrowserStack check is a <b>two‑phase</b> job: your worker starts a session (the script runs on the grid), then <b>polls</b> the session/logs endpoints until it finishes and pulls the artifacts. This shapes the Snurra adapter (see Embedding).</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section id="embed">
+    <div class="kicker">02 · Applicability — how it slots into Snurra</div>
+    <h2>Embedding paths, ranked</h2>
+    <p class="lead">Snurra's worker already has an integration seam — a capability + swappable <code>ProviderAdapter</code> (<code>buildRequest</code>/<code>mapResponse</code>) over a shared HTTP transport, with Google PageSpeed as the reference slice. Here's how the realistic ways to wire BrowserStack in score:</p>
+
+    <div class="fit">
+      <div class="fitrow head"><div>Path</div><div>What it's good for</div><div>Fit</div></div>
+      <div class="fitrow">
+        <div class="name">New "crossBrowser" capability + BrowserStack adapter <small>(Automate REST API, per the PSI pattern)</small></div>
+        <div class="desc">A site‑scoped collector runs a small scripted session on the target across real browsers/devices, then maps console+network+DOM results into neutral check inputs. Fits the existing <code>integrations/</code> engine — with one twist: the adapter must run a <b>start‑then‑poll</b> loop, not PSI's single GET.</div>
+        <div class="verd"><span class="badge best">Best fit ✓</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Dedicated "geo" capability (IP‑geolocation) <small>(Automate Enterprise)</small></div>
+        <div class="desc">Run the same page from US/UK/EU IPs and assert regional routing/content markers — the highest‑value slice, gated to the Enterprise plan.</div>
+        <div class="verd"><span class="badge ok">Strong (gated)</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Replace Snurra's headless Playwright wholesale</div>
+        <div class="desc">Running <em>every</em> audit on BrowserStack would burn parallel‑session quota and add latency. Reserve it for the checks that genuinely need a real browser, device or country IP.</div>
+        <div class="verd"><span class="badge no">Don't</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="callout info">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+      <div>
+        <h4>Integration shape (mirrors the PageSpeed slice)</h4>
+        <p>Add a capability to the <code>CapabilityId</code> union; write a <code>browserstack</code> adapter (<code>isConfigured()</code> gates on the access key) whose <code>buildRequest</code> starts a session and whose polling resolves to a neutral result; register it in <code>registry.ts</code>; add a site‑scoped collector so checks bind via <code>dependsOn</code>. Honour graceful degradation — no key or a grid timeout must return <code>null → not‑applicable</code>, never fail the run. Respect the once‑per‑run site‑scoped model so slow sessions never stall the page pool.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- REST API -->
+  <section id="api">
+    <div class="kicker">03 · Technical detail — the Automate REST API</div>
+    <h2>What integrating actually looks like</h2>
+    <p class="lead">Enough to scope an integration spike. Expand for detail:</p>
+
+    <div class="acc open">
+      <button>Auth &amp; request flow (start‑then‑poll) <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        Your script (Playwright/Selenium) points at BrowserStack's hub with capabilities; the grid runs it. Your backend then reads results over the REST API. Both use HTTP Basic auth.
+        <div class="codeblock mono">
+# 1) run the scripted assertion on the grid (capabilities pick browser/device/geo)<br>
+#    e.g. Playwright: connect to wss://cdp.browserstack.com/playwright?caps=...<br><br>
+# 2) pull results over REST (Basic auth: USERNAME:ACCESS_KEY)<br>
+GET https://api.browserstack.com/automate/builds.json<br>
+GET https://api.browserstack.com/automate/sessions/&lt;session_id&gt;.json<br>
+GET https://api.browserstack.com/automate/sessions/&lt;session_id&gt;/logs        # raw/session logs<br>
+GET https://api.browserstack.com/automate/sessions/&lt;session_id&gt;/networklogs  # HAR<br>
+GET https://api.browserstack.com/automate/sessions/&lt;session_id&gt;/consolelogs # console
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Key capabilities used for coverage <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>browser / os / os_version</code><span>Pick a real desktop browser/OS combo (incl. Safari) for cross‑browser checks.</span>
+          <code>device / os_version / real_mobile</code><span>Pick a physical iOS/Android device for real‑mobile checks. <b>Desktop&amp;Mobile plan.</b></span>
+          <code>geoLocation</code><span>Two‑letter country code — routes traffic through that country's IP. <b>Enterprise for Automate.</b></span>
+          <code>resolution</code><span>Desktop screen resolution (e.g. <code>1440x900</code>); set at session start, desktop‑only.</span>
+          <code>browserstack.console / networkLogs</code><span>Enable console &amp; network (HAR) capture so the log endpoints return data.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Integration limits — projects &amp; rate limiting <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Rate limit</code><span><b>1,600 API requests / 5 minutes per user</b> and <b>160 requests/second per IP</b> on the Automate REST API. A 429 means wait ~60s. (App Automate differs: 90 req/s per user; uploads 5/min.)</span>
+          <code>Projects</code><span><b>No documented cap</b> on number of projects — they're just organizational containers (project → build → session). The list endpoint paginates: default 10, <b>max 100 per request</b>, with <code>offset</code>.</span>
+          <code>Real limiter</code><span>Throughput is bounded by <b>parallel sessions</b> (your plan), not by project count. N parallels = N concurrent scripted checks.</span>
+          <code>Retention</code><span>Sessions, logs, screenshots and video are retained and retrievable by id/URL for a plan‑dependent window.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Session artifacts you can turn into check inputs <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>status</code><span>passed/failed + your marked result — the assertion outcome.</span>
+          <code>consolelogs</code><span>Browser console — JS errors, chunk‑load failures (real per‑browser behaviour).</span>
+          <code>networklogs</code><span>HAR — request URLs/status/timing: mixed content, script 404s, slow scripts, tag firing.</span>
+          <code>screenshots / video</code><span>Evidence for the audit UI, retrievable per session.</span>
+          <code>DOM (via your script)</code><span>Any element geometry/state/attribute you assert in‑session (overflow, tap‑target size, presence).</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- FRAMEWORKS / INTEGRATIONS -->
+  <section id="integrations">
+    <div class="kicker">04 · Frameworks &amp; ecosystem</div>
+    <h2>What it plugs into</h2>
+    <p class="lead">BrowserStack is framework‑agnostic and CI‑friendly. For Snurra the relevant fact is simple: <b>it runs Playwright</b>, so existing scan scripts port with a connection change. Filter the ecosystem:</p>
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="intSearch" type="text" placeholder="Search frameworks & integrations…">
+      </div>
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="Framework">Framework</button>
+      <button class="chip" data-cat="CI/CD">CI/CD</button>
+      <button class="chip" data-cat="Reporting">Reporting</button>
+      <button class="chip" data-cat="Add-on">Add-on</button>
+    </div>
+    <div class="intgrid" id="intGrid"></div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="kicker">05 · Pricing</div>
+    <h2>What it costs</h2>
+    <p class="lead">Automate is priced per <b>parallel session</b> (not per user). Base plans include a single parallel; scaling parallels, real devices and IP‑geolocation each change the number. Published figures vary by monthly vs annual billing and by source — treat them as a planning range, not a quote.</p>
+    <table class="price">
+      <thead><tr><th>Plan / lever</th><th>Price</th><th>Model &amp; notes</th></tr></thead>
+      <tbody>
+        <tr><td class="prod">Automate — Desktop<small>desktop browsers only</small></td><td><span class="money">~$99–169</span>/mo <span style="color:var(--mut2);font-size:12px">(1 parallel)</span></td><td>Per parallel session; unlimited test minutes; 3,500+ desktop browser/OS combos incl. real Safari. Monthly ≈ higher, annual ≈ lower.</td></tr>
+        <tr><td class="prod">Automate — Desktop &amp; Mobile<small>adds real devices</small></td><td><span class="money">~$175–249</span>/mo <span style="color:var(--mut2);font-size:12px">(1 parallel)</span></td><td><b>Required for real‑mobile‑device checks</b> (<code>real_mobile</code>). Everything in Desktop + physical iOS/Android phones &amp; tablets + Appium.</td></tr>
+        <tr><td class="prod">Additional parallel sessions<small>the real scaling lever</small></td><td><span class="quote">Quote</span> <span style="color:var(--mut2);font-size:12px">(~$50–80/parallel·mo est.)</span></td><td>Not publicly listed beyond the first parallel; volume discounts at scale. N parallels = N concurrent scripted checks.</td></tr>
+        <tr><td class="prod">Enterprise<small>required for IP Geolocation</small></td><td><span class="quote">Quote</span></td><td><b>IP‑geolocation on Automate is an Enterprise feature.</b> Also: SSO, advanced security, custom parallels &amp; support. Contact sales.</td></tr>
+        <tr><td class="prod">Percy · Accessibility · Test Observability<small>separate add‑ons</small></td><td><span class="quote">Separate</span></td><td><b>Not part of the Automate API.</b> Percy = visual‑diff; Accessibility = its own a11y engine; Observability = test analytics.</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--mut2);font-size:12.5px;margin-top:10px">Figures are from BrowserStack's pricing page and third‑party trackers (Jul 2026) and are approximate; multi‑parallel and Enterprise pricing is quote‑based. Verify current numbers, geo availability and device coverage with BrowserStack before committing.</p>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="coverage">
+    <div class="kicker">06 · Which catalog checks it can cover</div>
+    <h2>Coverage — held to a 100%‑certain bar</h2>
+    <p class="lead">A check is listed <b>only if</b> its pass/fail is a <b>deterministic scripted assertion</b> (DOM geometry/state, console error, network status/timing, navigation/redirect outcome, cookie/storage, or a completed interaction) that a BrowserStack session can produce with <b>no human, AI‑text or visual‑diff judgment</b>. This is the full set of checks a BrowserStack session can cover on its own.</p>
+
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="covSearch" type="text" placeholder="Search covered checks…">
+      </div>
+    </div>
+    <p class="covcount" id="covCount"></p>
+    <div class="covgrid" id="covGrid"></div>
+
+    <div class="newcov" style="margin-top:32px">
+      <h3 style="font-size:19px;margin:0 0 6px">Additional checks it can cover — <span style="color:var(--mut2);font-weight:600">not in the catalog</span></h3>
+      <p class="lead" style="margin-top:0">Deterministic verdicts BrowserStack’s real-device / real-browser grid can produce (via <em>your</em> assertion) that have <b>no matching entry</b> in <code>checks.ts</code> — candidate additions to the catalog. Each is referenced.</p>
+      <div class="covgrid" id="newCovGrid"></div>
+    </div>
+
+    <div style="margin-top:18px" class="callout bad">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>
+      <div>
+        <h4>What the Automate API does NOT cover</h4>
+        <p>Excluded entirely, because the Automate API cannot deliver these verdicts on its own: <b>Accessibility / WCAG</b> (BrowserStack's separate Accessibility product, not Automate) · <b>SSL/TLS &amp; security headers</b> · <b>SEO facts</b> (title, meta, canonical, sitemap, robots, hreflang) · <b>all AI‑text / compliance checks</b> (REMS, ISI, PI links, GDPR wording, geo <em>content</em>) · <b>performance vitals</b> (LCP/INP/CLS/CrUX/page‑weight) · <b>visual‑diff &amp; brand consistency</b> · <b>content quality / readability / duplication</b> · <b>uptime / DNS / domain‑expiry</b> · <b>regulatory intelligence</b> · <b>competitive benchmark</b> · <b>audit‑trail &amp; deep‑dive / stakeholder</b> workstreams.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommend">
+    <div class="kicker">07 · Recommendation</div>
+    <h2>Pick your scenario</h2>
+    <p class="lead">What you want out of BrowserStack decides how much of it you buy. Click the closest match:</p>
+    <div class="picker" id="picker">
+      <button class="scn active" data-s="a">Test regional routing by country<small>US/UK/EU IPs serve the right version</small></button>
+      <button class="scn" data-s="b">Catch real Safari / iOS problems<small>Cross‑browser JS &amp; real‑device mobile UX</small></button>
+      <button class="scn" data-s="d">Just widen browser coverage cheaply<small>Run existing Playwright checks broader</small></button>
+    </div>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="kicker">08 · Sources</div>
+    <h2>References</h2>
+    <p class="lead">BrowserStack figures are from BrowserStack's own docs plus third‑party pricing trackers, gathered 26 Jul 2026. The check names are quoted verbatim from <code>feasibility-app/data/checks.ts</code> (the source behind checks‑catalog.vercel.app).</p>
+    <div class="refs">
+      <div class="ref"><a href="https://www.browserstack.com/docs/automate/api-reference/selenium/introduction" target="_blank" rel="noopener">Automate REST API — overview &amp; rate limits</a><p>1,600 req/5 min per user; 160 req/s per IP; Basic auth; JSON.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/automate/api-reference/selenium/build" target="_blank" rel="noopener">Automate API — builds / projects / sessions</a><p>Project → build → session hierarchy; pagination (max 100/request).</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/automate/selenium/network-logs" target="_blank" rel="noopener">Session network logs (HAR)</a><p>Per‑session request/response/status/timing capture.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/automate/selenium/debug-with-console-logs" target="_blank" rel="noopener">Session console logs</a><p>Browser console capture (errors by default; raw for Chrome).</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/ip-geolocation" target="_blank" rel="noopener">IP Geolocation</a><p>60+ countries / 30+ states; <code>geoLocation</code> capability; Enterprise for Automate.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/automate/selenium/simulate-geolocation" target="_blank" rel="noopener">Simulate IP geolocation for Selenium</a><p><code>browserstack.geoLocation</code> setup &amp; caveats (timezone not set).</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/automate/selenium/select-browsers-and-devices" target="_blank" rel="noopener">Select browsers &amp; real devices</a><p><code>real_mobile</code>/<code>device</code>/<code>os_version</code>; Automate Mobile plan.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/automate/selenium/change-screen-resolution" target="_blank" rel="noopener">Change desktop screen resolution</a><p><code>resolution</code> capability; desktop‑only; set at session start.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/automate/physical-mobile-devices" target="_blank" rel="noopener">Automate on physical mobile devices</a><p>Real iOS/Android device cloud for Selenium/Appium.</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/pricing" target="_blank" rel="noopener">BrowserStack pricing</a><p>Per‑parallel Automate plans; add‑ons (Percy, Accessibility, Observability).</p></div>
+      <div class="ref"><a href="https://www.browserstack.com/docs/automate/playwright" target="_blank" rel="noopener">Automate with Playwright</a><p>Running Playwright on the grid — the port path for Snurra's scanners.</p></div>
+      <div class="ref"><a href="https://checks-catalog.vercel.app/" target="_blank" rel="noopener">Feasibility checks catalog</a><p>The 217‑check catalog this coverage maps against (source: feasibility‑app).</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="disc">
+      <strong>How to read this.</strong> This is an independent capability/integration assessment compiled from public sources for planning purposes — it is not from or endorsed by BrowserStack, and it is not legal advice. Pricing, plan gating (Enterprise geo, Desktop&amp;Mobile devices), rate limits and device coverage change; verify current figures with BrowserStack before committing. The coverage list is deliberately conservative: checks are included only where a deterministic scripted assertion makes the verdict 100% certain — it is designed to under‑claim rather than over‑claim.
+    </div>
+    BrowserStack® is a trademark of its respective owner. Prepared 26 Jul 2026 · for internal planning.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'),
+    thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var light=root.getAttribute('data-theme')==='light';
+  root.setAttribute('data-theme', light?'dark':'light');
+  thTxt.textContent = light?'Light':'Dark';
+});
+
+// ---- Capability tabs ----
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var k=t.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.getAttribute('data-pane')===k);
+    });
+  });
+});
+
+// ---- Accordions ----
+document.querySelectorAll('.acc>button').forEach(function(b){
+  b.addEventListener('click',function(){ b.parentElement.classList.toggle('open'); });
+});
+
+// ---- Frameworks / integrations data + filter ----
+var INTS=[
+  {n:'Playwright',c:'Framework',d:'Snurra already speaks it — port scanners with a connection change'},
+  {n:'Selenium',c:'Framework',d:'WebDriver on the grid'},
+  {n:'Cypress',c:'Framework',d:'browserstack-cypress-cli'},
+  {n:'Appium',c:'Framework',d:'Native/mobile-web on real devices'},
+  {n:'GitHub Actions',c:'CI/CD',d:'Run cross-browser suites in CI'},
+  {n:'GitLab CI',c:'CI/CD',d:'Pipeline integration'},
+  {n:'Jenkins',c:'CI/CD',d:'Plugin for grid runs'},
+  {n:'Azure Pipelines',c:'CI/CD',d:'Task/extension'},
+  {n:'CircleCI',c:'CI/CD',d:'Orb integration'},
+  {n:'Test Observability',c:'Reporting',d:'Test analytics & flaky-test detection (add-on)'},
+  {n:'JUnit / TestNG reports',c:'Reporting',d:'Standard test reporters'},
+  {n:'Percy',c:'Add-on',d:'Visual-diff — turns screenshots into a pass/fail verdict'},
+  {n:'Accessibility',c:'Add-on',d:'Separate a11y engine (NOT the Automate API)'},
+  {n:'Local Testing',c:'Add-on',d:'Tunnel to internal/staging sites'},
+  {n:'IP Geolocation',c:'Add-on',d:'Route via 60+ country IPs (Enterprise for Automate)'}
+];
+var grid=document.getElementById('intGrid'), search=document.getElementById('intSearch'), curCat='all';
+function renderInts(){
+  var q=(search.value||'').toLowerCase();
+  var rows=INTS.filter(function(i){
+    var okc = curCat==='all' || i.c===curCat;
+    var okq = !q || i.n.toLowerCase().indexOf(q)>-1 || i.d.toLowerCase().indexOf(q)>-1;
+    return okc && okq;
+  });
+  grid.innerHTML = rows.length ? rows.map(function(i){
+    return '<div class="intitem"><div class="cat">'+i.c+'</div><h5>'+i.n+'</h5><span>'+i.d+'</span></div>';
+  }).join('') : '<div class="empty">No matches.</div>';
+}
+document.querySelectorAll('#integrations .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#integrations .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); curCat=c.getAttribute('data-cat'); renderInts();
+  });
+});
+search.addEventListener('input',renderInts);
+renderInts();
+
+// ---- Coverage data + filter ----
+// check names are verbatim from feasibility-app/data/checks.ts
+var COV=[
+  {ch:'US IP automatically serves US version', p:'Geo Detection', cap:'IP Geolocation', gate:['Enterprise'], note:'geoLocation=US, assert a deterministic US content marker.'},
+  {ch:'UK IP automatically serves UK version', p:'Geo Detection', cap:'IP Geolocation', gate:['Enterprise'], note:'geoLocation=GB, assert a UK regional marker/URL.'},
+  {ch:'EU IP serves correct regional version', p:'Geo Detection', cap:'IP Geolocation', gate:['Enterprise'], note:'geoLocation=DE/FR/…, assert the regional marker.'},
+  {ch:'Geo-redirect uses 302 temporary not 301 permanent', p:'Geo Detection', cap:'IP Geolocation + HAR', gate:['Enterprise'], note:'From a foreign IP the geo-redirect fires; HAR gives the exact status code (302 vs 301).'},
+  {ch:'Geo-override preference persisted during session', p:'Geo Detection', cap:'IP Geolocation + storage', gate:['Enterprise'], note:'Set override from a geo, read cookie/storage on revisit — deterministic.'},
+  {ch:'Visitor can override geo-detection manually', p:'Geo Detection', cap:'IP Geolocation + interaction', gate:['Enterprise'], note:'From a geo, script the override control, assert the content marker flips.'},
+  {ch:'Zero JavaScript errors on page load', p:'Performance & SEO', cap:'Console logs', gate:[], note:'Assert console error count = 0 across real browsers, including real Safari/iOS.'},
+  {ch:'JavaScript console errors on key pages', p:'Platform & Tech / Code Health', cap:'Console logs', gate:[], note:'Per-page console error capture across the real browser set.'},
+  {ch:'JavaScript bundle / chunk load failure detection', p:'Observability', cap:'Console + HAR', gate:[], note:'Chunk 404 / chunk-load error — real per-browser behaviour.'},
+  {ch:'No mixed content warnings in browser', p:'Security', cap:'Network logs (HAR)', gate:[], note:'Real-browser mixed-content blocking; HAR flags http:// subresources on https pages.'},
+  {ch:'All third-party scripts loading — no 404s', p:'Third-Party Script Health', cap:'Network logs (HAR)', gate:[], note:'HAR gives the status code per third-party script; a 404 script is flagged.'},
+  {ch:'No third-party script loading slower than 3 seconds', p:'Third-Party Script Health', cap:'Network logs (HAR)', gate:[], note:'HAR records per-request timing; threshold at 3s, on real browsers/networks.'},
+  {ch:'Back and forward browser navigation works', p:'Navigation', cap:'Cross-browser scripted nav', gate:[], note:'goBack()/goForward() URL asserts on real browsers — Safari bfcache behaviour included.'},
+  {ch:'Hero CTA buttons functional', p:'Homepage', cap:'Cross-browser interaction', gate:[], note:'Click + assert outcome, on real Safari/Edge as well as Chrome.'},
+  {ch:'HCP nav item present and routes correctly', p:'Navigation', cap:'Cross-browser interaction', gate:[], note:'DOM query + click-test + URL assert across browsers.'},
+  {ch:'Switching region routes to correct content', p:'Navigation', cap:'Cross-browser interaction', gate:[], note:'Interaction + URL/content-marker assert.'},
+  {ch:'Required field validation fires on empty submission', p:'Forms & CTAs', cap:'Cross-browser interaction', gate:[], note:'Native HTML5 validation UI differs per browser — real value in running on each.'},
+  {ch:'Broken interactive components detection', p:'UX & Behaviour', cap:'Cross-browser interaction', gate:[], note:'Interactive DOM audit + click validation; components can break only on Safari.'},
+  {ch:'Nav + key journey click-through (desktop)', p:'Manual UX QA', cap:'Cross-browser scripted journey', gate:[], note:'Scripted E2E journey with step asserts — exactly what the grid is for.'},
+  {ch:'Mobile menu / nav component behaviour', p:'Mobile', cap:'Real mobile device', gate:['Desktop&Mobile'], note:'On a real device: open the menu, assert items route.'},
+  {ch:'Touch-target sizing & tap accuracy', p:'Mobile', cap:'Real mobile device', gate:['Desktop&Mobile'], note:'Element geometry (≥44px) on the real device viewport is deterministic.'},
+  {ch:'PI and SmPC documents accessible on mobile', p:'Responsive', cap:'Real mobile device', gate:['Desktop&Mobile'], note:'On a real device, assert the document link opens/loads.'},
+  {ch:'Cookie consent banner usable on mobile', p:'Responsive', cap:'Real mobile device', gate:['Desktop&Mobile'], note:'Assert the banner is present and Accept works on the real device (functional).'},
+  {ch:'No layout overflow at 1440px desktop', p:'Responsive', cap:'resolution + DOM', gate:[], note:'resolution=1440x900; scrollWidth>clientWidth overflow probe on the real desktop viewport.'},
+  {ch:'Critical element presence baseline check', p:'Visual Stability', cap:'DOM assertion', gate:[], note:'Selector-existence assert per run, across the real browser set.'},
+  {ch:'Client vs server render check', p:'Platform & Tech / Code Health', cap:'DOM assertion', gate:[], note:'Compare raw HTML vs rendered DOM — deterministic.'},
+  {ch:'Cookie preferences remembered across sessions', p:'Homepage', cap:'Storage across real browser', gate:[], note:'storageState persist + revisit assert — Safari ITP makes real-browser execution meaningful.'},
+  {ch:'Contact form submits and shows confirmation', p:'Forms & CTAs', cap:'Cross-browser interaction', gate:['prod-caveat'], note:'Submit + assert confirmation. Caveat: submitting on prod sends real data — use staging.'},
+  {ch:'Contact / RFP form submission test', p:'Manual UX QA', cap:'Cross-browser interaction', gate:['prod-caveat'], note:'Scripted submit + assert confirmation. Same real-data caveat — use staging.'}
+];
+var covGrid=document.getElementById('covGrid'), covSearch=document.getElementById('covSearch'),
+    covCount=document.getElementById('covCount'), curCov='all';
+function renderCov(){
+  var q=(covSearch.value||'').toLowerCase();
+  var rows=COV.filter(function(i){
+    return !q || i.ch.toLowerCase().indexOf(q)>-1 || i.p.toLowerCase().indexOf(q)>-1 || i.cap.toLowerCase().indexOf(q)>-1;
+  });
+  covCount.innerHTML='Showing <b style="color:var(--ink)">'+rows.length+'</b> of '+COV.length+' checks BrowserStack can cover';
+  covGrid.innerHTML = rows.length ? rows.map(function(i){
+    var gates=(i.gate||[]).map(function(g){
+      var lbl = g==='prod-caveat' ? '⚠ prod data' : g;
+      return '<span class="gate">'+lbl+'</span>';
+    }).join('');
+    return '<div class="covitem"><div class="top"><div><h5>'+i.ch+'</h5>'+
+      '<div class="pil">'+i.p+' · <span class="capname">'+i.cap+'</span></div></div></div>'+
+      '<p>'+i.note+'</p>'+(gates?('<div>'+gates+'</div>'):'')+'</div>';
+  }).join('') : '<div class="empty">No checks match that filter.</div>';
+}
+covSearch.addEventListener('input',renderCov);
+renderCov();
+
+// ---- Additional checks NOT in the catalog (candidate new checks) ----
+var NEWCOV=[
+  {name:'Real-device rendering on a named physical iOS/Android device', cap:'Real Device Cloud', note:'Verdict on how a page/app renders on an exact physical device + OS version (e.g. a specific iPhone or Galaxy model), incl. orientation — real hardware, not emulation. The catalog’s mobile checks are viewport-based only.', ref:'browserstack.com — Real Device Cloud / Appium device select'},
+  {name:'Behind-login / staging / firewalled-site testing via the Local tunnel', cap:'BrowserStack Local', note:'Renders and asserts on non-public URLs (localhost, staging, VPN/firewall-gated) reached through the Local tunnel — a public-URL crawler cannot reach these, so the catalog has no equivalent.', ref:'browserstack.com/docs — Local testing'},
+  {name:'Precise GPS-location (lat/long) behavior for mobile apps', cap:'App Automate gpsLocation', note:'Verifies location-based app behavior at an exact latitude/longitude via browserstack.gpsLocation. No catalog equivalent — catalog geo checks are IP→region routing, not device GPS.', ref:'browserstack.com/docs — set IP & GPS geolocation'},
+  {name:'Rendering at an exact desktop screen resolution on a real browser', cap:'resolution capability', note:'Pixel-accurate rendering at a precise resolution (1024×768 … 3840×2160) on a real browser, beyond the catalog’s three responsive breakpoints (1440/768/375).', ref:'browserstack.com/docs — change screen resolution'},
+  {name:'Browser-version-specific rendering regression (exact / latest-1 / beta)', cap:'browserVersion matrix', note:'Verdict on whether a page works on a precise or relative browser version, catching version-specific regressions. The catalog only has a manual cross-browser spot-check, not an automated version matrix.', ref:'browserstack.com/docs — select browsers & devices'}
+];
+(function(){
+  var g=document.getElementById('newCovGrid'); if(!g) return;
+  g.innerHTML=NEWCOV.map(function(i){
+    return '<div class="covitem"><div class="top"><div><h5>'+i.name+'</h5>'+
+      '<div class="pil"><span class="capname">'+i.cap+'</span></div></div><span class="gate">new</span></div>'+
+      '<p>'+i.note+'</p><div class="pil" style="margin-top:8px">↳ <span class="capname">'+i.ref+'</span></div></div>';
+  }).join('');
+})();
+
+// ---- Scenario recommender ----
+var RECS={
+  a:{label:'Recommended path',h:'Automate Enterprise + a "geo" capability in the Snurra adapter',
+     p:'IP‑geolocation is BrowserStack’s highest‑value slice. Route the same page from US/UK/EU IPs and assert the regional content marker directly.',
+     s:['Confirm IP‑geolocation is enabled on your Automate <b>Enterprise</b> contract.','Add a site‑scoped geo collector; run one session per target region with geoLocation set.','Assert a deterministic regional content marker (URL/path/lang/region cookie), not a visual guess.']},
+  b:{label:'Recommended path',h:'Automate Desktop & Mobile + a "crossBrowser" capability',
+     p:'For real Safari/iOS bugs — JS/console errors, mixed content, real‑device mobile UX — run a small scripted session on real browsers/devices and map console+network+DOM into checks.',
+     s:['Buy the Desktop & Mobile plan (real devices need <code>real_mobile</code>).','Port an existing Playwright scanner; connect to the BrowserStack grid.','Pull consolelogs + networklogs per session; degrade to not‑applicable on timeout.']},
+  d:{label:'Recommended path',h:'Minimal Automate Desktop, real-environment checks only',
+     p:'Don’t move Snurra’s whole audit onto BrowserStack — reserve it for the checks that genuinely need a real browser, device or country IP.',
+     s:['Start with 1–2 parallels on Automate Desktop.','Wire only the cross‑browser / real‑device checks that need a real environment.','Scale parallels via sales only if that slice proves its value.']}
+};
+function showRec(k){
+  var r=RECS[k];
+  document.getElementById('rec').innerHTML =
+    '<div class="rlabel">'+r.label+'</div><h3>'+r.h+'</h3><p>'+r.p+'</p><ul class="steps"><li>'+r.s.join('</li><li>')+'</li></ul>';
+}
+document.querySelectorAll('.scn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.scn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active'); showRec(b.getAttribute('data-s'));
+  });
+});
+showRec('a');
+</script>
+</body>
+</html>

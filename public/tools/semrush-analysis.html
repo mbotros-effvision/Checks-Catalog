@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semrush — Capabilities &amp; Embedding Analysis</title>
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#0f1630; --panel:#131c3a; --panel2:#18234a;
+    --line:#25315c; --line2:#33427a;
+    --ink:#eaf0ff; --mut:#9db0d8; --mut2:#6f83b3;
+    --brand:#4f8cff; --brand2:#7aa8ff; --accent:#22d3aa;
+    --warn:#ffb020; --bad:#ff5d6c; --good:#22d3aa;
+    --chip:#1b2649; --shadow:0 12px 40px rgba(0,0,0,.45);
+    --radius:16px;
+  }
+  html[data-theme="light"]{
+    --bg:#eef2fb; --bg2:#e6ecfa; --panel:#ffffff; --panel2:#f4f7ff;
+    --line:#d6def2; --line2:#c3cfec; --ink:#101a33; --mut:#41527a; --mut2:#6b7aa3;
+    --chip:#eef2fd; --shadow:0 12px 34px rgba(20,40,90,.12);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 700px at 80% -10%,rgba(79,140,255,.18),transparent 60%),
+               radial-gradient(900px 600px at -10% 10%,rgba(34,211,170,.10),transparent 55%),
+               var(--bg);
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--brand2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 22px}
+
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(79,140,255,.5)}
+  .logo .mark svg{width:18px;height:18px}
+  nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
+  nav.links a:hover{background:var(--chip); color:var(--ink); text-decoration:none}
+  .tbtn{border:1px solid var(--line2); background:var(--chip); color:var(--ink); border-radius:9px;
+    padding:7px 10px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; gap:6px; align-items:center}
+  .tbtn:hover{border-color:var(--brand)}
+
+  .hero{padding:46px 0 26px}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:var(--chip);
+    border:1px solid var(--line2); padding:6px 12px; border-radius:999px}
+  h1{font-size:40px; line-height:1.12; margin:16px 0 10px; letter-spacing:-.5px}
+  h1 .grad{background:linear-gradient(120deg,var(--brand2),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--mut); font-size:17px; max-width:810px}
+  .meta{margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; color:var(--mut2); font-size:13px}
+  .meta b{color:var(--mut)}
+
+  .tldr{margin-top:26px; border:1px solid var(--line2); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:var(--shadow); overflow:hidden}
+  .tldr .hd{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line);
+    font-weight:800; letter-spacing:.3px}
+  .tldr .hd .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,170,.18)}
+  .tldr .bd{padding:18px 20px; color:var(--mut); font-size:15.5px}
+  .tldr .bd strong{color:var(--ink)}
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .vcard{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .vcard h4{margin:0 0 4px; font-size:13px; color:var(--mut2); text-transform:uppercase; letter-spacing:.08em}
+  .vcard p{margin:0; font-size:14px; color:var(--ink)}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; margin-top:8px}
+  .pill.good{background:rgba(34,211,170,.14); color:var(--good); border:1px solid rgba(34,211,170,.35)}
+  .pill.warn{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.35)}
+  .pill.bad{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.35)}
+
+  section{padding:34px 0; border-top:1px solid var(--line)}
+  .kicker{font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--brand2)}
+  h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.3px}
+  .lead{color:var(--mut); max-width:880px; margin:0 0 20px}
+
+  .tabs{display:flex; gap:8px; margin:6px 0 18px; flex-wrap:wrap}
+  .tab{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:9px 16px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:14px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--accent)); color:#04122a; border-color:transparent}
+  .tabpane{display:none; animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .grid{display:grid; gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:16.5px; display:flex; align-items:center; gap:9px}
+  .card .ic{width:30px;height:30px;border-radius:9px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .card .ic svg{width:17px;height:17px;stroke:var(--brand2)}
+  .card p{margin:0; color:var(--mut); font-size:14px}
+  .tag{font-size:11px; font-weight:700; color:var(--mut2); background:var(--chip); border:1px solid var(--line2);
+    padding:2px 8px; border-radius:6px; margin-right:6px; display:inline-block; margin-top:8px}
+
+  .fit{overflow:hidden; border:1px solid var(--line); border-radius:14px}
+  .fitrow{display:grid; grid-template-columns:1.4fr 2.2fr .9fr; gap:0; border-bottom:1px solid var(--line)}
+  .fitrow:last-child{border-bottom:0}
+  .fitrow.head{background:var(--chip); font-weight:800; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut2)}
+  .fitrow>div{padding:14px 16px}
+  .fitrow .name{font-weight:700; color:var(--ink)}
+  .fitrow .name small{display:block; font-weight:500; color:var(--mut2); margin-top:3px}
+  .fitrow .desc{color:var(--mut); font-size:14px; border-left:1px solid var(--line); border-right:1px solid var(--line)}
+  .fitrow .verd{display:flex; align-items:center; justify-content:center}
+  .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
+  .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .badge.ok{background:rgba(79,140,255,.16); color:var(--brand2); border:1px solid rgba(79,140,255,.4)}
+  .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
+
+  .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
+  .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
+  .callout.info{background:rgba(79,140,255,.08); border-color:rgba(79,140,255,.4)}
+  .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
+  .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
+  .callout.warn .cic{background:rgba(255,176,32,.16)}
+  .callout.info .cic{background:rgba(79,140,255,.16)}
+  .callout.bad .cic{background:rgba(255,93,108,.16)}
+  .callout h4{margin:0 0 5px; font-size:15.5px}
+  .callout p{margin:0; color:var(--mut); font-size:14.5px}
+  .callout.warn h4{color:var(--warn)}
+  .callout.bad h4{color:var(--bad)}
+  .callout .cic svg{width:19px;height:19px}
+
+  .picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
+  .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
+  .scn.active{border-color:var(--brand); background:rgba(79,140,255,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(79,140,255,.12)}
+  .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
+  .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
+  .rec h3{margin:6px 0 6px; font-size:18px}
+  .rec p{margin:0 0 8px; color:var(--mut); font-size:14.5px}
+  .rec .steps{margin:8px 0 0; padding-left:18px; color:var(--mut); font-size:14px}
+  .rec .steps li{margin:3px 0}
+
+  .filterbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--chip);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 12px}
+  .search input{border:0; background:transparent; color:var(--ink); font-size:14px; width:100%; outline:none}
+  .chip{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:7px 12px; border-radius:999px;
+    cursor:pointer; font-size:12.5px; font-weight:700}
+  .chip.active{background:var(--brand); color:#04122a; border-color:transparent}
+  .intgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .intitem{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px}
+  .intitem h5{margin:0 0 3px; font-size:14px}
+  .intitem span{font-size:12px; color:var(--mut2)}
+  .intitem .cat{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--brand2)}
+  .empty{color:var(--mut2); font-size:14px; padding:16px; text-align:center; grid-column:1/-1}
+
+  .covgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .covitem{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px; position:relative}
+  .covitem .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .covitem h5{margin:0; font-size:14.5px; color:var(--ink); font-weight:700; line-height:1.3}
+  .covitem .pil{font-size:10px; color:var(--mut2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+  .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
+  .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
+  .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .ttag.redundant{background:rgba(79,140,255,.14); color:var(--brand2); border:1px solid rgba(79,140,255,.4)}
+  .ttag.partial{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
+    border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
+  .capname{color:var(--accent); font-weight:700}
+  .covcount{font-size:12.5px; color:var(--mut2); margin:0 0 10px}
+
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:10px; background:var(--panel)}
+  .acc>button{width:100%; text-align:left; background:transparent; border:0; color:var(--ink); padding:15px 18px;
+    font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .acc>button .ar{transition:transform .2s; color:var(--mut2)}
+  .acc.open>button .ar{transform:rotate(90deg)}
+  .acc .panel{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc.open .panel{max-height:1600px}
+  .acc .panel .inner{padding:0 18px 18px; color:var(--mut); font-size:14px}
+  code,.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px}
+  .codeblock{background:#0a1024; border:1px solid var(--line2); border-radius:10px; padding:13px 15px;
+    overflow:auto; color:#cfe0ff; margin:10px 0}
+  html[data-theme="light"] .codeblock{background:#0d1530; color:#dbe6ff}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:8px 0}
+  .kv code{color:var(--accent)}
+  .kv span{color:var(--mut)}
+
+  table.price{width:100%; border-collapse:collapse; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.price th,table.price td{padding:13px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top}
+  table.price th{background:var(--chip); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut2)}
+  table.price td.prod{font-weight:700; color:var(--ink)}
+  table.price td.prod small{display:block; font-weight:500; color:var(--mut2); margin-top:2px}
+  .money{font-weight:800; color:var(--accent)}
+  .quote{color:var(--warn); font-weight:700}
+  .freeword{color:var(--good); font-weight:800}
+
+  .refs{columns:2; column-gap:26px}
+  .refs .ref{break-inside:avoid; margin-bottom:12px; padding-left:14px; border-left:2px solid var(--line2)}
+  .refs .ref a{font-weight:600; font-size:13.5px}
+  .refs .ref p{margin:2px 0 0; color:var(--mut2); font-size:12px}
+
+  footer{padding:30px 0 60px; color:var(--mut2); font-size:12.5px; border-top:1px solid var(--line)}
+  .disc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px}
+
+  @media(max-width:860px){
+    .g2,.g3,.verdict,.intgrid,.covgrid{grid-template-columns:1fr}
+    .fitrow{grid-template-columns:1fr}
+    .fitrow .desc{border-left:0;border-right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .refs{columns:1}
+    h1{font-size:31px}
+    nav.links{display:none}
+  }
+  @media print{
+    header.top,.tbtn,.picker,.filterbar{display:none!important}
+    .tabpane{display:block!important} .acc .panel{max-height:none!important}
+    body{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="#04122a" stroke-width="1.8"/><path d="M16 16l4.5 4.5" stroke="#04122a" stroke-width="1.8" stroke-linecap="round"/><path d="M8 11l2 2 3.5-4" stroke="#04122a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      Semrush <span style="color:var(--mut2);font-weight:600">· Embedding Analysis</span>
+    </div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#embed">Embedding</a>
+      <a href="#api">API</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#coverage">Checks covered</a>
+      <a href="#recommend">Recommendation</a>
+      <a href="#refs">Sources</a>
+    </nav>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Light</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <span class="eyebrow">● Product &amp; Integration Assessment</span>
+    <h1>Semrush, assessed for <span class="grad">embedding into Snurra</span></h1>
+    <p class="sub">Semrush is an <b>SEO / marketing-intelligence SaaS</b>. The part that overlaps a site audit is <b>Site Audit</b> — a cloud crawler (SemrushBot) that runs <b>140+ technical/on-page checks</b> across crawlability, HTTPS, redirects, canonicals, hreflang, structured-data markup, broken links, internal linking, duplicate/thin content and (lab, sampled) Core Web Vitals. It exposes a real <b>Site Audit API</b> that launches an audit and returns both a summary and <b>per-URL issue lists</b>, plus Analytics / Position-Tracking / Backlink APIs for rankings and link data. This page maps its capabilities, how it slots into Snurra's worker, what it costs, and — held to a strict 100%‑certain bar — precisely which feasibility‑catalog checks it can cover.</p>
+    <div class="meta">
+      <span><b>Prepared:</b> 27 Jul 2026</span>
+      <span><b>Use case:</b> Technical-SEO crawl + rankings signal for the Snurra Site Audit</span>
+      <span><b>Catalog:</b> feasibility‑app · 217 checks</span>
+    </div>
+
+    <div class="tldr">
+      <div class="hd"><span class="dot"></span> Bottom line up front</div>
+      <div class="bd">
+        Semrush's Site Audit is a strong <b>cloud technical-SEO crawler with a real REST API</b> — you give it a domain (no code/agent access), <code>POST /launch</code> a run, poll for the snapshot, then fetch a <strong>summary</strong> (errors/warnings/notices + score) <em>and</em> a <strong>drill-down per-URL issue list</strong> for any issue. It can cover <strong>30 catalog checks</strong> — the technical-SEO crawl surface (broken links, redirects, canonicals, metadata, structured-data validity, hreflang, HTTPS/mixed-content, sitemap/robots, internal links, duplicate/thin content, viewport) plus <strong>rankings/visibility &amp; backlinks</strong> via the Analytics APIs. Two constraints shape embedding: the <strong>API is a Business-plan add-on</strong> (Pro/Guru have no API), and API calls cost <strong>API units</strong> (bought in packages, they expire), at <strong>10 req/s · 10 concurrent</strong>. It does <strong>not</strong> do functional/interaction testing, visual regression, consent/tag-firing, real accessibility (WCAG is a <em>separate</em> App Center app, not the Site Audit API), or full-site field Core Web Vitals (lab-only, 10-page sample).
+        <div class="verdict">
+          <div class="vcard"><h4>Technical fit</h4><p>REST <b>Site Audit API</b> — async: <code>launch</code> → poll <code>snapshots</code> → fetch per-URL issues. Fits an adapter, but API = Business plan + units.</p><span class="pill good">API + async</span></div>
+          <div class="vcard"><h4>What it covers</h4><p><b>30 checks</b> — the technical-SEO crawl surface + HTTPS/SSL + duplicate/thin content, plus rankings &amp; backlinks via the Analytics APIs.</p><span class="pill good">Technical SEO</span></div>
+          <div class="vcard"><h4>Cost</h4><p>Pro <b>$139.95</b> / Guru <b>$249.95</b> / Business <b>$499.95</b>/mo. API is Business-only + <b>metered in units</b> (package $ not public).</p><span class="pill warn">Business + units</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="kicker">01 · What Semrush actually does</div>
+    <h2>Capabilities</h2>
+    <p class="lead">Two layers matter for embedding: what <b>Site Audit crawls and validates</b> (the deterministic technical-SEO facts) and its <b>automation surface</b> (the REST APIs a backend drives it through). Toggle between them:</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="audit">Site Audit &amp; what it checks</button>
+      <button class="tab" data-tab="auto">APIs &amp; automation surface</button>
+    </div>
+
+    <div class="tabpane active" data-pane="audit">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></span>Cloud crawler (SemrushBot)</h3><p>Give it a <b>domain / subdomain / subfolder</b> or a URL list — no code, agent or server access. It crawls up to the plan's page cap and produces a full URL inventory + issues. <b>140+</b> technical/on-page checks (vendor-stated).</p><span class="tag">URL-in</span><span class="tag">140+ checks</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>Crawlability &amp; indexation</h3><p>robots.txt, sitemap.xml, DNS/server errors, HTTP status &amp; <b>redirects</b> (chains &amp; loops), <b>canonicals</b>, indexability — the technical-SEO staples, with the affected URLs per issue.</p><span class="tag">Redirects</span><span class="tag">Canonicals</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>HTTPS report</h3><p>SSL <b>certificate</b> (validity, name, expiry), protocol version, <b>mixed content</b>, and HTTP→HTTPS redirect — the browser-security surface, per crawled URL.</p><span class="tag">SSL</span><span class="tag">Mixed content</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 12l2 2 4-4"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></span>Markup &amp; International SEO</h3><p><b>Structured-data markup</b> detection + invalid-schema flagging, and <b>hreflang</b> validation (language/country codes &amp; conflicts). JSON rendering needs Guru+.</p><span class="tag">Schema</span><span class="tag">hreflang</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></span>Content &amp; meta</h3><p>Title / meta-description / H1 completeness &amp; duplication, <b>duplicate content</b> across pages, <b>low word count</b> / thin content, charset — the on-page technical facts.</p><span class="tag">Duplicate</span><span class="tag">Thin content</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>Rankings &amp; backlinks</h3><p>Beyond Site Audit: <b>Position Tracking</b> (visibility/rankings) and <b>Backlink Analytics</b> — Semrush's core datasets, available via the Analytics APIs.</p><span class="tag">Visibility</span><span class="tag">Backlinks</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout warn">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M12 3l9 16H3l9-16z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+        <div><h4>Standards it aligns to (and one it doesn't)</h4><p>Site Audit implements checks aligned to <b>Schema.org + Google Rich Results</b> (markup validity), <b>hreflang</b> (BCP-47 language/country codes), <b>HTTPS/TLS</b>, <b>robots.txt &amp; sitemap</b> standards, <b>AMP</b> (40+ checks), and <b>Google Core Web Vitals</b> — the latter via <b>Lighthouse lab data</b>, showing LCP/CLS/TBT (TBT as an INP proxy) for only the first <b>10 pages</b> per audit. Note: real <b>WCAG / accessibility</b> is <em>not</em> in Site Audit — it's a separate App Center app. Semrush publishes no formal conformance statement; alignment is inferred from feature docs.</p></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="auto">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></span>Site Audit API</h3><p><code>POST /launch</code> a run → <code>GET /snapshots</code> / <code>/info</code> for status &amp; summary → <code>GET /snapshot/{sid}/issue/{id}</code> for the <b>per-URL affected-pages list</b>. JSON; key as <code>key=</code> query param.</p><span class="tag">Launch + drill-down</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>Analytics API (v3/v4)</h3><p>Domain / keyword / <b>backlink</b> / <b>position-tracking</b> reports — CSV &amp; JSON. This is how rankings, visibility and backlink data come out.</p><span class="tag">CSV/JSON</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Auth</h3><p>API key. Projects API management uses <code>Authorization: Apikey &lt;KEY&gt;</code>; Site Audit &amp; Position Tracking pass the key as <code>key=</code>. No OAuth (except the Local API v4).</p><span class="tag">API key</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 12a8 8 0 018-8M20 12a8 8 0 01-8 8"/><path d="M12 8v4l3 2"/></svg></span>Rate limits</h3><p><b>10 requests/second</b> and <b>10 concurrent</b> requests per account. Caching results beyond 1 month needs written consent.</p><span class="tag">10 req/s</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4 2 7L12 17l-6.5 5 2-7L2 9h7z"/></svg></span>API units</h3><p>Analytics &amp; Projects/Site-Audit calls cost <b>API units</b> (per-request or per-line), bought in <b>2M/5M/10M/20M</b> packages that <b>expire</b>. Out-of-units → ERROR 132 / HTTP 403.</p><span class="tag">Metered</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 18L18 6M8 6h10v10"/></svg></span>API gating</h3><p>API access requires the <b>Business plan</b> (or Enterprise). Pro &amp; Guru have <b>no API</b>. After upgrading, the unit balance starts at zero — you must buy units.</p><span class="tag">Business-only</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+        <div><h4>How Snurra would actually drive it</h4><p>A <code>ProviderAdapter</code> like PSI, but <b>async</b> and stateful: pre-create a project/campaign, then <code>buildRequest()</code> <code>POST /launch</code> returns a <code>snapshot_id</code>; poll <code>/snapshots</code> or <code>/info</code> until the run finishes; then <code>mapResponse()</code> pulls <code>/info</code> (summary counts) plus <code>/snapshot/{sid}/issue/{id}</code> for each issue's per-URL list, mapping them into neutral check inputs. Gate <code>isConfigured()</code> on the API key <b>and a Business plan with unit balance</b>; back off on the 10 req/s limit and ERROR 132 (out of units). Because runs are async and unit-metered, schedule them <b>off the hot path</b>, never inline in a page-audit request.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section id="embed">
+    <div class="kicker">02 · Applicability — how it slots into Snurra</div>
+    <h2>Embedding paths, ranked</h2>
+    <p class="lead">Semrush fits Snurra's adapter pattern — it's an HTTP service behind a <code>ProviderAdapter</code>, like PageSpeed / BrowserStack / Percy — with two twists: Site Audit runs are <b>asynchronous</b> (launch → poll snapshot → fetch), and every call is <b>metered in API units</b> behind a Business plan. The ranking is driven by where it adds the most signal.</p>
+
+    <div class="fit">
+      <div class="fitrow head"><div>Path</div><div>What it's good for</div><div>Fit</div></div>
+      <div class="fitrow">
+        <div class="name">Site Audit API adapter for the technical-SEO crawl checks <small>(launch → poll → fetch per-URL issues)</small></div>
+        <div class="desc">Pre-create a Site Audit campaign per site, launch it on a schedule, poll the snapshot, then pull the per-URL issue lists and map them into the crawl checks — broken links, redirects, canonicals, metadata, structured-data validity, hreflang, HTTPS/mixed-content, sitemap/robots, internal links, duplicate/thin content, viewport.</div>
+        <div class="verd"><span class="badge best">Best fit ✓</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Analytics API for rankings, visibility &amp; backlinks <small>(Domain / Position Tracking / Backlink)</small></div>
+        <div class="desc">Pull the domain's visibility &amp; ranking overview and its backlink profile — Semrush's core datasets, which a crawler can't produce. These power the rankings/backlinks checks.</div>
+        <div class="verd"><span class="badge ok">Strong</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Use it as your accessibility / field-CWV / functional engine</div>
+        <div class="desc">Real WCAG is a <b>separate App Center app</b> (not the Site Audit API); Core Web Vitals are <b>lab-only, sampled to 10 pages</b>; and Semrush does no functional, visual or consent/tag testing. Don't route those checks through it.</div>
+        <div class="verd"><span class="badge no">Don't</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Trigger an audit inline on the per-request hot path</div>
+        <div class="desc">A Site Audit run is asynchronous and each API call spends units against a Business-plan budget. Firing one inside a page-audit request blocks on a slow crawl and burns quota — schedule audits and read snapshots asynchronously.</div>
+        <div class="verd"><span class="badge no">Don't</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="callout info">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+      <div>
+        <h4>Integration shape (contrast with the sync tools)</h4>
+        <p>Unlike PSI's single GET, a Site Audit check is a <b>multi-step async</b> job with server-side state (a project → campaign → snapshot). The adapter references a pre-built campaign by project ID, launches it, polls, then fetches summary + per-issue URL lists. Config lives in Semrush (crawl scope, page limit, schedule, user-agent). Gate on API key + Business plan + unit balance; degrade to <code>not-applicable</code> on ERROR 132 / 403 / timeout; respect 10 req/s. Keep runs scheduled and off the per-request path.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API / TECHNICAL -->
+  <section id="api">
+    <div class="kicker">03 · Technical detail — API, units, rate limits, projects &amp; crawl budget</div>
+    <h2>What integrating actually looks like</h2>
+    <p class="lead">Enough to scope an integration spike. Expand for detail:</p>
+
+    <div class="acc open">
+      <button>The Site Audit API — launch &amp; drill-down <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        Base hosts: management <code>https://api.semrush.com/management/v1/projects/{ID}/siteaudit</code> and reports
+        <code>https://api.semrush.com/reports/v1/projects/{ID}/siteaudit</code>. <code>{ID}</code> = project ID; auth = <code>key=YOUR_API_KEY</code>.
+        <div class="codeblock mono">
+# 1) launch an audit run → returns a snapshot_id<br>
+POST https://api.semrush.com/management/v1/projects/&lt;ID&gt;/siteaudit/launch?key=$KEY<br><br>
+# 2) poll for status + summary (errors/warnings/notices counts, pages_crawled, score)<br>
+GET  https://api.semrush.com/reports/v1/projects/&lt;ID&gt;/siteaudit/info?key=$KEY<br><br>
+# 3) fetch the per-URL affected-pages list for a given issue id (paginated/filterable)<br>
+GET  https://api.semrush.com/reports/v1/projects/&lt;ID&gt;/siteaudit/snapshot/&lt;sid&gt;/issue/&lt;issueId&gt;?key=$KEY<br>
+# → Snurra maps target_url/source_url/page_id lists into neutral check inputs
+        </div>
+        Other endpoints: <code>/enable</code> &amp; <code>/save</code> (configure a campaign: domain, pageLimit, scheduleDay, crawlSubdomains, userAgentType), <code>/snapshots</code> (past runs), <code>/snapshot?snapshot_id=</code> (issue-breakdown overview, <b>10,000 units</b>), <code>/meta/issues</code> (issue-type catalog), <code>/page/list</code> &amp; page info. Issue IDs are numeric (~1–223).
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>API units — the metering model <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>What costs units</code><span>Analytics/SEO and Projects/Site-Audit calls cost <b>API units</b> (per-request or per-line-of-data). Documented Site-Audit costs: launch/info/snapshots/issue ≈ <b>100</b>, snapshot-overview ≈ <b>10,000</b>, page info ≈ <b>1,000</b> (verify — Semrush adjusts these).</span>
+          <code>Packages</code><span>Units are bought in <b>2M / 5M / 10M / 20M</b> packages, renew with the subscription, and <b>unused units expire</b> (no rollover). The dollar cost of packages is <b>not published</b>.</span>
+          <code>Out of units</code><span>ERROR 132 (SEO/Trends/Position-Tracking/Site-Audit) or HTTP 403 (Projects/Local). The adapter must degrade gracefully.</span>
+          <code>Unit-free</code><span>Only <b>Listing Management</b> + <b>Map Rank Tracker</b> (Local API v4) don't consume units. The Site Audit API <b>does</b>.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Rate limits, projects &amp; crawl budget <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Rate limit</code><span><b>10 requests/second</b>; <b>10 concurrent</b> requests per account.</span>
+          <code>Projects</code><span>Pro <b>5</b> · Guru <b>15</b> · Business <b>40</b> projects ("websites to monitor"). Each hosts a Site Audit campaign (+ Position Tracking, etc.).</span>
+          <code>Crawl budget</code><span>Account-wide pages crawled/month: Pro <b>100,000</b> · Guru <b>300,000</b> · Business <b>1,000,000</b>.</span>
+          <code>Per-audit cap</code><span>Free 100 · Pro 20,000 · Business 100,000 pages per single audit. (Guru per-audit cap not printed — unverified.)</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Plans, API gating &amp; JS rendering <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>API access</code><span><b>Business plan (or Enterprise) only.</b> Pro &amp; Guru have no API. After upgrading, the unit balance starts at zero and units are bought separately.</span>
+          <code>JS rendering</code><span>Site Audit JavaScript rendering is available on <b>Guru or Business</b> tiers, not Pro — relevant for JS-heavy sites &amp; some markup checks.</span>
+          <code>Input</code><span>Domain / subdomain / subfolder or an uploaded URL list. <b>No code, agent, tag or server access</b> — it's a cloud crawler.</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <section id="integrations">
+    <div class="kicker">04 · Product &amp; API map</div>
+    <h2>What it offers &amp; plugs into</h2>
+    <p class="lead">A quick map of the toolset and the APIs a backend would use. Filter it:</p>
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="intSearch" type="text" placeholder="Search tools & APIs…">
+      </div>
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="Tools">Tools</button>
+      <button class="chip" data-cat="API">API</button>
+      <button class="chip" data-cat="Data source">Data source</button>
+      <button class="chip" data-cat="Add-on">Add-on</button>
+      <button class="chip" data-cat="Export">Export</button>
+    </div>
+    <div class="intgrid" id="intGrid"></div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="kicker">05 · Pricing</div>
+    <h2>What it costs</h2>
+    <p class="lead">The SEO Toolkit has three published tiers (month-to-month list prices below; annual billing is discounted). The API is <b>not a separate tier</b> — it's a Business-plan add-on, and calls are metered in <b>API units</b> whose package prices Semrush does not publish.</p>
+    <table class="price">
+      <thead><tr><th>Plan / lever</th><th>Price</th><th>Model &amp; notes (Site-Audit-relevant)</th></tr></thead>
+      <tbody>
+        <tr><td class="prod">Pro<small>month-to-month</small></td><td><span class="money">$139.95</span>/mo</td><td>5 projects · 100,000 pages/mo · 20,000 pages/audit · 500 keywords tracked. <b>No API</b>, no JS rendering in Site Audit.</td></tr>
+        <tr><td class="prod">Guru<small>month-to-month</small></td><td><span class="money">$249.95</span>/mo</td><td>15 projects · 300,000 pages/mo · 1,500 keywords · <b>JS rendering</b> in Site Audit. <b>No API.</b></td></tr>
+        <tr><td class="prod">Business<small>month-to-month</small></td><td><span class="money">$499.95</span>/mo</td><td>40 projects · 1,000,000 pages/mo · 100,000 pages/audit · 5,000 keywords · <b>API access</b> (then buy units) · JS rendering.</td></tr>
+        <tr><td class="prod">Enterprise<small>quote</small></td><td><span class="quote">Custom</span></td><td>Enterprise Site Intelligence — JS rendering + millions of pages. Contact sales; no public price.</td></tr>
+        <tr><td class="prod">API units<small>Business add-on</small></td><td><span class="quote">not public</span></td><td>Bought in <b>2M / 5M / 10M / 20M</b> packages; renew with the subscription; <b>expire</b> (no rollover). Package dollar cost is not published. Free: 7-day trial (no card) + a limited free account.</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--mut2);font-size:12.5px;margin-top:10px">Prices are Semrush's published month-to-month SEO Toolkit list rates (USD, retrieved 27 Jul 2026); annual billing is lower — verify on <code>semrush.com/pricing/seo</code>. API-unit package prices and the Guru per-audit page cap were <b>not public</b> at retrieval and should be confirmed with Semrush.</p>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="coverage">
+    <div class="kicker">06 · Which catalog checks it can cover</div>
+    <h2>Coverage — held to a 100%‑certain bar</h2>
+    <p class="lead">A check is listed <b>only if</b> Semrush can produce its verdict deterministically — a fact its Site Audit crawler extracts (status codes, redirects, canonicals, markup, hreflang, HTTPS, links, content) or a dataset its Analytics APIs return (rankings, backlinks) — <b>no functional, visual, or human judgment</b>. Checks where it captures only part of the signal, or where the verdict needs a different engine (WCAG, field CWV, functional), are not listed here; this is the set it can cover end‑to‑end.</p>
+
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="covSearch" type="text" placeholder="Search covered checks…">
+      </div>
+    </div>
+    <p class="covcount" id="covCount"></p>
+    <div class="covgrid" id="covGrid"></div>
+
+    <h2 style="font-size:19px;margin:26px 0 4px">Additional checks it can cover — <span style="color:var(--accent)">not in the catalog</span></h2>
+    <p class="lead" style="margin:0 0 12px">Deterministic checks Semrush's Site Audit covers that have <b>no equivalent</b> in the 217‑check catalog — candidate additions to it. Each is a real Semrush issue type, referenced below.</p>
+    <div class="covgrid" id="newCovGrid"></div>
+
+    <div style="margin-top:18px" class="callout bad">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>
+      <div>
+        <h4>What Semrush does NOT cover (for Snurra)</h4>
+        <p>Excluded, because Semrush can't deliver these verdicts from the Site Audit / Analytics APIs: <b>functional / interaction</b> (clicks, form submits, user flows) · <b>visual regression</b> · <b>consent / cookie-timing &amp; tag-firing</b> (it's SEO/marketing, not a tag governor) · <b>real accessibility / WCAG</b> — Site Audit's "accessibility" wording means AI-bot crawlability; genuine WCAG is a <em>separate</em> App Center app, not the Site Audit API · <b>field Core Web Vitals</b> — Semrush's CWV is Lighthouse <em>lab</em> data sampled to <b>10 pages</b>, showing TBT not true INP, so it can't verdict site-wide LCP/INP/CLS · <b>geo-IP content routing</b> · <b>uptime, DNS-change monitoring, domain-whois expiry</b> · <b>compliance <em>meaning</em></b> (regulatory wording). Structural: the API is a <b>Business-plan</b> add-on and is <b>unit-metered</b>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommend">
+    <div class="kicker">07 · Recommendation</div>
+    <h2>Pick your scenario</h2>
+    <p class="lead">Semrush earns its slot on the technical-SEO crawl surface and its rankings/backlinks data — the recommendation is about pointing it there and planning around the units + Business gating. Click the closest match:</p>
+    <div class="picker" id="picker">
+      <button class="scn active" data-s="a">Technical-SEO crawl checks<small>Site Audit API → per-URL issues</small></button>
+      <button class="scn" data-s="b">Rankings, visibility &amp; backlinks<small>Analytics / Position / Backlink APIs</small></button>
+      <button class="scn" data-s="c">Plan around Business + units<small>gating, metering, rate limits</small></button>
+      <button class="scn" data-s="d">Know the limits<small>WCAG / field CWV / functional</small></button>
+    </div>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="kicker">08 · Sources</div>
+    <h2>References</h2>
+    <p class="lead">Semrush facts are from official semrush.com and developer.semrush.com pages, gathered 27 Jul 2026. Prices are month-to-month list rates; the "140+ checks" figure is Semrush's own stated number; API-unit package prices and the Guru per-audit cap were not public at retrieval. Check names are quoted verbatim from <code>feasibility-app/data/checks.ts</code> (the source behind checks‑catalog.vercel.app).</p>
+    <div class="refs">
+      <div class="ref"><a href="https://www.semrush.com/features/site-audit/" target="_blank" rel="noopener">Site Audit — feature page</a><p>Cloud crawler, 140+ checks, thematic reports, per-audit page caps, JS rendering by tier.</p></div>
+      <div class="ref"><a href="https://www.semrush.com/kb/542-site-audit-issues-list" target="_blank" rel="noopener">Site Audit issues list</a><p>Full issue catalogue: crawlability, HTTPS, redirects, canonicals, hreflang, markup, links, content.</p></div>
+      <div class="ref"><a href="https://www.semrush.com/kb/959-site-audit-thematic-reports" target="_blank" rel="noopener">Thematic reports</a><p>Crawlability, HTTPS, International SEO, Core Web Vitals, Internal Linking, Markup.</p></div>
+      <div class="ref"><a href="https://developer.semrush.com/api/v3/projects/site-audit/" target="_blank" rel="noopener">Site Audit API</a><p>launch / snapshots / info / snapshot / per-issue URL lists; base hosts; unit costs; issue IDs.</p></div>
+      <div class="ref"><a href="https://developer.semrush.com/api/v3/introduction/semrush-api-overview/" target="_blank" rel="noopener">API overview (v3/v4)</a><p>Analytics / Projects / Trends / Local API families; formats; auth.</p></div>
+      <div class="ref"><a href="https://developer.semrush.com/api/v4/introduction/api-usage-restrictions/" target="_blank" rel="noopener">API usage restrictions</a><p>10 requests/second; 10 concurrent; caching consent.</p></div>
+      <div class="ref"><a href="https://developer.semrush.com/api/v4/get-started/api-units-balance/" target="_blank" rel="noopener">API units &amp; balance</a><p>Unit packages (2M/5M/10M/20M), expiry, ERROR 132 / 403.</p></div>
+      <div class="ref"><a href="https://www.semrush.com/kb/5-api" target="_blank" rel="noopener">API — knowledge base</a><p>API is a Business-plan add-on; auth header for Projects API.</p></div>
+      <div class="ref"><a href="https://www.semrush.com/kb/1547-seo-toolkit-pricing-limits" target="_blank" rel="noopener">SEO Toolkit pricing &amp; limits</a><p>Pro/Guru/Business prices, projects, monthly crawl budget, keyword limits, API by tier.</p></div>
+      <div class="ref"><a href="https://www.semrush.com/kb/1102-how-do-you-collect-data-to-measure-core-web-vitals-in-site-audit" target="_blank" rel="noopener">Core Web Vitals in Site Audit</a><p>Lighthouse lab data; LCP/CLS/TBT; 10-page sample; server-measured (not field/CrUX).</p></div>
+      <div class="ref"><a href="https://www.semrush.com/kb/1361-accessibility-scan-and-monitor" target="_blank" rel="noopener">Accessibility Scan &amp; Monitor (App Center)</a><p>Separate WCAG app — not part of the Site Audit crawler or its API.</p></div>
+      <div class="ref"><a href="https://checks-catalog.vercel.app/" target="_blank" rel="noopener">Feasibility checks catalog</a><p>The 217‑check catalog this coverage maps against (source: feasibility‑app).</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="disc">
+      <strong>How to read this.</strong> This is an independent capability/integration assessment compiled from public sources for planning purposes — it is not from or endorsed by Semrush, and it is not legal advice. Pricing, API-unit costs, limits and features change; verify current figures with Semrush before committing (API-unit package prices and the Guru per-audit cap were not public at retrieval, and "140+ checks" is a vendor figure). The coverage list is deliberately conservative: checks are included only where a deterministic crawl extraction or an Analytics-API dataset makes the verdict 100% certain — it is designed to under‑claim rather than over‑claim.
+    </div>
+    Semrush® is a trademark of Semrush Holdings, Inc. Prepared 27 Jul 2026 · for internal planning.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'),
+    thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var light=root.getAttribute('data-theme')==='light';
+  root.setAttribute('data-theme', light?'dark':'light');
+  thTxt.textContent = light?'Light':'Dark';
+});
+
+// ---- Capability tabs ----
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var k=t.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.getAttribute('data-pane')===k);
+    });
+  });
+});
+
+// ---- Accordions ----
+document.querySelectorAll('.acc>button').forEach(function(b){
+  b.addEventListener('click',function(){ b.parentElement.classList.toggle('open'); });
+});
+
+// ---- Product / API map data + filter ----
+var INTS=[
+  {n:'Site Audit',c:'Tools',d:'Cloud technical-SEO crawler (SemrushBot) — 140+ checks'},
+  {n:'Position Tracking',c:'Tools',d:'Daily rank tracking / visibility'},
+  {n:'Backlink Analytics & Audit',c:'Tools',d:'Backlink profile + toxicity audit'},
+  {n:'On-Page SEO Checker',c:'Tools',d:'Per-page optimisation recommendations'},
+  {n:'Keyword research',c:'Tools',d:'Keyword Magic / Keyword Overview'},
+  {n:'Traffic Analytics / .Trends',c:'Tools',d:'Estimated traffic & competitive intelligence'},
+  {n:'Site Audit API',c:'API',d:'Launch audits, list snapshots, fetch per-URL issues (JSON)'},
+  {n:'Analytics API (v3/v4)',c:'API',d:'Domain/keyword/backlink/position reports — CSV/JSON, API units'},
+  {n:'Projects API',c:'API',d:'Manage projects + Position Tracking + Site Audit'},
+  {n:'Trends API (v3)',c:'API',d:'Traffic / .Trends data — CSV'},
+  {n:'Local API (v4)',c:'API',d:'Listing Management + Map Rank Tracker (no API units)'},
+  {n:'Lighthouse (CWV)',c:'Data source',d:'Powers Site Audit Core Web Vitals — lab, 10-page sample'},
+  {n:'App Center — Accessibility',c:'Add-on',d:'Separate WCAG scan app — NOT the Site Audit API'},
+  {n:'Looker Studio connector',c:'Export',d:'Dashboards from Semrush data'},
+  {n:'CSV / JSON export',c:'Export',d:'Report and API-response exports'}
+];
+var grid=document.getElementById('intGrid'), search=document.getElementById('intSearch'), curCat='all';
+function renderInts(){
+  var q=(search.value||'').toLowerCase();
+  var rows=INTS.filter(function(i){
+    var okc = curCat==='all' || i.c===curCat;
+    var okq = !q || i.n.toLowerCase().indexOf(q)>-1 || i.d.toLowerCase().indexOf(q)>-1;
+    return okc && okq;
+  });
+  grid.innerHTML = rows.length ? rows.map(function(i){
+    return '<div class="intitem"><div class="cat">'+i.c+'</div><h5>'+i.n+'</h5><span>'+i.d+'</span></div>';
+  }).join('') : '<div class="empty">No matches.</div>';
+}
+document.querySelectorAll('#integrations .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#integrations .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); curCat=c.getAttribute('data-cat'); renderInts();
+  });
+});
+search.addEventListener('input',renderInts);
+renderInts();
+
+// ---- Coverage data + filter ----
+// check names are verbatim from feasibility-app/data/checks.ts
+var COV=[
+  {ch:'Broken links & 404 scan', p:'Technical SEO & Redirects', cap:'Site Audit crawl', gate:[], note:'Site Audit crawls and reports 4xx/5xx pages and broken internal/external links, with the affected URLs per issue.'},
+  {ch:'Redirect chains + legacy/sunset domain surface', p:'Technical SEO & Redirects', cap:'Crawlability report', gate:[], note:'Site Audit flags redirect chains and loops in its HTTP-status / crawlability report.'},
+  {ch:'Indexation (robots, sitemap, canonicals)', p:'Technical SEO & Redirects', cap:'Crawlability report', gate:[], note:'The crawlability/indexability report covers robots.txt, sitemap and canonical indexation signals.'},
+  {ch:'Metadata completeness (title/desc/H1/alt)', p:'Technical SEO & Redirects', cap:'On-page checks', gate:[], note:'Site Audit flags missing / duplicate title, meta description and H1 across crawled pages.'},
+  {ch:'Structured data / schema presence', p:'Technical SEO & Redirects', cap:'Markup report', gate:['JS render: Guru+'], note:'The Markup report detects structured-data markup on the page.'},
+  {ch:'Charset meta present', p:'Technical SEO & Redirects', cap:'On-page checks', gate:[], note:'Site Audit flags pages without a declared character encoding.'},
+  {ch:'Canonical self-referential check', p:'Technical SEO & Redirects', cap:'Crawlability report', gate:[], note:'Site Audit’s canonical checks flag missing / incorrect / non-self-referential canonicals.'},
+  {ch:'Heading outline / hierarchy & multiple-H1', p:'Technical SEO & Redirects', cap:'On-page checks', gate:[], note:'Site Audit flags missing-H1 and multiple-H1 issues per page.'},
+  {ch:'Structured-data JSON validity', p:'Technical SEO & Redirects', cap:'Markup report', gate:['JS render: Guru+'], note:'The Markup report flags invalid structured-data markup.'},
+  {ch:'Unique title tag present on every page', p:'Performance & SEO', cap:'On-page checks', gate:[], note:'Site Audit flags duplicate and missing title tags across the crawl.'},
+  {ch:'Meta description present and correct length', p:'Performance & SEO', cap:'On-page checks', gate:[], note:'Site Audit flags missing / duplicate / wrong-length meta descriptions.'},
+  {ch:'robots.txt does not block important pages', p:'Performance & SEO', cap:'Crawlability report', gate:[], note:'The crawlability report flags pages blocked by robots.txt.'},
+  {ch:'XML sitemap accessible', p:'Performance & SEO', cap:'Crawlability report', gate:[], note:'Site Audit checks sitemap.xml presence/validity and reports sitemap issues.'},
+  {ch:'Canonical tags point to correct regional URL', p:'Performance & SEO', cap:'International SEO report', gate:[], note:'The International SEO + canonical reports validate canonical/hreflang consistency across locales.'},
+  {ch:'hreflang tags correct for all served locales', p:'Performance & SEO', cap:'International SEO report', gate:[], note:'The International SEO report validates hreflang language/country codes and flags conflicts and missing return links.'},
+  {ch:'No broken internal links (404 errors)', p:'Navigation', cap:'Internal Linking report', gate:[], note:'The internal-link report flags internal links returning 4xx.'},
+  {ch:'Full-site crawl & URL inventory', p:'IA & Structure', cap:'Site Audit crawl', gate:[], note:'Site Audit crawls the site (up to the plan page cap) and inventories every URL.'},
+  {ch:'Internal link graph / cross-linking', p:'IA & Structure', cap:'Internal Linking report', gate:[], note:'The Internal Linking report maps internal-link distribution and crawl depth.'},
+  {ch:'HTTP automatically redirects to HTTPS', p:'Security', cap:'HTTPS report', gate:[], note:'The HTTPS report flags pages that don’t redirect HTTP→HTTPS.'},
+  {ch:'No mixed content warnings in browser', p:'Security', cap:'HTTPS report', gate:[], note:'The HTTPS report flags mixed content (http:// resources on https pages).'},
+  {ch:'HTTPS valid with no browser security warnings', p:'Security', cap:'HTTPS report', gate:[], note:'The HTTPS report flags SSL certificate, protocol and mixed-content problems that trigger browser warnings.'},
+  {ch:'SSL certificate valid with no browser warnings', p:'SSL & Domain Health', cap:'HTTPS report', gate:[], note:'The HTTPS report checks the SSL certificate — validity, name match and protocol version.'},
+  {ch:'SSL certificate not expiring within 30 days', p:'SSL & Domain Health', cap:'HTTPS report', gate:[], note:'The HTTPS report flags SSL certificates that are expired or expiring soon.'},
+  {ch:'HTTP redirects to HTTPS correctly on all paths', p:'SSL & Domain Health', cap:'HTTPS report', gate:[], note:'Site Audit crawls each path and flags any that fail to redirect HTTP→HTTPS.'},
+  {ch:'Duplicate content similarity across pages', p:'Content Quality', cap:'Content checks', gate:[], note:'Site Audit flags pages with duplicate content across the crawl.'},
+  {ch:'Thin-content detection', p:'Content Quality', cap:'Content checks', gate:[], note:'Site Audit flags pages with a low word count / thin content.'},
+  {ch:'No infinite redirect loop on direct regional URL', p:'Geo Detection', cap:'Crawlability report', gate:[], note:'The crawlability report flags redirect loops.'},
+  {ch:'Viewport meta valid (zoom not disabled)', p:'Mobile', cap:'Mobile checks', gate:[], note:'Site Audit’s mobile checks flag a missing or scaling-disabled viewport meta tag.'},
+  {ch:'Visibility snapshot (rankings overview)', p:'Technical SEO & Redirects', cap:'Analytics / Position API', gate:['Business API'], note:'The Analytics / Position-Tracking API returns the domain’s visibility and ranking overview.'},
+  {ch:'Strategic SEO (backlinks, full rankings)', p:'Deep-dive Workstreams', cap:'Backlink + Position API', gate:['Business API'], note:'Backlink Analytics + Position Tracking APIs return the backlink profile and full ranking data.'}
+];
+var covGrid=document.getElementById('covGrid'), covSearch=document.getElementById('covSearch'),
+    covCount=document.getElementById('covCount');
+function renderCov(){
+  var q=(covSearch.value||'').toLowerCase();
+  var rows=COV.filter(function(i){
+    return !q || i.ch.toLowerCase().indexOf(q)>-1 || i.p.toLowerCase().indexOf(q)>-1 || i.cap.toLowerCase().indexOf(q)>-1;
+  });
+  covCount.innerHTML='Showing <b style="color:var(--ink)">'+rows.length+'</b> of '+COV.length+' checks Semrush can cover';
+  covGrid.innerHTML = rows.length ? rows.map(function(i){
+    var gates=(i.gate||[]).map(function(g){
+      return '<span class="gate">'+g+'</span>';
+    }).join('');
+    return '<div class="covitem"><div class="top"><div><h5>'+i.ch+'</h5>'+
+      '<div class="pil">'+i.p+' · <span class="capname">'+i.cap+'</span></div></div></div>'+
+      '<p>'+i.note+'</p>'+(gates?('<div>'+gates+'</div>'):'')+'</div>';
+  }).join('') : '<div class="empty">No checks match that filter.</div>';
+}
+covSearch.addEventListener('input',renderCov);
+renderCov();
+
+// ---- Additional checks it can cover that are NOT in the catalog ----
+// candidate new catalog checks; these are NOT verified against checks.ts (key is `name`, not `ch`).
+var NEWCOV=[
+  {name:'AMP page validity (40+ AMP-specific checks)', cap:'Site Audit — AMP', note:'Site Audit runs 40+ AMP validation checks (invalid AMP HTML, missing/!mandatory tags). The catalog has no AMP check at all.', ref:'Site Audit issues list / feature page'},
+  {name:'Orphaned pages — no incoming internal links', cap:'Internal Linking report', note:'Flags pages with zero incoming internal links (orphans that crawlers reach only via the sitemap). The catalog maps the internal-link graph but has no orphan-detection check.', ref:'Site Audit issues list'},
+  {name:'Crawl depth — pages more than 3 clicks from the homepage', cap:'Crawlability report', note:'Flags pages buried too deep in the click path (weak internal-link distribution). No catalog equivalent.', ref:'Site Audit issues list'},
+  {name:'Low text-to-HTML ratio', cap:'Content checks', note:'Flags pages whose visible text is small relative to markup. The catalog’s thin-content check is word-count based, not ratio-based.', ref:'Site Audit issues list'},
+  {name:'Sitemap lists non-indexable / broken / non-canonical URLs', cap:'Crawlability report', note:'Cross-checks sitemap.xml entries against crawl results. The catalog only checks that the sitemap is accessible, not its contents’ consistency.', ref:'Site Audit issues list'},
+  {name:'Toxic backlink detection (toxicity score)', cap:'Backlink Audit', note:'Scores the backlink profile for spammy / toxic links. The catalog covers backlinks and rankings but has no link-toxicity check.', ref:'Backlink Audit'}
+];
+var newCovGrid=document.getElementById('newCovGrid');
+newCovGrid.innerHTML=NEWCOV.map(function(i){
+  return '<div class="covitem"><div class="top"><div><h5>'+i.name+'</h5>'+
+    '<div class="pil"><span class="capname">'+i.cap+'</span></div></div></div>'+
+    '<p>'+i.note+'</p>'+(i.ref?('<div><span class="gate">ref: '+i.ref+'</span></div>'):'')+'</div>';
+}).join('');
+
+// ---- Scenario recommender ----
+var RECS={
+  a:{label:'Recommended path',h:'Site Audit API adapter for the technical-SEO crawl checks',
+     p:'Semrush earns its keep on the technical-SEO crawl surface — broken links, redirects, canonicals, metadata, structured-data validity, hreflang, HTTPS/mixed-content, sitemap/robots, internal links, duplicate/thin content, viewport.',
+     s:['Pre-create a Site Audit campaign per site (crawl scope, page limit, schedule, user-agent).','POST /launch on a schedule; poll /snapshots or /info until the run finishes.','Fetch /info summary + /snapshot/{sid}/issue/{id} per-URL lists; map into neutral check inputs; degrade to not-applicable on ERROR 132 / 403 / timeout.']},
+  b:{label:'Recommended path',h:'Analytics API for rankings, visibility & backlinks',
+     p:'For signal a crawler can’t produce — the domain’s visibility/ranking overview and its backlink profile — use the Analytics / Position Tracking / Backlink APIs.',
+     s:['Pull Domain Overview / Position Tracking for visibility and rankings.','Pull Backlink Analytics for the link profile.','Mind that each call spends API units (per-request or per-line).']},
+  c:{label:'Recommended path',h:'Plan around the Business plan, units and rate limits',
+     p:'The API is a Business-plan add-on and every call is metered in units, at 10 req/s. Treat Semrush as a scheduled provider, never an inline per-request call.',
+     s:['Confirm a Business (or Enterprise) plan; the API is not on Pro/Guru.','Buy an appropriate API-unit package (they expire — size to your run cadence).','Throttle to 10 req/s · 10 concurrent; back off on ERROR 132; schedule audits off the hot path.']},
+  d:{label:'Recommended path',h:'Know the limits — don’t route the wrong checks to it',
+     p:'Semrush is a crawler + data platform, not a functional / accessibility / field-performance engine.',
+     s:['Keep WCAG on a real accessibility engine — Semrush’s is a separate App Center app, not the Site Audit API.','Keep field Core Web Vitals on PSI/CrUX — Semrush’s CWV is lab-only and sampled to 10 pages.','Don’t expect functional, visual, consent/tag or geo-IP verdicts from it.']}
+};
+function showRec(k){
+  var r=RECS[k];
+  document.getElementById('rec').innerHTML =
+    '<div class="rlabel">'+r.label+'</div><h3>'+r.h+'</h3><p>'+r.p+'</p><ul class="steps"><li>'+r.s.join('</li><li>')+'</li></ul>';
+}
+document.querySelectorAll('.scn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.scn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active'); showRec(b.getAttribute('data-s'));
+  });
+});
+showRec('a');
+</script>
+</body>
+</html>
