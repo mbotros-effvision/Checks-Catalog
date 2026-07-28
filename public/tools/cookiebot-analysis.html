@@ -255,6 +255,10 @@
   <div class="hero" id="overview">
     <span class="eyebrow">● Product &amp; Integration Assessment</span>
     <h1>Cookiebot, assessed for <span class="grad">embedding into Snurra</span></h1>
+    <div style="margin:12px 0 4px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid #b45309;color:#b45309;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;white-space:nowrap"><span style="width:7px;height:7px;border-radius:50%;background:currentColor"></span>Fits into Snurra: API + setup</span>
+      <span style="font-size:12.5px;color:var(--mut,#6f6a61)">Reads only domains you own + onboarded (CBID installed, then scanned) — can't be pointed at an arbitrary client URL.</span>
+    </div>
     <p class="sub">Cookiebot (by <b>Usercentrics</b>) is a <b>Consent Management Platform</b> with two decoupled halves: an <b>automated cloud scanner</b> that crawls a domain to discover and categorize every cookie/tracker, and a <b>runtime JavaScript widget</b> (consent banner + prior-consent blocking) embedded on the site. Its deterministic, machine-readable output is the <b>categorized cookie inventory</b> — each cookie's name, GDPR category, provider, expiry, first/third-party status, security flags and source script. Crucially for Snurra, its <b>read-only REST API returns only the last stored scan for domains you own and have onboarded</b> (CBID installed + scanned) — it is <b>not</b> an arbitrary-URL-in scanner. This page maps what it covers, how it could slot into Snurra's worker, what it costs, and — held to a strict 100%-certain bar — precisely which catalog checks it can cover.</p>
     <div class="meta">
       <span><b>Prepared:</b> 28 Jul 2026</span>

@@ -170,6 +170,7 @@ function applyTheme(t){
 var TOOLS=[
   {
     name:"Sitebulb", file:"sitebulb-analysis.html",
+    snurraFit:"no-api", fitNote:"No public REST API or CLI to trigger a crawl or pull per-URL data — only push-only Cloud webhooks (aggregated audit-level payload) and a forthcoming read-only MCP; treat as a scheduled, file-based source.",
     ident:"SEO website crawler & auditor (Desktop + Cloud) — 300+ Hints, axe-core a11y, structured-data & Lighthouse",
     costShort:"Desktop $18–42/mo (14-day trial) · Cloud from £95/mo",
     cost:"Two products on one engine. Desktop: Lite ~$18/mo (10k URLs/audit), Pro ~$42/mo (500k URLs/audit, scheduled audits + comparisons), +£7/$11 per extra seat; 14-day free trial. Cloud: metered by monthly URL volume + seats — from £95/mo (Mini 50k URLs/mo) up to Enterprise 5m+/mo (>£20k/yr); no Cloud trial. USD figures are third-party (G2/Capterra); official amounts are JS-rendered.",
@@ -268,7 +269,7 @@ var FIT={
   "api-with-setup":{lab:"API + setup", cls:"f-setup",  desc:"Has an API, but needs a provisioned target or your own test code before it returns anything"},
   "no-api":        {lab:"No API",      cls:"f-none",   desc:"No HTTP endpoint — run a binary and parse files"}
 };
-function fitPill(k){ var f=FIT[k]||FIT["no-api"]; return '<span class="fitpill '+f.cls+'" title="'+f.desc+'"><span class="fdot"></span>'+f.lab+'</span>'; }
+function fitPill(k){ var f=FIT[k]||{lab:"unrated",cls:"f-setup",desc:"snurraFit not set for this tool"}; return '<span class="fitpill '+f.cls+'" title="'+f.desc+'"><span class="fdot"></span>'+f.lab+'</span>'; }
 
 var rowsEl=document.getElementById('rows');
 TOOLS.forEach(function(t,idx){
