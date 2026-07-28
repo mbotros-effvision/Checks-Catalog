@@ -63,6 +63,20 @@ defect, not a stylistic choice.
      (`snurra/worker/src/integrations/`, a `ProviderAdapter` with `buildRequest`/`mapResponse` over
      shared HTTP, PageSpeed = reference)? Sync single-GET, async start-then-poll, webhook, or
      process-runner? Call it out honestly.
+   - **`snurraFit` classification (REQUIRED).** Distil the above into a single 3-tier verdict — "can I
+     integrate this through an API, and how?" — plus a one-line `fitNote` giving the catch. This drives a
+     hero pill in the artifact (§5.1) and the `snurraFit`/`fitNote` fields in the summary entry (§6.5). The
+     three values (keep integration *shape* here, not cost — pricing lives in §7):
+     - **`api-native`** — URL/domain-in HTTP API you can POST a target to and get results; drop-in
+       `ProviderAdapter` (sync or async poll). *e.g. ImmuniWeb, SEMrush.* Colour `#0f766e`, label "API-native".
+     - **`api-with-setup`** — an API exists, but it needs a **pre-provisioned target** (an audit/domain you
+       configure first, referenced by ID) **or your own test code/SDK** before it returns anything. *e.g.
+       ObservePoint, Cookiebot, BrowserStack, Percy.* Colour `#b45309`, label "API + setup".
+     - **`no-api`** — no HTTP endpoint to drive on demand; you run a binary / desktop / CLI and parse files
+       (push-only webhooks or a forthcoming MCP still count as `no-api`). *e.g. Screaming Frog, Sitebulb.*
+       Colour `#b91c1c`, label "No API".
+     `fitNote` is one sentence naming the specific blocker (e.g. "reads only domains you own + onboarded — not
+     an arbitrary URL"). Use the SAME sentence for the hero pill and the summary `fitNote`.
    - Any other integration-critical detail (real browser vs headless, real devices, geolocation,
      staging/local access, screenshots, graceful degradation).
 
@@ -143,7 +157,9 @@ Copy `assets/template.html` and adapt. Keep this section skeleton (kickers `01`�
 
 1. **Hero + TL;DR** — one-line positioning, then a "Bottom line up front" panel with 3 verdict cards
    (`.vcard` + `.pill good/warn/bad`): Technical fit, What it covers, Cost. State the flat coverage count
-   ("N checks it can cover") — no additive/redundant language.
+   ("N checks it can cover") — no additive/redundant language. **Immediately after the `<h1>`, emit the
+   `snurraFit` pill** (the inline-styled block in `assets/template.html`): a coloured "Fits into Snurra:
+   &lt;label&gt;" chip + the one-line `fitNote`, using the tier's colour/label from §2.3.
 2. **Capabilities** — tabbed (`.tab`/`.tabpane`): what the tool does / its automation surface. Include a
    card for the **standards** it relies on.
 3. **Embedding paths** — a fit table (`.fit`/`.fitrow`, `.badge best/ok/cond/no`) ranking realistic ways
@@ -200,9 +216,12 @@ row per tool with counts, cost, integration and limitations, plus the full check
 on every add or edit of an analysis**, so it never drifts from the artifacts.
 
 - The data lives in a single `TOOLS[]` array inside the summary's `<script>`. Each entry:
-  `{name, file, ident, costShort, cost, integ:{Input,API,"Adapter fit"}, lims:[…], cov:[…verbatim…],
-  newcov:[…verbatim…]}`. The totals strip (distinct-union / 217, tool→check sum, net-new sum) is computed
-  from `TOOLS[]` at render — you never hand-edit the totals.
+  `{name, file, snurraFit, fitNote, ident, costShort, cost, integ:{Input,API,"Adapter fit"}, lims:[…],
+  cov:[…verbatim…], newcov:[…verbatim…]}`. `snurraFit` is one of `api-native | api-with-setup | no-api`
+  and `fitNote` is the same one-liner as the artifact's hero pill (§2.3) — the summary renders these as the
+  coloured fit pill + "Fits into Snurra:" line on each row (a `FIT` map + legend already exist in the
+  summary; just set the two fields). The totals strip (distinct-union / 217, tool→check sum, net-new sum) is
+  computed from `TOOLS[]` at render — you never hand-edit the totals.
 - **`cov`/`newcov` must be verbatim-identical to the artifact's `COV[]`/`NEWCOV[]`.** Generate the entry with
   `scripts/summary_entry.js <tool-slug>-analysis.html` (it extracts them exactly and prints the counts), fill
   the prose fields, then **add** (new tool) or **replace** (edited tool) that entry in `TOOLS[]`.

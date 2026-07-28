@@ -41,6 +41,7 @@ const j = a => "[" + a.map(s => JSON.stringify(s)).join(",") + "]";
 console.log(`// ${cov.length} catalog · +${newcov.length} net-new  (paste into TOOLS[] in tools-coverage-summary.html)
   {
     name:${JSON.stringify(name)}, file:${JSON.stringify(slug)},
+    snurraFit:"api-native | api-with-setup | no-api", fitNote:"ONE LINE: can I integrate this via API, and what's the catch (the same sentence as the artifact hero pill).",
     ident:"ONE-LINE TOOL IDENTITY",
     costShort:"SHORT COST",
     cost:"FULL COST SENTENCE(S).",

@@ -76,7 +76,8 @@ that have NO match in `checks.ts`** — these populate a distinct "checks not in
 
 ### 3. Write the HTML
 Copy `assets/template.html` → `D:\Projects\Effvision\<tool-slug>-analysis.html`. Adapt every section to the
-mandated content (methodology §2, §5): Hero + TL;DR (3 verdict cards, flat coverage count) → Capabilities
+mandated content (methodology §2, §5): Hero + TL;DR (3 verdict cards, flat coverage count, **plus the
+`snurraFit` pill right after the `<h1>`** — set its tier colour/label and `fitNote` per methodology §2.3) → Capabilities
 (tabbed; include a standards card) → Embedding paths (fit table + integration-shape callout carrying the
 step-1 integration answers) → API/Technical (accordions with a request/response `codeblock`, rate limits,
 projects/scale/pricing-metering, webhooks/scheduling) → Ecosystem (`INTS[]`) → Pricing (`table.price`,
@@ -109,10 +110,11 @@ integration, limitations — anything), update this file in the same pass:
 - Run `node <this-skill>/scripts/summary_entry.js <tool-slug>-analysis.html` — it prints a ready-to-paste
   `TOOLS[]` entry with the tool's `cov`/`newcov` arrays extracted **verbatim** (and the correct counts), so
   the summary never disagrees with the artifact.
-- Fill the prose fields (`ident`, `costShort`, `cost`, `integ`, `lims`) from the analysis, then paste the
-  object into the `TOOLS[]` array in `tools-coverage-summary.html` — **add** it for a new tool, or **replace**
-  that tool's existing entry when editing. The totals (distinct-union / 217, tool→check sum, net-new sum)
-  recompute automatically from `TOOLS[]`.
+- Fill the prose fields (`snurraFit`, `fitNote`, `ident`, `costShort`, `cost`, `integ`, `lims`) from the
+  analysis — `snurraFit` = `api-native | api-with-setup | no-api` and `fitNote` = the hero pill's one-liner
+  (methodology §2.3) — then paste the object into the `TOOLS[]` array in `tools-coverage-summary.html` —
+  **add** it for a new tool, or **replace** that tool's existing entry when editing. The totals
+  (distinct-union / 217, tool→check sum, net-new sum) recompute automatically from `TOOLS[]`.
 - Do not restyle the summary — it already matches the catalog UI and, when embedded, follows the host theme.
 
 ### 6. Record it
