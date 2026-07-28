@@ -322,7 +322,10 @@ document.getElementById('totTools').textContent=TOOLS.length;
 (function(){
   if(new URLSearchParams(location.search).get('embed')!=='1') return;
   document.body.classList.add('embed');
-  function h(){ return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight); }
+  // Report the BODY's content height only. document.documentElement.scrollHeight is
+  // clamped to the iframe viewport, so including it pins the height to whatever the
+  // parent last set and leaves a trailing gap that can never shrink.
+  function h(){ return document.body.getBoundingClientRect().height; }
   function post(){ parent.postMessage({type:'toolsummary-height', height:h()}, '*'); }
   if(window.ResizeObserver){ new ResizeObserver(post).observe(document.body); }
   window.addEventListener('message', function(e){ if(e && e.data && e.data.type==='request-height') post(); });
