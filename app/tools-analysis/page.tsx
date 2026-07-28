@@ -1,3 +1,5 @@
+import { ToolsSummaryFrame } from '@/components/ToolsSummaryFrame';
+
 export const metadata = { title: 'Tools Analysis — Pillar Feasibility' };
 
 // Each analysis is a self-contained static HTML file served from public/tools/.
@@ -63,18 +65,7 @@ export default function ToolsAnalysisPage() {
         <span> — or explore it inline:</span>
       </div>
 
-      <iframe
-        src="/tools/tools-coverage-summary.html"
-        title="Tools coverage summary"
-        style={{
-          width: '100%',
-          height: 'calc(100vh - 260px)',
-          minHeight: 520,
-          border: '1px solid var(--line)',
-          borderRadius: 12,
-          background: 'var(--surface)',
-        }}
-      />
+      <ToolsSummaryFrame />
     </div>
   );
 }

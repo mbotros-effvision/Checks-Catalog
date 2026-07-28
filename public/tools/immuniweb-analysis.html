@@ -6,27 +6,35 @@
 <title>ImmuniWeb — Capabilities &amp; Embedding Analysis</title>
 <style>
   :root{
-    --bg:#0b1020; --bg2:#0f1630; --panel:#131c3a; --panel2:#18234a;
-    --line:#25315c; --line2:#33427a;
-    --ink:#eaf0ff; --mut:#9db0d8; --mut2:#6f83b3;
-    --brand:#4f8cff; --brand2:#7aa8ff; --accent:#22d3aa;
-    --warn:#ffb020; --bad:#ff5d6c; --good:#22d3aa;
-    --chip:#1b2649; --shadow:0 12px 40px rgba(0,0,0,.45);
-    --radius:16px;
+    --bg:#fbfaf6; --bg2:#f5f2ea; --panel:#ffffff; --panel2:#f7f5ef;
+    --line:#e9e5db; --line2:#ddd8cc;
+    --ink:#1c1a17; --mut:#6f6a61; --mut2:#9a948a;
+    --brand:#0f766e; --brand2:#0f766e; --accent:#0f766e;
+    --warn:#b45309; --bad:#b91c1c; --good:#0f766e;
+    --chip:#f2efe8; --shadow:0 1px 2px rgba(28,26,23,.04),0 8px 24px -12px rgba(28,26,23,.12);
+    --radius:14px;
   }
-  html[data-theme="light"]{
-    --bg:#eef2fb; --bg2:#e6ecfa; --panel:#ffffff; --panel2:#f4f7ff;
-    --line:#d6def2; --line2:#c3cfec; --ink:#101a33; --mut:#41527a; --mut2:#6b7aa3;
-    --chip:#eef2fd; --shadow:0 12px 34px rgba(20,40,90,.12);
+  html[data-theme="dark"]{
+    --bg:#131316; --bg2:#17171b; --panel:#1b1b1f; --panel2:#232328;
+    --line:#2c2c31; --line2:#3a3a41; --ink:#eceae4; --mut:#a39d93; --mut2:#6f6a62;
+    --brand:#2dd4bf; --brand2:#2dd4bf; --accent:#2dd4bf; --good:#2dd4bf;
+    --warn:#fbbf24; --bad:#f87171;
+    --chip:#232328; --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.6);
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{
-    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:radial-gradient(1200px 700px at 80% -10%,rgba(79,140,255,.18),transparent 60%),
-               radial-gradient(900px 600px at -10% 10%,rgba(34,211,170,.10),transparent 55%),
+    margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1100px 520px at 88% -8%,#eef6f4,transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,#f6f1e9,transparent 55%),
                var(--bg);
+    background-attachment:fixed;
     color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  html[data-theme="dark"] body{
+    background:radial-gradient(1100px 520px at 88% -8%,rgba(45,212,191,.07),transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,rgba(180,140,60,.06),transparent 55%),
+               var(--bg);
   }
   a{color:var(--brand2); text-decoration:none}
   a:hover{text-decoration:underline}
@@ -40,7 +48,7 @@
   .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
   .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
   .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
-    display:grid;place-items:center;box-shadow:0 6px 18px rgba(79,140,255,.5)}
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(15,118,110,.5)}
   .logo .mark svg{width:18px;height:18px}
   nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
   nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
@@ -111,17 +119,17 @@
   .fitrow .verd{display:flex; align-items:center; justify-content:center}
   .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
   .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
-  .badge.ok{background:rgba(79,140,255,.16); color:var(--brand2); border:1px solid rgba(79,140,255,.4)}
+  .badge.ok{background:rgba(15,118,110,.16); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
   .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
   .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
 
   .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
   .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
-  .callout.info{background:rgba(79,140,255,.08); border-color:rgba(79,140,255,.4)}
+  .callout.info{background:rgba(15,118,110,.08); border-color:rgba(15,118,110,.4)}
   .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
   .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
   .callout.warn .cic{background:rgba(255,176,32,.16)}
-  .callout.info .cic{background:rgba(79,140,255,.16)}
+  .callout.info .cic{background:rgba(15,118,110,.16)}
   .callout.bad .cic{background:rgba(255,93,108,.16)}
   .callout h4{margin:0 0 5px; font-size:15.5px}
   .callout p{margin:0; color:var(--mut); font-size:14.5px}
@@ -133,7 +141,7 @@
   .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
     border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
   .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
-  .scn.active{border-color:var(--brand); background:rgba(79,140,255,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(79,140,255,.12)}
+  .scn.active{border-color:var(--brand); background:rgba(15,118,110,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(15,118,110,.12)}
   .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
   .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
   .rec h3{margin:6px 0 6px; font-size:18px}
@@ -163,7 +171,7 @@
   .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
   .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
   .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
-  .ttag.redundant{background:rgba(79,140,255,.14); color:var(--brand2); border:1px solid rgba(79,140,255,.4)}
+  .ttag.redundant{background:rgba(15,118,110,.14); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
   .ttag.partial{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
   .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
     border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
@@ -237,7 +245,7 @@
     </nav>
     <button class="tbtn" id="themeToggle" title="Toggle theme">
       <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
-      <span id="thTxt">Light</span>
+      <span id="thTxt">Dark</span>
     </button>
   </div>
 </header>
@@ -544,9 +552,9 @@ curl -X POST https://www.immuniweb.com/websec/api/v1/get_result/1699999999.html 
 var root=document.documentElement, tt=document.getElementById('themeToggle'),
     thTxt=document.getElementById('thTxt');
 tt.addEventListener('click',function(){
-  var light=root.getAttribute('data-theme')==='light';
-  root.setAttribute('data-theme', light?'dark':'light');
-  thTxt.textContent = light?'Light':'Dark';
+  var dark=root.getAttribute('data-theme')==='dark';
+  root.setAttribute('data-theme', dark?'light':'dark');
+  thTxt.textContent = dark?'Dark':'Light';
 });
 
 // ---- Capability tabs ----

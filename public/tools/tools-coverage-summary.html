@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tool Coverage — Summary</title>
 <style>
   :root{
-    --bg:#0a0f1c; --panel:#0f1626; --panel2:#131c30; --ink:#eef3ff; --mut:#aeb9d2; --mut2:#7d8aa8;
-    --line:#20293f; --brand:#4f8cff; --brand2:#8b5cf6; --grad1:#5b9bff; --grad2:#a78bfa;
-    --good:#34d399; --warn:#fbbf24; --bad:#f87171; --chip:#16203a;
+    --bg:#fbfaf6; --panel:#ffffff; --panel2:#f7f5ef; --ink:#1c1a17; --mut:#6f6a61; --mut2:#9a948a;
+    --line:#e9e5db; --brand:#0f766e; --brand2:#0f766e; --grad1:#0f766e; --grad2:#0d9488;
+    --good:#0f766e; --warn:#b45309; --bad:#b91c1c; --chip:#f2efe8;
   }
-  html[data-theme="light"]{
-    --bg:#f5f7fc; --panel:#ffffff; --panel2:#f0f4fb; --ink:#111a2e; --mut:#41506e; --mut2:#6b7794;
-    --line:#e2e8f4; --chip:#eef3fc;
+  html[data-theme="dark"]{
+    --bg:#131316; --panel:#1b1b1f; --panel2:#232328; --ink:#eceae4; --mut:#a39d93; --mut2:#6f6a62;
+    --line:#2c2c31; --brand:#2dd4bf; --brand2:#2dd4bf; --grad1:#2dd4bf; --grad2:#5eead4;
+    --good:#2dd4bf; --warn:#fbbf24; --bad:#f87171; --chip:#232328;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  body{margin:0;background:radial-gradient(1100px 520px at 88% -8%,#eef6f4,transparent 60%),radial-gradient(900px 500px at -6% 0%,#f6f1e9,transparent 55%),var(--bg);background-attachment:fixed;color:var(--ink);font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  html[data-theme="dark"] body{background:radial-gradient(1100px 520px at 88% -8%,rgba(45,212,191,.07),transparent 60%),radial-gradient(900px 500px at -6% 0%,rgba(180,140,60,.06),transparent 55%),var(--bg)}
   .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
   a{color:var(--brand);text-decoration:none}
   a:hover{text-decoration:underline}
@@ -93,7 +95,7 @@
     </div>
     <button class="tbtn" id="themeToggle" title="Toggle theme">
       <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
-      <span id="thTxt">Light</span>
+      <span id="thTxt">Dark</span>
     </button>
   </div>
 </header>
@@ -127,10 +129,22 @@
 // ---- Theme toggle ----
 var root=document.documentElement, tt=document.getElementById('themeToggle'), thTxt=document.getElementById('thTxt');
 tt.addEventListener('click',function(){
-  var light=root.getAttribute('data-theme')==='light';
-  root.setAttribute('data-theme', light?'dark':'light');
-  thTxt.textContent = light?'Light':'Dark';
+  var dark=root.getAttribute('data-theme')==='dark';
+  root.setAttribute('data-theme', dark?'light':'dark');
+  thTxt.textContent = dark?'Dark':'Light';
 });
+
+// When embedded (e.g. the feasibility app's Tools Analysis tab), follow the host theme.
+function applyTheme(t){
+  if(t==='dark'){ root.setAttribute('data-theme','dark'); thTxt.textContent='Light'; }
+  else { root.removeAttribute('data-theme'); thTxt.textContent='Dark'; }
+}
+(function(){
+  try{ var q=new URLSearchParams(location.search).get('theme'); if(q) applyTheme(q); }catch(e){}
+  window.addEventListener('message', function(ev){
+    if(ev && ev.data && ev.data.type==='theme') applyTheme(ev.data.theme);
+  });
+})();
 
 // ---- Data (check lists verbatim from each *-analysis.html COV[]/NEWCOV[]) ----
 var TOOLS=[
