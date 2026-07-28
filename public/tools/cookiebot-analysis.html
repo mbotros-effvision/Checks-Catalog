@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cookiebot (Usercentrics) — Capabilities &amp; Embedding Analysis</title>
+<style>
+  :root{
+    --bg:#fbfaf6; --bg2:#f5f2ea; --panel:#ffffff; --panel2:#f7f5ef;
+    --line:#e9e5db; --line2:#ddd8cc;
+    --ink:#1c1a17; --mut:#6f6a61; --mut2:#9a948a;
+    --brand:#0f766e; --brand2:#0f766e; --accent:#0f766e;
+    --warn:#b45309; --bad:#b91c1c; --good:#0f766e;
+    --chip:#f2efe8; --shadow:0 1px 2px rgba(28,26,23,.04),0 8px 24px -12px rgba(28,26,23,.12);
+    --radius:14px;
+  }
+  html[data-theme="dark"]{
+    --bg:#131316; --bg2:#17171b; --panel:#1b1b1f; --panel2:#232328;
+    --line:#2c2c31; --line2:#3a3a41; --ink:#eceae4; --mut:#a39d93; --mut2:#6f6a62;
+    --brand:#2dd4bf; --brand2:#2dd4bf; --accent:#2dd4bf; --good:#2dd4bf;
+    --warn:#fbbf24; --bad:#f87171;
+    --chip:#232328; --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1100px 520px at 88% -8%,#eef6f4,transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,#f6f1e9,transparent 55%),
+               var(--bg);
+    background-attachment:fixed;
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  html[data-theme="dark"] body{
+    background:radial-gradient(1100px 520px at 88% -8%,rgba(45,212,191,.07),transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,rgba(180,140,60,.06),transparent 55%),
+               var(--bg);
+  }
+  a{color:var(--brand2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 22px}
+
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(15,118,110,.5)}
+  .logo .mark svg{width:18px;height:18px}
+  nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
+  nav.links a:hover{background:var(--chip); color:var(--ink); text-decoration:none}
+  .tbtn{border:1px solid var(--line2); background:var(--chip); color:var(--ink); border-radius:9px;
+    padding:7px 10px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; gap:6px; align-items:center}
+  .tbtn:hover{border-color:var(--brand)}
+
+  .hero{padding:46px 0 26px}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:var(--chip);
+    border:1px solid var(--line2); padding:6px 12px; border-radius:999px}
+  h1{font-size:40px; line-height:1.12; margin:16px 0 10px; letter-spacing:-.5px}
+  h1 .grad{background:linear-gradient(120deg,var(--brand2),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--mut); font-size:17px; max-width:810px}
+  .meta{margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; color:var(--mut2); font-size:13px}
+  .meta b{color:var(--mut)}
+
+  .tldr{margin-top:26px; border:1px solid var(--line2); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:var(--shadow); overflow:hidden}
+  .tldr .hd{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line);
+    font-weight:800; letter-spacing:.3px}
+  .tldr .hd .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,170,.18)}
+  .tldr .bd{padding:18px 20px; color:var(--mut); font-size:15.5px}
+  .tldr .bd strong{color:var(--ink)}
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .vcard{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .vcard h4{margin:0 0 4px; font-size:13px; color:var(--mut2); text-transform:uppercase; letter-spacing:.08em}
+  .vcard p{margin:0; font-size:14px; color:var(--ink)}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; margin-top:8px}
+  .pill.good{background:rgba(34,211,170,.14); color:var(--good); border:1px solid rgba(34,211,170,.35)}
+  .pill.warn{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.35)}
+  .pill.bad{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.35)}
+
+  section{padding:34px 0; border-top:1px solid var(--line)}
+  .kicker{font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--brand2)}
+  h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.3px}
+  .lead{color:var(--mut); max-width:880px; margin:0 0 20px}
+
+  .tabs{display:flex; gap:8px; margin:6px 0 18px; flex-wrap:wrap}
+  .tab{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:9px 16px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:14px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--accent)); color:#04122a; border-color:transparent}
+  .tabpane{display:none; animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .grid{display:grid; gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:16.5px; display:flex; align-items:center; gap:9px}
+  .card .ic{width:30px;height:30px;border-radius:9px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .card .ic svg{width:17px;height:17px;stroke:var(--brand2)}
+  .card p{margin:0; color:var(--mut); font-size:14px}
+  .tag{font-size:11px; font-weight:700; color:var(--mut2); background:var(--chip); border:1px solid var(--line2);
+    padding:2px 8px; border-radius:6px; margin-right:6px; display:inline-block; margin-top:8px}
+
+  .fit{overflow:hidden; border:1px solid var(--line); border-radius:14px}
+  .fitrow{display:grid; grid-template-columns:1.4fr 2.2fr .9fr; gap:0; border-bottom:1px solid var(--line)}
+  .fitrow:last-child{border-bottom:0}
+  .fitrow.head{background:var(--chip); font-weight:800; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut2)}
+  .fitrow>div{padding:14px 16px}
+  .fitrow .name{font-weight:700; color:var(--ink)}
+  .fitrow .name small{display:block; font-weight:500; color:var(--mut2); margin-top:3px}
+  .fitrow .desc{color:var(--mut); font-size:14px; border-left:1px solid var(--line); border-right:1px solid var(--line)}
+  .fitrow .verd{display:flex; align-items:center; justify-content:center}
+  .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
+  .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .badge.ok{background:rgba(15,118,110,.16); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
+
+  .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
+  .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
+  .callout.info{background:rgba(15,118,110,.08); border-color:rgba(15,118,110,.4)}
+  .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
+  .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
+  .callout.warn .cic{background:rgba(255,176,32,.16)}
+  .callout.info .cic{background:rgba(15,118,110,.16)}
+  .callout.bad .cic{background:rgba(255,93,108,.16)}
+  .callout h4{margin:0 0 5px; font-size:15.5px}
+  .callout p{margin:0; color:var(--mut); font-size:14.5px}
+  .callout.warn h4{color:var(--warn)}
+  .callout.bad h4{color:var(--bad)}
+  .callout .cic svg{width:19px;height:19px}
+
+  .picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
+  .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
+  .scn.active{border-color:var(--brand); background:rgba(15,118,110,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(15,118,110,.12)}
+  .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
+  .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
+  .rec h3{margin:6px 0 6px; font-size:18px}
+  .rec p{margin:0 0 8px; color:var(--mut); font-size:14.5px}
+  .rec .steps{margin:8px 0 0; padding-left:18px; color:var(--mut); font-size:14px}
+  .rec .steps li{margin:3px 0}
+
+  .filterbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--chip);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 12px}
+  .search input{border:0; background:transparent; color:var(--ink); font-size:14px; width:100%; outline:none}
+  .chip{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:7px 12px; border-radius:999px;
+    cursor:pointer; font-size:12.5px; font-weight:700}
+  .chip.active{background:var(--brand); color:#04122a; border-color:transparent}
+  .intgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .intitem{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px}
+  .intitem h5{margin:0 0 3px; font-size:14px}
+  .intitem span{font-size:12px; color:var(--mut2)}
+  .intitem .cat{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--brand2)}
+  .empty{color:var(--mut2); font-size:14px; padding:16px; text-align:center; grid-column:1/-1}
+
+  .covgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .covitem{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px; position:relative}
+  .covitem .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .covitem h5{margin:0; font-size:14.5px; color:var(--ink); font-weight:700; line-height:1.3}
+  .covitem .pil{font-size:10px; color:var(--mut2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+  .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
+  .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
+  .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .ttag.redundant{background:rgba(15,118,110,.14); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .ttag.partial{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
+    border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
+  .capname{color:var(--accent); font-weight:700}
+  .covcount{font-size:12.5px; color:var(--mut2); margin:0 0 10px}
+
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:10px; background:var(--panel)}
+  .acc>button{width:100%; text-align:left; background:transparent; border:0; color:var(--ink); padding:15px 18px;
+    font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .acc>button .ar{transition:transform .2s; color:var(--mut2)}
+  .acc.open>button .ar{transform:rotate(90deg)}
+  .acc .panel{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc.open .panel{max-height:1600px}
+  .acc .panel .inner{padding:0 18px 18px; color:var(--mut); font-size:14px}
+  code,.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px}
+  .codeblock{background:#0a1024; border:1px solid var(--line2); border-radius:10px; padding:13px 15px;
+    overflow:auto; color:#cfe0ff; margin:10px 0}
+  html[data-theme="light"] .codeblock{background:#0d1530; color:#dbe6ff}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:8px 0}
+  .kv code{color:var(--accent)}
+  .kv span{color:var(--mut)}
+
+  table.price{width:100%; border-collapse:collapse; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.price th,table.price td{padding:13px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top}
+  table.price th{background:var(--chip); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut2)}
+  table.price td.prod{font-weight:700; color:var(--ink)}
+  table.price td.prod small{display:block; font-weight:500; color:var(--mut2); margin-top:2px}
+  .money{font-weight:800; color:var(--accent)}
+  .quote{color:var(--warn); font-weight:700}
+  .freeword{color:var(--good); font-weight:800}
+
+  .refs{columns:2; column-gap:26px}
+  .refs .ref{break-inside:avoid; margin-bottom:12px; padding-left:14px; border-left:2px solid var(--line2)}
+  .refs .ref a{font-weight:600; font-size:13.5px}
+  .refs .ref p{margin:2px 0 0; color:var(--mut2); font-size:12px}
+
+  footer{padding:30px 0 60px; color:var(--mut2); font-size:12.5px; border-top:1px solid var(--line)}
+  .disc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px}
+
+  @media(max-width:860px){
+    .g2,.g3,.verdict,.intgrid,.covgrid{grid-template-columns:1fr}
+    .fitrow{grid-template-columns:1fr}
+    .fitrow .desc{border-left:0;border-right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .refs{columns:1}
+    h1{font-size:31px}
+    nav.links{display:none}
+  }
+  @media print{
+    header.top,.tbtn,.picker,.filterbar{display:none!important}
+    .tabpane{display:block!important} .acc .panel{max-height:none!important}
+    body{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#04122a" stroke-width="1.8"/><circle cx="9.5" cy="10" r="1.3" fill="#04122a"/><circle cx="14" cy="9" r="1.1" fill="#04122a"/><circle cx="13" cy="14" r="1.4" fill="#04122a"/><circle cx="9" cy="14.5" r="1" fill="#04122a"/></svg></span>
+      Cookiebot <span style="color:var(--mut2);font-weight:600">· Embedding Analysis</span>
+    </div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#embed">Embedding</a>
+      <a href="#api">API</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#coverage">Checks covered</a>
+      <a href="#recommend">Recommendation</a>
+      <a href="#refs">Sources</a>
+    </nav>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <span class="eyebrow">● Product &amp; Integration Assessment</span>
+    <h1>Cookiebot, assessed for <span class="grad">embedding into Snurra</span></h1>
+    <p class="sub">Cookiebot (by <b>Usercentrics</b>) is a <b>Consent Management Platform</b> with two decoupled halves: an <b>automated cloud scanner</b> that crawls a domain to discover and categorize every cookie/tracker, and a <b>runtime JavaScript widget</b> (consent banner + prior-consent blocking) embedded on the site. Its deterministic, machine-readable output is the <b>categorized cookie inventory</b> — each cookie's name, GDPR category, provider, expiry, first/third-party status, security flags and source script. Crucially for Snurra, its <b>read-only REST API returns only the last stored scan for domains you own and have onboarded</b> (CBID installed + scanned) — it is <b>not</b> an arbitrary-URL-in scanner. This page maps what it covers, how it could slot into Snurra's worker, what it costs, and — held to a strict 100%-certain bar — precisely which catalog checks it can cover.</p>
+    <div class="meta">
+      <span><b>Prepared:</b> 28 Jul 2026</span>
+      <span><b>Use case:</b> Cookie/tracker inventory &amp; GDPR consent scanning for the Snurra Site Audit</span>
+      <span><b>Catalog:</b> feasibility-app · 217 checks</span>
+    </div>
+
+    <div class="tldr">
+      <div class="hd"><span class="dot"></span> Bottom line up front</div>
+      <div class="bd">
+        Cookiebot's usable surface for Snurra is its <strong>cloud cookie/tracker scanner</strong>: a monthly crawl that categorizes every cookie (Necessary / Preferences / Statistics / Marketing / Unclassified) with provider, expiry, first/third-party flag, Secure/HTTPOnly attributes and the initiating script. Its <strong>data REST API is a clean read-only GET</strong> (<code>consent.cookiebot.com/api/v1/…</code>, api-key + domain-group serial in the URL) — but it returns the <strong>last scan for a domain you own and have onboarded</strong>; there is <strong>no arbitrary-URL scan API, no webhooks, no scheduling API</strong>, and scans are <strong>monthly</strong> (daily is a paid add-on). Held to the 100% bar it covers <strong>2 catalog checks directly</strong> (third-party/martech footprint, and new-trackers-since-last-scan), but it unlocks a <strong>batch of net-new cookie-attribute checks</strong> the catalog doesn't yet have. It does <strong>not</strong> deliver pre/post-consent behavioral verdicts or compliance <em>meaning</em>.
+        <div class="verdict">
+          <div class="vcard"><h4>Technical fit</h4><p>Clean read-only GET, but <b>owned/onboarded domains only</b> — can't be pointed at an arbitrary client URL. No webhooks; monthly cadence.</p><span class="pill warn">Conditional</span></div>
+          <div class="vcard"><h4>What it covers</h4><p><b>2 catalog checks</b> directly (thin), but a strong set of <b>net-new cookie-attribute checks</b> (classification, expiry, Secure flags, first/third-party).</p><span class="pill warn">Narrow + net-new</span></div>
+          <div class="vcard"><h4>Cost</h4><p><b>Free tier</b> (1 domain, ≤50 subpages). Premium is <b>per-domain by subpage count</b>, €7–€90/mo; no multi-site bundle. Figures from the official EU page.</p><span class="pill good">Free tier + per-domain</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="kicker">01 · What Cookiebot actually does</div>
+    <h2>Capabilities</h2>
+    <p class="lead">Two decoupled layers. The <b>cloud scanner</b> (a monthly crawl that discovers and categorizes cookies/trackers and produces a machine-readable inventory) is the part Snurra can consume; the <b>runtime widget</b> (banner + blocking) is client-side behavior on the site itself. Toggle between them:</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="scan">The scanner &amp; what it inventories</button>
+      <button class="tab" data-tab="auto">Runtime widget &amp; automation surface</button>
+    </div>
+
+    <div class="tabpane active" data-pane="scan">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></span>Cloud cookie scanner</h3><p>Crawls the domain from the cloud simulating <b>~7–8 concurrent users</b> who click all links/menus/buttons, scroll and play embedded video — capturing <b>dynamically-set</b> cookies, not just initial-load ones. Scans <b>HTML pages only</b>; a full crawl takes up to <b>24h</b>.</p><span class="tag">Real crawl</span><span class="tag">Dynamic cookies</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h6"/></svg></span>Cookie categorization</h3><p>Every detected item is assigned a GDPR category — <b>Necessary, Preferences, Statistics, Marketing</b>, plus <b>Unclassified</b> for items with no known purpose. Categorization is the scanner's core deterministic output.</p><span class="tag">5 categories</span><span class="tag">Deterministic</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg></span>Per-cookie detail</h3><p>Name &amp; name-pattern, <b>provider/domain</b>, path &amp; value, <b>expiry</b> (seconds/days + human description + persistent flag), <b>first/third-party</b>, <b>Secure</b> &amp; <b>HTTPOnly</b> flags, purpose, and the <b>initiator</b> (script URL + line that set it).</p><span class="tag">Full attributes</span><span class="tag">Initiator</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8"/></svg></span>Multi-storage detection</h3><p>Beyond HTTP cookies: <b>HTML5 Local Storage, IndexedDB, Flash LSOs, Silverlight storage, tracking pixels</b> and <b>ultrasound beacons</b> — "cookies" is used as an umbrella; the real type is listed per item.</p><span class="tag">LocalStorage</span><span class="tag">Pixels / beacons</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 12a8 8 0 018-8M20 12a8 8 0 01-8 8"/><path d="M12 8v4l3 2"/></svg></span>Scan-over-scan changes</h3><p>Runs <b>monthly</b> by default (daily = paid add-on). Each report lists identified trackers <b>and what changed since the previous scan</b>, emailed to configured recipients — a deterministic month-over-month diff.</p><span class="tag">Monthly</span><span class="tag">Change report</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Login-gated scanning</h3><p>Can scan behind logins / cookie-walls if credentials are supplied via the support form. If a scan finds more subpages than the plan allows, the subscription <b>auto-upgrades</b> to the next tier.</p><span class="tag">Auth crawl</span><span class="tag">Auto-upgrade</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M12 3l9 16H3l9-16z" transform="rotate(180 12 12)"/><path d="M12 8v5M12 16h.01"/></svg></span>
+        <div><h4>The defining strength (for embedding)</h4><p>Cookiebot's deterministic verdict is an <b>inventory fact</b>: this cookie exists, it is category X, provider Y, expires in Z days, is third-party, lacks the Secure flag, and was set by script S. That inventory is where it is strongest. What it does <b>not</b> produce from a scan is a <b>behavioral</b> verdict — "did tracking fire <em>before</em> consent" — because the crawl clicks through the site to discover everything a page <em>can</em> set, rather than isolating the pre-consent moment. Pre/post-consent enforcement is the job of the runtime widget on the owned site, not the scan API.</p></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="auto">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Consent banner (widget)</h3><p>Runtime <code>uc.js</code> script (<code>data-cbid</code>) shows the banner and captures consent, with <b>preset templates</b> per regulation (GDPR / CCPA / LGPD / POPIA). Runs on the site, not against arbitrary URLs.</p><span class="tag">uc.js</span><span class="tag">Presets</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 12l2 2 4-4"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></span>Prior-consent blocking</h3><p>Doesn't intercept cookies directly — it <b>disables the element that sets the cookie</b> until the script reads the visitor's consent level. Predefined known cookies are blocked immediately on install.</p><span class="tag">Blocking engine</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg></span>Cookie declaration (cd.js)</h3><p>Auto-generated <b>table of all discovered cookies</b> + a withdraw-consent control, embedded on a page via <code>consent.cookiebot.com/&lt;CBID&gt;/cd.js</code>. Supports a CSP nonce.</p><span class="tag">cd.js</span><span class="tag">Declaration</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></span>Cookiebot JS object</h3><p>Read-only on-page API: <code>consent.necessary/preferences/statistics/marketing</code>, plus events <code>OnAccept</code>, <code>OnDecline</code>, <code>CookiebotOnConsentReady</code>, <code>OnTagsExecuted</code>. Server-side: read the <code>CookieConsent</code> cookie.</p><span class="tag">Events</span><span class="tag">Consent state</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>Data REST API (read-only)</h3><p>Two GET endpoints: <b>cookies</b> (last scan's inventory as JSON) and <b>consent stats</b> (opt-in/opt-out counts per day). Auth = <b>api-key + domain-group serial in the URL path</b>. No trigger, no OAuth.</p><span class="tag">GET only</span><span class="tag">api key</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>Google Consent Mode v2</h3><p>Auto-sends <code>ad_storage</code>, <code>analytics_storage</code>, <code>ad_user_data</code>, <code>ad_personalization</code> to Google on consent — a <b>Google Gold Tier</b> CMP, selectable inside Google Ads / Analytics / GTM.</p><span class="tag">Consent Mode v2</span><span class="tag">Gold Tier</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout warn">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 9v5M12 17h.01"/></svg></span>
+        <div><h4>Standards it relies on</h4><p><b>GDPR</b>, <b>ePrivacy Directive</b>, <b>CCPA / CPRA</b> (+ other US state laws), <b>LGPD</b>, <b>POPIA</b>; <b>IAB Europe TCF</b> (registered/certified CMP, <b>CMP ID 134</b>, framework v2.2/v2.3), <b>Google Additional Consent</b>, and <b>Google Consent Mode v2</b> (Google Gold Tier CMP partner). <b>ISO/IEC 27001 &amp; 27701</b> and HIPAA readiness are stated at the Usercentrics/company level — <b>vendor-stated, not confirmed on a single canonical Cookiebot certificate page</b>. There is no proprietary taxonomy beyond the five cookie categories.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section id="embed">
+    <div class="kicker">02 · Applicability — how it slots into Snurra</div>
+    <h2>Embedding paths, ranked</h2>
+    <p class="lead">Cookiebot fits Snurra's HTTP-adapter pattern only <em>partially</em>. Its data API is a clean sync GET — like PSI — but it can read back only domains you've <b>onboarded to Cookiebot</b> (CBID installed and scanned). It cannot take an arbitrary client URL and return JSON. The ranking below is about where that constraint still leaves useful signal.</p>
+
+    <div class="fit">
+      <div class="fitrow head"><div>Path</div><div>What it's good for</div><div>Fit</div></div>
+      <div class="fitrow">
+        <div class="name">Read-only GET adapter for domains onboarded to Cookiebot <small>(CBID installed + scanned → GET last scan JSON)</small></div>
+        <div class="desc">For any domain in your Cookiebot account, a <code>ProviderAdapter</code> does a single GET of the cookies endpoint and maps the categorized inventory into neutral check inputs. Clean sync shape; the only gate is that the domain is onboarded and has a completed scan.</div>
+        <div class="verd"><span class="badge ok">Best available</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Source net-new cookie-attribute checks from the scan JSON <small>(classification, expiry, Secure flags, first/third-party)</small></div>
+        <div class="desc">The richest value: the per-cookie fields (category, ExpireDays, Secure/HTTPOnly, ThirdParty, initiator) feed a batch of cookie-hygiene checks the catalog doesn't yet have. This is where Cookiebot adds the most.</div>
+        <div class="verd"><span class="badge ok">Strong (net-new)</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Scrape the free Cookie Checker UI for arbitrary client domains</div>
+        <div class="desc">The only way to scan a domain you don't own is the human-facing Cookie Checker web tool — which has <b>no documented API</b>. Driving it programmatically would be UI scraping, likely against ToS, with no stability guarantee.</div>
+        <div class="verd"><span class="badge no">Don't</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Trigger a fresh on-demand scan from the API on the hot path</div>
+        <div class="desc">The API <b>cannot trigger a scan</b> — it returns the last stored scan. Scans are monthly (daily add-on) and take up to 24h. Any "scan now and read results inline" flow is impossible; results are inherently async and can be up to a month stale.</div>
+        <div class="verd"><span class="badge no">Can't</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="callout info">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+      <div>
+        <h4>Integration shape (contrast with the sync tools)</h4>
+        <p>Like PSI it's an HTTP GET adapter, but with a hard precondition: the domain must be <b>a domain group in your Cookiebot account with a completed scan</b>. <code>buildRequest()</code> forms <code>GET consent.cookiebot.com/api/v1/{apikey}/json/domaingroup/{serial}/{culture}/domain/{domain}/cookies</code>; <code>mapResponse()</code> walks <code>cookies[]</code> and maps each item's category/expiry/flags into neutral check inputs. Gate <code>isConfigured()</code> on the <b>api-key + serial</b> and on the target domain being onboarded; degrade to <code>not-applicable</code> otherwise. There is <b>no webhook</b> — treat freshness as "last monthly scan," not live. Note the API key sits in the URL path, so keep request URLs out of logs.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API / TECHNICAL -->
+  <section id="api">
+    <div class="kicker">03 · Technical detail — API, endpoints, scanning &amp; licensing</div>
+    <h2>What integrating actually looks like</h2>
+    <p class="lead">Enough to scope an integration spike. Expand for detail:</p>
+
+    <div class="acc open">
+      <button>The data REST API — auth, endpoints, JSON <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        Base <code>https://consent.cookiebot.com/api/v1/…</code> (EU-CDN variant swaps <code>.com</code> → <code>.eu</code>). Auth is an <b>API key</b> in the URL path plus the <b>domain-group serial</b> (both from Cookiebot Manager → Settings → "Your scripts"). No OAuth. The API <b>reads the last stored scan</b> — it does not trigger one.
+        <div class="codeblock mono">
+# read the last scan's cookie inventory for an ONBOARDED domain<br>
+curl "https://consent.cookiebot.com/api/v1/$APIKEY/json/domaingroup/$SERIAL/en/domain/example.com/cookies"<br><br>
+# → { "domain":"example.com", "utcscandate":"…", "culture":"en", "cookies":[<br>
+#     { "Name":"_ga", "Provider":"Google", "ThirdParty":true, "Persistent":true,<br>
+#       "ExpireDays":730, "ExpireDescription":"2 years", "Secure":false, "HTTPOnly":false,<br>
+#       "Category":"Statistics", "PurposeDescription":"…", "TrackerTypeName":"HTTP Cookie",<br>
+#       "Initiator":"https://…/gtag.js", "InitiatorCodeBlockBegin":… }, … ] }<br><br>
+# consent statistics (opt-in / opt-out counts per day; max 12 months back)<br>
+curl "https://consent.cookiebot.com/api/v1/$APIKEY/json/domaingroup/$SERIAL/domain/example.com/consent/stats?startdate=20260101&amp;enddate=20260701"
+        </div>
+        Confirmed endpoints: the <b>cookies</b> report and the <b>consent/stats</b> report. Response formats: <code>/json/</code> in the path (XML by swapping the segment); the account UI also exports <b>CSV / JSON</b>. Field names above are quoted from the official support articles (which block automated fetch — <b>spot-check the exact field list before shipping customer-facing code</b>).
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>The scan — cadence, subpage caps, auto-upgrade <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Cadence</code><span><b>Monthly automatic scan</b> per domain by default; first scan completes within 24h of adding the domain. <b>Daily scanning is a paid add-on</b> (≈€99/mo — <b>secondary-sourced, unverified</b>).</span>
+          <code>What it crawls</code><span>The whole site, HTML pages only, simulating ~7–8 users clicking/scrolling/playing video; captures dynamically-set cookies. Won't complete checkout or submit forms.</span>
+          <code>Subpage caps</code><span>The plan tier caps how many subpages are billed/covered (≤50 / ≤350 / ≤3,500 / ≤7,000 / 7,000+). If a scan finds more, the subscription <b>auto-upgrades</b> at cycle end — budget for surprise upgrades.</span>
+          <code>Change diff</code><span>Each scan report includes trackers found <b>and what changed vs the previous scan</b>, emailed to recipients — the basis for the "new since last scan" verdict.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>The hard limitation — owned domains only, no arbitrary-URL scan <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>API scope</code><span>The data API returns data <b>only for domain groups in your account</b> (needs apikey + serial + the onboarded domain). It <b>cannot</b> be pointed at a third-party URL to get JSON back.</span>
+          <code>Arbitrary domains</code><span>Only the <b>free Cookie Checker</b> web tool (<code>cookiebot.com/en/cookie-checker/</code>) scans a domain you don't own — and it has <b>no documented API</b>. Whether it technically restricts to owned domains and its page-depth limit are <b>UNVERIFIED</b>.</span>
+          <code>Webhooks</code><span><b>None documented.</b> The only push is the emailed monthly report. An adapter must poll the GET endpoint, not await a callback.</span>
+          <code>Rate limits</code><span><b>No published rate limits or concurrency figures</b> — treat as UNVERIFIED and back off conservatively.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Runtime JS SDK &amp; server-side consent read <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Banner script</code><span><code>consent.cookiebot.com/uc.js</code> with <code>data-cbid="&lt;CBID&gt;"</code>; attributes <code>data-blockingmode</code>, <code>data-consentmode</code>, <code>data-culture</code>, <code>data-framework</code>.</span>
+          <code>JS object</code><span>Read-only <code>Cookiebot.consent.{necessary,preferences,statistics,marketing}</code>; methods <code>show/hide/renew/withdraw/submitCustomConsent</code>; events <code>OnAccept/OnDecline/OnConsentReady/OnTagsExecuted</code>.</span>
+          <code>Server-side</code><span>Read the <code>CookieConsent</code> cookie (C# / PHP / VB.NET examples in the developer docs) to gate server-rendered tags.</span>
+          <code>Declaration</code><span><code>consent.cookiebot.com/&lt;CBID&gt;/cd.js</code> renders the cookie table; the CBID sits in the URL path here (not a data attribute).</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Domains, plans &amp; consent logging <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Domains/plan</code><span>Free = <b>1 domain</b>. Premium is billed <b>per domain</b> (each domain billed separately — no multi-site bundle discount). Usercentrics Advanced = unlimited domains, contact sales.</span>
+          <code>Scale unit</code><span>Metering is by <b>subpage count per domain</b>, not traffic — see Pricing.</span>
+          <code>Consent logging</code><span>Consents are recorded/stored and retrievable via the consent-stats API (max 12 months back). Free-tier retention duration is <b>conflicting across sources (1 vs 12 months) — UNVERIFIED</b>.</span>
+          <code>Concurrency</code><span>No published concurrency/rate figure — the practical limiter is the monthly scan cadence, not an instance count.</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <section id="integrations">
+    <div class="kicker">04 · Feature &amp; ecosystem map</div>
+    <h2>What it scans &amp; plugs into</h2>
+    <p class="lead">A quick map of the platform's surface — the scanning engine, the runtime consent layer, the automation endpoints, the standards it's certified against, and CMS/Google integrations. Filter it:</p>
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="intSearch" type="text" placeholder="Search features & integrations…">
+      </div>
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="Scanning">Scanning</button>
+      <button class="chip" data-cat="Consent">Consent</button>
+      <button class="chip" data-cat="Automation">Automation</button>
+      <button class="chip" data-cat="Integration">Integration</button>
+      <button class="chip" data-cat="Standards">Standards</button>
+    </div>
+    <div class="intgrid" id="intGrid"></div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="kicker">05 · Pricing</div>
+    <h2>What it costs</h2>
+    <p class="lead">Pricing is <b>per-domain, metered by subpage count</b> (not traffic/sessions). All Premium tiers share the same features; only the subpage cap differs. Figures below are EUR from the current official EN pricing page — verify live before quoting to a customer.</p>
+    <table class="price">
+      <thead><tr><th>Plan / lever</th><th>Price</th><th>Model &amp; notes</th></tr></thead>
+      <tbody>
+        <tr><td class="prod">Free<small>entry</small></td><td><span class="freeword">Free</span> · ≤50 subpages</td><td>1 domain, initial + monthly scan, automated config, basic pre-built banner, 1 language, Google Consent Mode. <b>Excludes</b> banner customization, geotargeting, multi-language, advanced reporting.</td></tr>
+        <tr><td class="prod">Premium Lite</td><td><span class="money">€7</span>/mo</td><td>Up to 50 subpages, 1 domain.</td></tr>
+        <tr><td class="prod">Premium Small</td><td><span class="money">€15–€30</span>/mo per domain</td><td>Up to 350 subpages. €15/mo per domain at 4+ domains; €30/mo per domain at 1–3 domains.</td></tr>
+        <tr><td class="prod">Premium Medium</td><td><span class="money">€30</span>/mo per domain</td><td>Up to 3,500 subpages.</td></tr>
+        <tr><td class="prod">Premium Large</td><td><span class="money">€50</span>/mo per domain</td><td>Up to 7,000 subpages.</td></tr>
+        <tr><td class="prod">Premium XLarge</td><td><span class="money">€90</span>/mo per domain</td><td>7,000+ subpages.</td></tr>
+        <tr><td class="prod">Usercentrics Advanced<small>enterprise</small></td><td><span class="quote">Contact sales</span></td><td>Unlimited domains; session/traffic-based pricing. No published list price.</td></tr>
+        <tr><td class="prod">Daily-scan add-on<small>secondary figure</small></td><td><span class="quote">~€99</span>/mo</td><td>Upgrades the monthly cadence to daily. <b>Secondary-sourced, unverified</b> against the official page.</td></tr>
+        <tr><td class="prod">Metering<small>how it's billed</small></td><td><span class="money">Per domain × subpages</span></td><td>Billed <b>per domain by subpage count</b>; <b>no multi-site bundle discount</b>. A scan finding more subpages than the tier allows <b>auto-upgrades</b> the subscription at cycle end — budget for surprise upgrades. (Per-domain-cost commentary and an Aug-2025 price increase are <b>secondary-sourced</b>.)</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--mut2);font-size:12.5px;margin-top:10px">The tier prices and subpage caps are from <b>cookiebot.com/en/pricing</b> (gathered 28 Jul 2026). The daily-scan add-on, per-domain-cost examples, the Aug-2025 increase and free-tier consent-retention duration are <b>third-party / review-sourced and flagged unverified</b>. The real embedding constraint is not price but scope: the API reads only <b>onboarded domains</b>, on a <b>monthly</b> cadence.</p>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="coverage">
+    <div class="kicker">06 · Which catalog checks it can cover</div>
+    <h2>Coverage — held to a 100%-certain bar</h2>
+    <p class="lead">A check is listed <b>only if</b> Cookiebot can produce its verdict as a <b>deterministic scan-inventory fact</b> — a tracker/cookie that exists, its category, provider, expiry, flags, or a scan-over-scan diff — <b>no behavioral pre/post-consent capture, no content-meaning, no human judgment</b>. Cookiebot's scan is an <em>inventory</em> of what a site can set, not a before/after-consent behavioral test, so the catalog's many consent-timing and privacy-wording checks are deliberately excluded. The result is a short direct-catalog list and a much richer set of net-new cookie-attribute checks below.</p>
+
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="covSearch" type="text" placeholder="Search covered checks…">
+      </div>
+    </div>
+    <p class="covcount" id="covCount"></p>
+    <div class="covgrid" id="covGrid"></div>
+
+    <div class="newcov" style="margin-top:32px">
+      <h3 style="font-size:19px;margin:0 0 6px">Additional checks it can cover — <span style="color:var(--mut2);font-weight:600">not in the catalog</span></h3>
+      <p class="lead" style="margin-top:0">Deterministic checks Cookiebot's scan inventory covers that have <b>no matching entry</b> in <code>checks.ts</code> — candidate additions to the catalog. This is where Cookiebot adds the most. Each is referenced.</p>
+      <div class="covgrid" id="newCovGrid"></div>
+    </div>
+
+    <div style="margin-top:18px" class="callout bad">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>
+      <div>
+        <h4>What Cookiebot does NOT cover (for Snurra)</h4>
+        <p>Excluded, because Cookiebot can't deliver these verdicts on its own from the scan API: <b>pre/post-consent behavioral verdicts</b> ("no tracking before consent," "analytics fires only after consent," "CMP loads before tracking," "consent event in dataLayer," "TCF string set after acceptance" — these need a runtime before/after-consent capture, which the inventory scan does not perform) · <b>banner presence &amp; UX</b> ("banner appears on first visit," "preferences remembered," "usable on mobile," "withdraw as easy as give") · <b>compliance <em>meaning</em></b> (CCPA-vs-GDPR wording, privacy-policy content, DPO/data-rights text — AI/human judgments) · <b>arbitrary-domain scanning via API</b> (owned/onboarded domains only) · and everything outside cookies (SSL/DNS, performance vitals, accessibility, SEO, uptime).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommend">
+    <div class="kicker">07 · Recommendation</div>
+    <h2>Pick your scenario</h2>
+    <p class="lead">Cookiebot earns a slot as a <b>cookie-inventory provider for domains you onboard</b> — not as a general arbitrary-URL scanner. Click the closest match:</p>
+    <div class="picker" id="picker">
+      <button class="scn active" data-s="a">Inventory onboarded domains' cookies<small>read-only GET of the last scan JSON</small></button>
+      <button class="scn" data-s="b">Add net-new cookie-attribute checks<small>classification, expiry, Secure, 1st/3rd-party</small></button>
+      <button class="scn" data-s="c">Track tracker changes month-over-month<small>new-since-last-scan diff</small></button>
+      <button class="scn" data-s="d">Don't scan arbitrary client URLs via API<small>owned domains only; UI-only otherwise</small></button>
+    </div>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="kicker">08 · Sources</div>
+    <h2>References</h2>
+    <p class="lead">Cookiebot facts are from cookiebot.com, its developer docs, and the Cookiebot/Usercentrics support center (support.cookiebot.com), gathered 28 Jul 2026. The support pages block automated fetch (HTTP 403); their contents were read via search-engine extraction and are high-confidence but worth a manual spot-check on the exact API field list and current pricing. Items flagged <b>UNVERIFIED</b> below rest on secondary/review sources or lacked a single canonical page. Check names are quoted verbatim from <code>feasibility-app/data/checks.ts</code>.</p>
+    <div class="refs">
+      <div class="ref"><a href="https://www.cookiebot.com/en/cookiebot-cmp-features/" target="_blank" rel="noopener">Cookiebot CMP features</a><p>Banner, prior-consent blocking, consent logging, cookie declaration, presets per regulation.</p></div>
+      <div class="ref"><a href="https://support.cookiebot.com/hc/en-us/sections/360000844134-The-Cookiebot-scanner" target="_blank" rel="noopener">The Cookiebot scanner</a><p>Cloud crawl simulating ~7–8 users; dynamic cookies; HTML pages only; up to 24h; monthly cadence.</p></div>
+      <div class="ref"><a href="https://support.cookiebot.com/hc/en-us/categories/4418184833554-Scanning-controlling-cookies" target="_blank" rel="noopener">Scanning &amp; controlling cookies</a><p>Tracker types (cookies, Local Storage, IndexedDB, Flash LSO, pixels, beacons); 5 categories; blocking model.</p></div>
+      <div class="ref"><a href="https://support.cookiebot.com/hc/en-us/articles/5007079527580-Understanding-the-scan-report" target="_blank" rel="noopener">Understanding the scan report</a><p>Report lists identified trackers and changes since the previous scan; emailed to recipients.</p></div>
+      <div class="ref"><a href="https://support.cookiebot.com/hc/en-us/articles/360003774494" target="_blank" rel="noopener">Subpage caps &amp; auto-upgrade</a><p>Tier caps how many subpages are covered; scan finding more auto-upgrades the subscription.</p></div>
+      <div class="ref"><a href="https://www.cookiebot.com/en/cookie-checker/" target="_blank" rel="noopener">Free Cookie Checker</a><p>Public URL scan; report by purpose/provider/data type + compliance assessment. <b>UNVERIFIED:</b> arbitrary-domain permission &amp; page-depth limit; no API.</p></div>
+      <div class="ref"><a href="https://support.cookiebot.com/hc/en-us/articles/360006346473-Extracting-cookie-information-via-API" target="_blank" rel="noopener">Cookie data API</a><p>Endpoint, api-key + serial auth in URL path; JSON fields (Name, Category, ExpireDays, ThirdParty, Secure, HTTPOnly, Initiator…).</p></div>
+      <div class="ref"><a href="https://support.cookiebot.com/hc/en-us/articles/4405045044882-Extracting-consent-data-via-API" target="_blank" rel="noopener">Consent stats API</a><p>Opt-in/opt-out counts per day; max 12 months back.</p></div>
+      <div class="ref"><a href="https://support.cookiebot.com/hc/en-us/articles/360005002154" target="_blank" rel="noopener">Export cookie information</a><p>Download the cookie inventory as CSV / JSON (XML by swapping the path segment).</p></div>
+      <div class="ref"><a href="https://www.cookiebot.com/en/developer/" target="_blank" rel="noopener">Developer docs</a><p>uc.js, data-cbid attributes, Cookiebot JS object, events, server-side CookieConsent cookie.</p></div>
+      <div class="ref"><a href="https://support.cookiebot.com/hc/en-us/articles/26408320672412-Manually-implementing-Cookiebot-CMP-Cookiebot-Manager" target="_blank" rel="noopener">Manual implementation (cd.js)</a><p>Cookie Declaration embed via consent.cookiebot.com/&lt;CBID&gt;/cd.js; CSP nonce support.</p></div>
+      <div class="ref"><a href="https://www.cookiebot.com/en/cookiebot-cmp-google-consent-mode/" target="_blank" rel="noopener">Google Consent Mode v2</a><p>Auto-sends ad_storage / analytics_storage / ad_user_data / ad_personalization on consent.</p></div>
+      <div class="ref"><a href="https://www.cookiebot.com/en/tcf/" target="_blank" rel="noopener">IAB TCF</a><p>Registered/certified CMP, CMP ID 134; framework v2.2/v2.3; Google Additional Consent.</p></div>
+      <div class="ref"><a href="https://www.cookiebot.com/en/cookiebot-cmp-maintains-google-gold-tier-cmp-partner-certification/" target="_blank" rel="noopener">Google Gold Tier CMP</a><p>Highest-tier Google CMP partner; selectable inside Google Ads / Analytics / GTM.</p></div>
+      <div class="ref"><a href="https://www.cookiebot.com/en/pricing/" target="_blank" rel="noopener">Pricing</a><p>Per-domain, by subpage count; Free / Lite / Small / Medium / Large / XLarge; Advanced = contact sales.</p></div>
+      <div class="ref"><a href="https://www.cookiebot.com/en/integrations/" target="_blank" rel="noopener">Integrations</a><p>WordPress, GTM (template gallery), Wix, Shopify, AEM, Drupal, Magento, Webflow, more.</p></div>
+      <div class="ref"><a href="https://usercentrics.com/" target="_blank" rel="noopener">Usercentrics (parent)</a><p>Corporate context; ISO/IEC 27001 &amp; 27701 and HIPAA readiness are <b>vendor-stated (UNVERIFIED)</b> at company level.</p></div>
+      <div class="ref"><a href="https://checks-catalog.vercel.app/" target="_blank" rel="noopener">Feasibility checks catalog</a><p>The 217-check catalog this coverage maps against (source: feasibility-app).</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="disc">
+      <strong>How to read this.</strong> This is an independent capability/integration assessment compiled from public sources for planning purposes — it is not from or endorsed by Cookiebot or Usercentrics, and it is not legal advice. The support center blocks automated fetch, so API field names and pricing were read via search extraction — spot-check them before customer-facing use. Items marked UNVERIFIED (rate limits, webhooks, the daily-scan add-on, the free-checker's arbitrary-domain permission, ISO certifications, free-tier consent retention) rest on secondary sources. The coverage list is deliberately conservative: catalog checks are included only where a deterministic scan-inventory fact makes the verdict 100% certain.
+    </div>
+    Cookiebot® is a trademark of Cybot A/S / Usercentrics. Prepared 28 Jul 2026 · for internal planning.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'),
+    thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var dark=root.getAttribute('data-theme')==='dark';
+  root.setAttribute('data-theme', dark?'light':'dark');
+  thTxt.textContent = dark?'Dark':'Light';
+});
+
+// ---- Capability tabs ----
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var k=t.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.getAttribute('data-pane')===k);
+    });
+  });
+});
+
+// ---- Accordions ----
+document.querySelectorAll('.acc>button').forEach(function(b){
+  b.addEventListener('click',function(){ b.parentElement.classList.toggle('open'); });
+});
+
+// ---- Feature / ecosystem data + filter ----
+var INTS=[
+  {n:'Cloud cookie/tracker scanner',c:'Scanning',d:'Crawls the domain simulating ~7–8 users clicking/scrolling/playing video'},
+  {n:'Multi-storage detection',c:'Scanning',d:'HTTP cookies, Local Storage, IndexedDB, Flash LSO, pixels, ultrasound beacons'},
+  {n:'Cookie categorization',c:'Scanning',d:'Necessary / Preferences / Statistics / Marketing / Unclassified'},
+  {n:'Scan-over-scan change report',c:'Scanning',d:'Monthly report of new/changed trackers, emailed to recipients'},
+  {n:'Login / cookie-wall scanning',c:'Scanning',d:'Can scan behind logins if credentials are supplied via support'},
+  {n:'Consent banner (CMP widget)',c:'Consent',d:'Runtime banner; preset templates per regulation (GDPR/CCPA/LGPD/POPIA)'},
+  {n:'Prior-consent blocking',c:'Consent',d:'Disables cookie-setting elements until the visitor’s consent level is read'},
+  {n:'Cookie declaration table (cd.js)',c:'Consent',d:'Auto-generated table of all cookies + withdraw-consent control'},
+  {n:'Consent logging',c:'Consent',d:'Records/stores consents; retrievable via the consent-stats API'},
+  {n:'Google Consent Mode v2',c:'Consent',d:'Auto-sends ad_storage / analytics_storage / ad_user_data / ad_personalization'},
+  {n:'Cookiebot JS object',c:'Automation',d:'Read consent state + events (OnAccept / OnDecline / OnConsentReady)'},
+  {n:'Cookie data REST API',c:'Automation',d:'GET last scan cookies as JSON — api key + domain-group serial in URL'},
+  {n:'Consent stats REST API',c:'Automation',d:'GET opt-in / opt-out counts per day (max 12 months back)'},
+  {n:'CSV / JSON / XML export',c:'Automation',d:'Download the cookie inventory from the account UI'},
+  {n:'WordPress plugin',c:'Integration',d:'Native plugin — scan/block/Consent Mode, 40+ languages, can inject GTM'},
+  {n:'Google Tag Manager',c:'Integration',d:'GTM template-gallery tag + Consent Mode integration'},
+  {n:'Wix / Shopify / CMS',c:'Integration',d:'Native Wix & Shopify apps; guides for AEM, Drupal, Magento, Webflow, more'},
+  {n:'IAB TCF (CMP ID 134)',c:'Standards',d:'Registered & certified CMP; TCF v2.2/v2.3 + Google Additional Consent'},
+  {n:'Google Gold Tier CMP',c:'Standards',d:'Highest-tier partner; selectable inside Google Ads / Analytics / GTM'},
+  {n:'GDPR / ePrivacy / CCPA / LGPD / POPIA',c:'Standards',d:'Preset banner templates and consent model per regulation'}
+];
+var grid=document.getElementById('intGrid'), search=document.getElementById('intSearch'), curCat='all';
+function renderInts(){
+  var q=(search.value||'').toLowerCase();
+  var rows=INTS.filter(function(i){
+    var okc = curCat==='all' || i.c===curCat;
+    var okq = !q || i.n.toLowerCase().indexOf(q)>-1 || i.d.toLowerCase().indexOf(q)>-1;
+    return okc && okq;
+  });
+  grid.innerHTML = rows.length ? rows.map(function(i){
+    return '<div class="intitem"><div class="cat">'+i.c+'</div><h5>'+i.n+'</h5><span>'+i.d+'</span></div>';
+  }).join('') : '<div class="empty">No matches.</div>';
+}
+document.querySelectorAll('#integrations .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#integrations .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); curCat=c.getAttribute('data-cat'); renderInts();
+  });
+});
+search.addEventListener('input',renderInts);
+renderInts();
+
+// ---- Coverage data + filter ----
+// check names are verbatim from feasibility-app/data/checks.ts
+var COV=[
+  {ch:'Third-party scripts / martech footprint', p:'Platform & Tech / Code Health', cap:'Cookie/tracker scan inventory', gate:['scan'], note:'The scan inventories every third-party cookie and tracker (pixels, scripts, iframes) with its provider domain and the initiator script that set it — a deterministic third-party martech footprint.'},
+  {ch:'No unexpected new scripts appeared since last scan', p:'Third-Party Script Health', cap:'Scan-over-scan tracker diff', gate:['2 scans'], note:'Each scan report lists the trackers/cookies that changed since the previous scan, so a newly-appeared tracking or analytics tracker is flagged deterministically month over month.'}
+];
+var covGrid=document.getElementById('covGrid'), covSearch=document.getElementById('covSearch'),
+    covCount=document.getElementById('covCount'), curCov='all';
+function renderCov(){
+  var q=(covSearch.value||'').toLowerCase();
+  var rows=COV.filter(function(i){
+    return !q || i.ch.toLowerCase().indexOf(q)>-1 || i.p.toLowerCase().indexOf(q)>-1 || i.cap.toLowerCase().indexOf(q)>-1;
+  });
+  covCount.innerHTML='Showing <b style="color:var(--ink)">'+rows.length+'</b> of '+COV.length+' checks Cookiebot can cover';
+  covGrid.innerHTML = rows.length ? rows.map(function(i){
+    var gates=(i.gate||[]).map(function(g){
+      return '<span class="gate">'+g+'</span>';
+    }).join('');
+    return '<div class="covitem"><div class="top"><div><h5>'+i.ch+'</h5>'+
+      '<div class="pil">'+i.p+' · <span class="capname">'+i.cap+'</span></div></div></div>'+
+      '<p>'+i.note+'</p>'+(gates?('<div>'+gates+'</div>'):'')+'</div>';
+  }).join('') : '<div class="empty">No checks match that filter.</div>';
+}
+covSearch.addEventListener('input',renderCov);
+renderCov();
+
+// ---- Additional checks NOT in the catalog (candidate new checks) ----
+var NEWCOV=[
+  {name:'Every cookie/tracker classified by GDPR consent category', cap:'Scan categorization engine', note:'The scan assigns each detected cookie/tracker a category (Necessary / Preferences / Statistics / Marketing / Unclassified). The catalog checks whether tracking fires before consent, but has no check that every cookie is correctly classified by purpose.', ref:'support.cookiebot.com — Scanning & controlling cookies'},
+  {name:'Unclassified / undeclared cookies present on the site', cap:'Unclassified-cookie flag', note:'Cookies with no known purpose description are reported as “Unclassified” — a direct GDPR red flag. No catalog check surfaces undeclared cookies.', ref:'cookiebot.com — Cookie Checker'},
+  {name:'Cookie lifespan / expiry audit (excessive-duration & persistent cookies)', cap:'Expiry fields (ExpireDays, Persistent)', note:'Each cookie carries its expiry in seconds/days plus a Persistent flag, so over-long cookie lifetimes are measurable. The catalog only checks whether a policy states retention periods, not the actual cookie lifetimes.', ref:'support.cookiebot.com — Extracting cookie information via API'},
+  {name:'First-party vs third-party cookie breakdown', cap:'ThirdParty flag per cookie', note:'Every cookie is tagged first- or third-party (ThirdParty flag). The catalog has no first/third-party cookie split check.', ref:'support.cookiebot.com — Extracting cookie information via API'},
+  {name:'Cookie Secure / HTTPOnly flag audit', cap:'Secure & HTTPOnly fields', note:'The scan records each cookie’s Secure and HTTPOnly attributes — cookie security hygiene. The catalog has no cookie-flag security check.', ref:'support.cookiebot.com — Extracting cookie information via API'},
+  {name:'Non-cookie tracker & client-storage detection (Local Storage, IndexedDB, Flash LSO, pixels, beacons)', cap:'Multi-storage scanner', note:'Detects trackers beyond HTTP cookies — HTML5 Local Storage, IndexedDB, Flash LSO, tracking pixels and ultrasound beacons. The catalog’s tracking checks are cookie/script-only.', ref:'support.cookiebot.com — Scanning & controlling cookies'},
+  {name:'Cookie initiator / source-script attribution', cap:'Initiator fields (script URL + line)', note:'Each cookie records the exact script URL and code-block line that set it. No catalog check attributes a cookie back to its source script.', ref:'support.cookiebot.com — Extracting cookie information via API'}
+];
+(function(){
+  var g=document.getElementById('newCovGrid'); if(!g) return;
+  g.innerHTML=NEWCOV.map(function(i){
+    return '<div class="covitem"><div class="top"><div><h5>'+i.name+'</h5>'+
+      '<div class="pil"><span class="capname">'+i.cap+'</span></div></div><span class="gate">new</span></div>'+
+      '<p>'+i.note+'</p><div class="pil" style="margin-top:8px">↳ <span class="capname">'+i.ref+'</span></div></div>';
+  }).join('');
+})();
+
+// ---- Scenario recommender ----
+var RECS={
+  a:{label:'Recommended path',h:'Read-only GET adapter for onboarded domains',
+     p:'Cookiebot earns its keep as a cookie-inventory provider for domains already in your Cookiebot account (CBID installed + scanned). A single GET returns the last scan’s categorized cookie inventory.',
+     s:['Store the api-key + domain-group serial; gate isConfigured() on them and on the target domain being onboarded.','buildRequest() forms the cookies GET; mapResponse() walks cookies[] into neutral check inputs.','Treat freshness as “last monthly scan” — there is no webhook and the API can’t trigger a scan; degrade to not-applicable if the domain isn’t onboarded.']},
+  b:{label:'Recommended path',h:'Source net-new cookie-attribute checks',
+     p:'The richest value is the per-cookie detail the catalog doesn’t yet represent: consent-category classification, expiry/lifespan, Secure/HTTPOnly flags, first/third-party split, and non-cookie storage.',
+     s:['Map Category → a “cookie classified / unclassified” check; ExpireDays → a lifespan check.','Map Secure/HTTPOnly → a cookie-flag hygiene check; ThirdParty → a first/third-party split.','Add these as candidate new catalog checks (see the “not in the catalog” list), each referenced back to the scan JSON.']},
+  c:{label:'Recommended path',h:'Track tracker changes month-over-month',
+     p:'Each monthly scan report includes what changed since the previous scan — a deterministic diff of newly-appeared trackers/cookies.',
+     s:['Persist each scan’s cookie set per domain.','On the next scan, diff against the stored set to flag new trackers (“new since last scan”).','Surface the diff as the verdict; note the cadence is monthly (daily is a paid add-on).']},
+  d:{label:'Caution',h:'Don’t try to scan arbitrary client URLs via the API',
+     p:'The data API only reads domains you own and have onboarded. Arbitrary-domain scanning exists only as the free Cookie Checker web tool, which has no documented API.',
+     s:['Don’t build an adapter that POSTs an arbitrary URL — no such endpoint exists.','Don’t scrape the Cookie Checker UI — no API, likely against ToS, and unstable.','For arbitrary client sites, use a real URL-in scanner (e.g. a Playwright cookie/consent capture) and reserve Cookiebot for your onboarded domains.']}
+};
+function showRec(k){
+  var r=RECS[k];
+  document.getElementById('rec').innerHTML =
+    '<div class="rlabel">'+r.label+'</div><h3>'+r.h+'</h3><p>'+r.p+'</p><ul class="steps"><li>'+r.s.join('</li><li>')+'</li></ul>';
+}
+document.querySelectorAll('.scn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.scn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active'); showRec(b.getAttribute('data-s'));
+  });
+});
+showRec('a');
+</script>
+</body>
+</html>

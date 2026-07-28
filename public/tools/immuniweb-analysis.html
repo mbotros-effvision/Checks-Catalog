@@ -273,6 +273,26 @@
         </div>
       </div>
     </div>
+
+    <div class="callout" style="margin-top:16px;border:1px solid #12894f;background:linear-gradient(180deg,rgba(18,137,79,.10),rgba(18,137,79,.03))">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="#12b866" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5 5-5.5"/></svg></span>
+      <div>
+        <h4 style="color:#12b866">✔ Live‑verified against the real API — 28 Jul 2026</h4>
+        <p>The claims below were confirmed by <b>live, anonymous (no‑key) calls</b> to the production endpoints — not just from documentation. Evidence: full request/response captured against <code>example.com</code>, <code>scanme.nmap.org</code>.</p>
+        <ul style="margin:8px 0 0;padding-left:18px;line-height:1.55">
+          <li><b>Website Security Test — VERIFIED.</b> <code>POST /websec/api/v1/chsec/[ts].html</code> with <code>tested_url</code> → <code>{status,test_id,status_id}</code>; <code>POST /websec/api/v1/get_result/[ts].html</code> → <b>~20 KB per‑check JSON</b>. Live result: <code>example.com</code> → <code>grade C+, score 45</code>.</li>
+          <li><b>SSL Security Test — VERIFIED.</b> <code>POST /ssl/api/v1/check/[ts].html</code> (param <code>domain</code>) → <code>get_result</code> → <b>~65 KB JSON</b> with <code>certificates, nist, hipaa, pci_dss, gdpr, post_quantum</code>.</li>
+          <li><b>Anonymous / no‑key access — VERIFIED.</b> Both APIs returned full results with <b>no API key and no signup</b>.</li>
+          <li><b>Per‑check + summary payload — VERIFIED present:</b> <code>http_headers, http_cookies, http_verbs, pci_dss_4, gdpr, dnssec, csp, third_party_content</code> + rolled‑up <code>summary</code>/<code>issues_summary</code> + <code>grade</code>/<code>score</code>/<code>compliance_pci_dss</code>/<code>compliance_gdpr</code>.</li>
+          <li><b>Recheck is gated — VERIFIED (by failure):</b> <code>recheck=true</code> anonymously returns <code>{"error_name":"not_logged_in","error_id":20}</code> — confirms rechecks need auth. Errors carry a <code>{error_name,error_id,error}</code> envelope.</li>
+        </ul>
+        <p style="margin-top:8px"><b>Two corrections to the spec below, from live behaviour:</b>
+        (1) <b>Multi‑IP handshake is mandatory</b> — hosts with several A‑records (Cloudflare etc.) first return <code>{"multiple_ips":[…]}</code> and refuse to scan until you resubmit with <code>choosen_ip=</code>. The adapter's start step is a two‑call handshake, not a single POST.
+        (2) <b><code>get_result</code> accepts <code>id=</code></b> for the cached path (docs show <code>job_id</code>).
+        (3) <b><code>app_scan</code> is absent</b> from the free/anonymous response — consistent with App‑Scan/CVE detail being key‑gated (<code>is_cut_vulns</code>); it is not part of the free payload.</p>
+        <p style="margin-top:6px;opacity:.8;font-size:.92em"><b>Not exercised:</b> the live <code>status_id:1 → 2</code> poll loop (every target was cached), the 50‑req/24h/IP cap (would exhaust quota), key‑unlocked CVE detail, and the email/darkweb/mobile surfaces.</p>
+      </div>
+    </div>
   </div>
 
   <!-- CAPABILITIES -->
@@ -375,17 +395,21 @@
       <div class="panel"><div class="inner">
         HTTP/HTTPS <b>POST</b>. Start a test, then poll for its result. The <code>[ustamp]</code> path segment is an arbitrary integer used as a cache‑buster.
         <div class="codeblock mono">
+# ✔ verified live 28 Jul 2026, anonymous / no key<br>
 # 1) start a Website Security Test — URL in<br>
 curl -X POST https://www.immuniweb.com/websec/api/v1/chsec/1699999999.html \<br>
-&nbsp;&nbsp;-d 'tested_url=https://example.com&amp;recheck=false'<br>
+&nbsp;&nbsp;-d 'tested_url=example.com&amp;recheck=false'<br>
+# → multi‑A‑record host: { "multiple_ips":[…], "token":"…" } — resubmit:<br>
+curl ... -d 'tested_url=example.com&amp;choosen_ip=104.20.23.154'<br>
 # → { "status":"test_started", "job_id":"…", "status_id":1 }<br>
 #   or { "status":"test_cached", "test_id":"…", "status_id":3 }<br><br>
-# 2) poll until in_progress (status_id:2) clears<br>
+# 2) poll until in_progress (status_id:2) clears &nbsp;(cached path uses id=)<br>
 curl -X POST https://www.immuniweb.com/websec/api/v1/get_result/1699999999.html \<br>
-&nbsp;&nbsp;-d 'job_id=…'<br>
-# → { "grade":"A", "score":90, "http_headers":{…}, "http_cookies":{…},<br>
-#     "http_verbs":{…}, "pci_dss_4":{…}, "gdpr":{…}, "dnssec":{…},<br>
-#     "app_scan":{…}, "third_party_content":{…} }
+&nbsp;&nbsp;-d 'id=…'&nbsp;&nbsp;# (job_id for a fresh test_started)<br>
+# → { "grade":"C+", "score":45, "http_headers":{…}, "http_cookies":{…},<br>
+#     "http_verbs":{…}, "pci_dss_4":{…}, "gdpr":{…}, "dnssec":{…}, "csp":{…},<br>
+#     "third_party_content":{…}, "summary":{…}, "issues_summary":{…} }<br>
+#   ("app_scan" only with a key — is_cut_vulns; absent in free response)
         </div>
         Confirmed surfaces: <code>websec</code>, <code>ssl</code>, <code>email</code>, <code>darkweb</code>, <code>mobile</code> (each a documented PDF spec). The SSL API mirrors this: base <code>/ssl/api/v1</code>, <code>POST /check/[ts].html</code> + <code>POST /get_result/[ts].html</code>, params <code>domain</code>/<code>choosen_ip</code>/<code>recheck</code>. PDF export needs an API key.
       </div></div>

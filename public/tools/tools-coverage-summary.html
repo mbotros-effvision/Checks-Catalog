@@ -88,6 +88,16 @@
   footer{border-top:1px solid var(--line);padding:26px 0 50px;color:var(--mut2);font-size:12.5px}
   .pill{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;border:1px solid var(--line)}
   .pill.good{color:var(--good)} .pill.warn{color:var(--warn)}
+  /* snurraFit badge */
+  .fitpill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;border:1px solid;white-space:nowrap;vertical-align:middle}
+  .fitpill .fdot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:0 0 auto}
+  .fitpill.f-native{color:var(--good);border-color:color-mix(in oklab,var(--good) 45%,var(--line))}
+  .fitpill.f-setup{color:var(--warn);border-color:color-mix(in oklab,var(--warn) 45%,var(--line))}
+  .fitpill.f-none{color:var(--bad);border-color:color-mix(in oklab,var(--bad) 45%,var(--line))}
+  .rfit{font-size:12.5px;color:var(--mut);margin-top:6px;max-width:640px}
+  .rfit b{color:var(--ink);font-weight:600}
+  .fitlegend{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 18px;font-size:12.5px;color:var(--mut)}
+  .fitlegend .li{display:flex;align-items:center;gap:7px}
 </style>
 </head>
 <body>
@@ -108,10 +118,10 @@
   <div class="hero">
     <span class="eyebrow">● Site-Audit tool evaluations · index</span>
     <h1>Which tools cover <span class="grad">how many checks</span></h1>
-    <p class="sub">A comparison index of the six vendor tools evaluated for embedding into the Snurra Site&#8209;Audit. Each row shows how many feasibility&#8209;catalog checks the tool can 100% cover; expand it to see the actual checks, the checks it covers that aren't in the catalog yet, its cost, how it integrates, and its limitations. Every figure traces to that tool's full analysis page.</p>
+    <p class="sub">A comparison index of the vendor tools evaluated for embedding into the Snurra Site&#8209;Audit. Each row shows how many feasibility&#8209;catalog checks the tool can 100% cover; expand it to see the actual checks, the checks it covers that aren't in the catalog yet, its cost, how it integrates, and its limitations. Every figure traces to that tool's full analysis page.</p>
 
     <div class="totals">
-      <div class="tot"><div class="big" id="totUnion">–<small> / 217</small></div><div class="lab">distinct catalog checks coverable across all six tools (union)</div><div class="barout"><div class="barin" id="totBar" style="width:0"></div></div></div>
+      <div class="tot"><div class="big" id="totUnion">–<small> / 217</small></div><div class="lab">distinct catalog checks coverable across all tools (union)</div><div class="barout"><div class="barin" id="totBar" style="width:0"></div></div></div>
       <div class="tot"><div class="big" id="totTools">6</div><div class="lab">tools evaluated · <span id="totSum">–</span> tool→check mappings (with overlaps)</div></div>
       <div class="tot"><div class="big" id="totNew">–</div><div class="lab">net-new checks these tools cover that the catalog doesn't have yet</div></div>
     </div>
@@ -119,8 +129,14 @@
 
   <section>
     <div class="kicker">Tools · sorted by catalog checks covered</div>
-    <h2>The six tools</h2>
+    <h2>The tools</h2>
     <p class="lead">Click a row to expand. "Catalog checks" are held to a 100%-certain bar (verbatim from <code>feasibility-app/data/checks.ts</code>); "net-new" are deterministic checks the tool covers that have no catalog entry — candidate additions.</p>
+    <div class="fitlegend">
+      <span style="font-weight:600;color:var(--ink)">Fits into Snurra (API integration):</span>
+      <span class="li"><span class="fitpill f-native"><span class="fdot"></span>API-native</span> URL/domain-in — drop-in adapter</span>
+      <span class="li"><span class="fitpill f-setup"><span class="fdot"></span>API + setup</span> API, but needs a provisioned target or your own test code</span>
+      <span class="li"><span class="fitpill f-none"><span class="fdot"></span>No API</span> run a binary, parse files</span>
+    </div>
     <div class="rows" id="rows"></div>
   </section>
 
@@ -153,7 +169,29 @@ function applyTheme(t){
 // ---- Data (check lists verbatim from each *-analysis.html COV[]/NEWCOV[]) ----
 var TOOLS=[
   {
+    name:"Sitebulb", file:"sitebulb-analysis.html",
+    ident:"SEO website crawler & auditor (Desktop + Cloud) — 300+ Hints, axe-core a11y, structured-data & Lighthouse",
+    costShort:"Desktop $18–42/mo (14-day trial) · Cloud from £95/mo",
+    cost:"Two products on one engine. Desktop: Lite ~$18/mo (10k URLs/audit), Pro ~$42/mo (500k URLs/audit, scheduled audits + comparisons), +£7/$11 per extra seat; 14-day free trial. Cloud: metered by monthly URL volume + seats — from £95/mo (Mini 50k URLs/mo) up to Enterprise 5m+/mo (>£20k/yr); no Cloud trial. USD figures are third-party (G2/Capterra); official amounts are JS-rendered.",
+    integ:{"Input":"A configured crawl project (start URL + HTML-vs-Chrome crawler, extraction toggles, optional GSC/GA OAuth) — not a bare URL. Chrome crawler required for accessibility, structured-data and performance.","API":"None. No public REST API and no CLI (confirmed by Sitebulb's FAQ + open feature requests). Programmatic hooks = Cloud webhooks (aggregated audit-level payload only), a Looker Studio connector, and a forthcoming read-only MCP server.","Adapter fit":"No ProviderAdapter shape — out-of-band only: schedule audits + ingest auto-exported CSV/XLSX, or receive the Cloud aggregated webhook. Treat as a scheduled, file-based data source; degrade to not-applicable when no fresh export exists."},
+    lims:["No API/CLI to trigger a crawl or pull per-URL data — cannot be driven synchronously on the audit hot path.","Cloud webhook carries aggregated audit-level data only, not per-URL Hints; Desktop is machine-bound (local CPU/RAM).","No consent-timing/tag-governance, SSL/DNS validity, uptime or visual regression; a11y limited to axe's deterministic rules."],
+    cov:["Full-site crawl & URL inventory","Internal link graph / cross-linking","Document & resource link inventory","No broken internal links (404 errors)","Broken links & 404 scan","Redirect chains + legacy/sunset domain surface","No infinite redirect loop on direct regional URL","Indexation (robots, sitemap, canonicals)","robots.txt does not block important pages","XML sitemap accessible","Metadata completeness (title/desc/H1/alt)","Unique title tag present on every page","Meta description present and correct length","Canonical self-referential check","Heading outline / hierarchy & multiple-H1","hreflang tags correct for all served locales","Structured data / schema presence","Structured-data JSON validity","HTTP automatically redirects to HTTPS","HTTP redirects to HTTPS correctly on all paths","No mixed content warnings in browser","Client vs server render check","Duplicate content similarity across pages","No placeholder text on any page","Copyright year current across all pages","No new pages published unexpectedly","No pages deleted or returning 404 unexpectedly","Colour contrast meets 4.5:1 ratio","Axe scan shows zero critical violations","Automated WCAG scan on key pages","HTML lang present + valid (BCP-47)","Viewport meta valid (zoom not disabled)","Core Web Vitals — lab (LCP/INP/CLS)","Page weight + render-blocking resources","Image optimisation + next-gen formats & lazy-load"],
+    newcov:["Orphan URLs — pages with no internal inbound links","Crawl depth — pages more than N clicks from the start URL","AMP validation errors","Sitemap lists non-indexable / orphaned / missing URLs","Rich-result eligibility (Google Features Validation)","Unused CSS / JavaScript per page (Code Coverage)"]
+  },
+  {
+    name:"Cookiebot (Usercentrics)", file:"cookiebot-analysis.html",
+    snurraFit:"api-with-setup", fitNote:"Reads only domains you own + onboarded (CBID script installed, then scanned) — can't be pointed at an arbitrary client URL.",
+    ident:"Consent Management Platform — cloud cookie/tracker scanner + consent widget",
+    costShort:"Free (1 domain ≤50 subpages) · Premium €7–€90/mo per domain",
+    cost:"Per-domain, metered by subpage count (not traffic). Free = 1 domain ≤50 subpages. Premium Lite €7 / Small €15–30 / Medium €30 / Large €50 / XLarge €90 per month per domain; no multi-site bundle discount. Usercentrics Advanced = contact sales. (Daily-scan add-on ≈€99/mo is secondary-sourced.)",
+    integ:{"Input":"A domain you own and have onboarded (CBID installed + scanned) — not an arbitrary URL. Arbitrary-domain scanning is UI-only (the free Cookie Checker, no API).","API":"Read-only REST GET (consent.cookiebot.com/api/v1) returning the last scan's cookie inventory; auth = api-key + domain-group serial in the URL path. No trigger, no webhooks, no published rate limits.","Adapter fit":"Clean sync GET adapter, but only for onboarded domains; monthly scan cadence (daily = paid add-on). Degrade to not-applicable if the domain isn't in the account."},
+    lims:["API reads only owned/onboarded domains — can't be pointed at an arbitrary client URL.","No webhooks and the API can't trigger a scan; freshness is the last monthly scan (daily is a paid add-on).","Inventory only — no pre/post-consent behavioral verdicts and no compliance-wording judgment."],
+    cov:["Third-party scripts / martech footprint","No unexpected new scripts appeared since last scan"],
+    newcov:["Every cookie/tracker classified by GDPR consent category","Unclassified / undeclared cookies present on the site","Cookie lifespan / expiry audit (excessive-duration & persistent cookies)","First-party vs third-party cookie breakdown","Cookie Secure / HTTPOnly flag audit","Non-cookie tracker & client-storage detection (Local Storage, IndexedDB, Flash LSO, pixels, beacons)","Cookie initiator / source-script attribution"]
+  },
+  {
     name:"Screaming Frog SEO Spider", file:"screaming-frog-analysis.html",
+    snurraFit:"no-api", fitNote:"No HTTP endpoint at any tier — the 'adapter' runs the licensed desktop/CLI binary headless and parses CSV/XLSX exports.",
     ident:"Desktop SEO crawler — technical-SEO / on-page / indexation audit",
     costShort:"Free ≤500 URLs · £199/yr per user",
     cost:"Free tier crawls up to 500 URLs per crawl. Paid licence £199/year (≈€245) per individual user — unlimited URLs (bounded only by RAM/SSD); bulk discounts from 5 licences.",
@@ -164,6 +202,7 @@ var TOOLS=[
   },
   {
     name:"ObservePoint", file:"observepoint-analysis.html",
+    snurraFit:"api-with-setup", fitNote:"Genuine REST API, but you must first build/configure an Audit in ObservePoint's UI and reference it by ID — not arbitrary URL-in; runs are async (trigger → webhook → fetch).",
     ident:"Real-Chrome tag / analytics / consent-governance scanner",
     costShort:"Usage-based (page scans + journeys), quote · free ≈300 pages",
     cost:"Usage-based and quote-oriented — billed on annual page scans + Journeys executed, not seats. Free ≈300 pages to prototype. Published dollar tiers are third-party/approximate; confirm by quote.",
@@ -174,6 +213,7 @@ var TOOLS=[
   },
   {
     name:"SEMrush", file:"semrush-analysis.html",
+    snurraFit:"api-native", fitNote:"URL/project-in Site Audit API — fits the ProviderAdapter as async launch-then-poll (API access requires the $499.95/mo Business plan + metered units).",
     ident:"SEO / marketing-intelligence SaaS — Site Audit cloud crawler",
     costShort:"Pro $139.95 / Guru $249.95 / Business $499.95 per mo",
     cost:"Pro $139.95 / Guru $249.95 / Business $499.95 per month. The Site Audit API is a Business-plan add-on, metered in API units; projects are capped per plan (Pro 5 / Guru 15 / Business 40).",
@@ -184,6 +224,7 @@ var TOOLS=[
   },
   {
     name:"BrowserStack Automate", file:"browserstack-automate-analysis.html",
+    snurraFit:"api-with-setup", fitNote:"REST API is code-in, not URL-in — you author and host the Selenium/Playwright script; the API only returns what your script asserts (plus logs/HAR).",
     ident:"Real-browser / real-device automation grid (runs your test code)",
     costShort:"Per parallel test; unlimited users (figures third-party)",
     cost:"Priced per parallel test/session with unlimited users; base plans include 1 parallel. Dollar figures are third-party/unverified (~$99–249/mo desktop → desktop+mobile). IP geolocation is Enterprise-tier.",
@@ -194,6 +235,7 @@ var TOOLS=[
   },
   {
     name:"Percy", file:"percy-analysis.html",
+    snurraFit:"api-with-setup", fitNote:"Driven by the Percy SDK inside your own test render (not a plain URL); result is a baseline-dependent diff a human approves/rejects — no one-shot URL→verdict.",
     ident:"Visual regression — pixel diff vs an approved baseline",
     costShort:"Free 5,000 screenshots/mo · then metered per screenshot",
     cost:"Free plan 5,000 screenshots/month (unlimited users/projects). Paid tiers add screenshots; usage beyond is metered per screenshot (a screenshot = one browser×width render). Exact paid prices are JS-rendered/unverified.",
@@ -204,6 +246,7 @@ var TOOLS=[
   },
   {
     name:"ImmuniWeb", file:"immuniweb-analysis.html",
+    snurraFit:"api-native", fitNote:"URL/domain-in REST API (async start-then-poll) — drop-in ProviderAdapter, callable free with no key. Live-verified 28 Jul 2026.",
     ident:"AI-driven security / SSL / privacy-compliance scanner (URL-in)",
     costShort:"Community free (50 req/24h/IP) · commercial API from $200/mo",
     cost:"Community Edition free (all tools + PDF); free Website API capped at 50 req/24h/IP. Commercial Website API from $200/mo. Paid products (EUR list): Neuron €595/yr per target; Discovery €1,495–4,495/mo; On-Demand / MobileSuite €995–14,995 per pentest.",
@@ -219,6 +262,14 @@ var CATALOG_TOTAL=217;
 function check(txt){ return '<div class="ci"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--good)" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg><span>'+txt+'</span></div>'; }
 function newc(txt){ return '<div class="ci"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg><span>'+txt+'</span></div>'; }
 
+// snurraFit — does the tool integrate through an API, and how?
+var FIT={
+  "api-native":    {lab:"API-native",  cls:"f-native", desc:"URL/domain-in HTTP API — drop-in ProviderAdapter"},
+  "api-with-setup":{lab:"API + setup", cls:"f-setup",  desc:"Has an API, but needs a provisioned target or your own test code before it returns anything"},
+  "no-api":        {lab:"No API",      cls:"f-none",   desc:"No HTTP endpoint — run a binary and parse files"}
+};
+function fitPill(k){ var f=FIT[k]||FIT["no-api"]; return '<span class="fitpill '+f.cls+'" title="'+f.desc+'"><span class="fdot"></span>'+f.lab+'</span>'; }
+
 var rowsEl=document.getElementById('rows');
 TOOLS.forEach(function(t,idx){
   var cov=t.cov.length, nc=t.newcov.length;
@@ -228,8 +279,9 @@ TOOLS.forEach(function(t,idx){
   row.innerHTML=
     '<div class="rowhead" data-i="'+idx+'">'+
       '<div>'+
-        '<div class="rname">'+t.name+'</div>'+
+        '<div class="rname">'+t.name+' '+fitPill(t.snurraFit)+'</div>'+
         '<div class="rident">'+t.ident+'</div>'+
+        (t.fitNote?'<div class="rfit"><b>Fits into Snurra:</b> '+t.fitNote+'</div>':'')+
         '<div class="rcost"><b>Cost:</b> '+t.costShort+'</div>'+
       '</div>'+
       '<div class="nums">'+
@@ -261,6 +313,7 @@ document.getElementById('totUnion').innerHTML=u+'<small> / '+CATALOG_TOTAL+'</sm
 document.getElementById('totBar').style.width=(u/CATALOG_TOTAL*100).toFixed(1)+'%';
 document.getElementById('totSum').textContent=sum;
 document.getElementById('totNew').textContent=newsum;
+document.getElementById('totTools').textContent=TOOLS.length;
 
 // When embedded in the app's Tools Analysis tab (?embed=1): hide our own header
 // (the app already provides brand + theme toggle) and report our content height so

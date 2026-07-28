@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sitebulb — Capabilities &amp; Embedding Analysis</title>
+<style>
+  :root{
+    --bg:#fbfaf6; --bg2:#f5f2ea; --panel:#ffffff; --panel2:#f7f5ef;
+    --line:#e9e5db; --line2:#ddd8cc;
+    --ink:#1c1a17; --mut:#6f6a61; --mut2:#9a948a;
+    --brand:#0f766e; --brand2:#0f766e; --accent:#0f766e;
+    --warn:#b45309; --bad:#b91c1c; --good:#0f766e;
+    --chip:#f2efe8; --shadow:0 1px 2px rgba(28,26,23,.04),0 8px 24px -12px rgba(28,26,23,.12);
+    --radius:14px;
+  }
+  html[data-theme="dark"]{
+    --bg:#131316; --bg2:#17171b; --panel:#1b1b1f; --panel2:#232328;
+    --line:#2c2c31; --line2:#3a3a41; --ink:#eceae4; --mut:#a39d93; --mut2:#6f6a62;
+    --brand:#2dd4bf; --brand2:#2dd4bf; --accent:#2dd4bf; --good:#2dd4bf;
+    --warn:#fbbf24; --bad:#f87171;
+    --chip:#232328; --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1100px 520px at 88% -8%,#eef6f4,transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,#f6f1e9,transparent 55%),
+               var(--bg);
+    background-attachment:fixed;
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  html[data-theme="dark"] body{
+    background:radial-gradient(1100px 520px at 88% -8%,rgba(45,212,191,.07),transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,rgba(180,140,60,.06),transparent 55%),
+               var(--bg);
+  }
+  a{color:var(--brand2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 22px}
+
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(15,118,110,.5)}
+  .logo .mark svg{width:18px;height:18px}
+  nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
+  nav.links a:hover{background:var(--chip); color:var(--ink); text-decoration:none}
+  .tbtn{border:1px solid var(--line2); background:var(--chip); color:var(--ink); border-radius:9px;
+    padding:7px 10px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; gap:6px; align-items:center}
+  .tbtn:hover{border-color:var(--brand)}
+
+  .hero{padding:46px 0 26px}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:var(--chip);
+    border:1px solid var(--line2); padding:6px 12px; border-radius:999px}
+  h1{font-size:40px; line-height:1.12; margin:16px 0 10px; letter-spacing:-.5px}
+  h1 .grad{background:linear-gradient(120deg,var(--brand2),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--mut); font-size:17px; max-width:810px}
+  .meta{margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; color:var(--mut2); font-size:13px}
+  .meta b{color:var(--mut)}
+
+  .tldr{margin-top:26px; border:1px solid var(--line2); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:var(--shadow); overflow:hidden}
+  .tldr .hd{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line);
+    font-weight:800; letter-spacing:.3px}
+  .tldr .hd .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,170,.18)}
+  .tldr .bd{padding:18px 20px; color:var(--mut); font-size:15.5px}
+  .tldr .bd strong{color:var(--ink)}
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .vcard{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .vcard h4{margin:0 0 4px; font-size:13px; color:var(--mut2); text-transform:uppercase; letter-spacing:.08em}
+  .vcard p{margin:0; font-size:14px; color:var(--ink)}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; margin-top:8px}
+  .pill.good{background:rgba(34,211,170,.14); color:var(--good); border:1px solid rgba(34,211,170,.35)}
+  .pill.warn{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.35)}
+  .pill.bad{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.35)}
+
+  section{padding:34px 0; border-top:1px solid var(--line)}
+  .kicker{font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--brand2)}
+  h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.3px}
+  .lead{color:var(--mut); max-width:880px; margin:0 0 20px}
+
+  .tabs{display:flex; gap:8px; margin:6px 0 18px; flex-wrap:wrap}
+  .tab{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:9px 16px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:14px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--accent)); color:#04122a; border-color:transparent}
+  .tabpane{display:none; animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .grid{display:grid; gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:16.5px; display:flex; align-items:center; gap:9px}
+  .card .ic{width:30px;height:30px;border-radius:9px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .card .ic svg{width:17px;height:17px;stroke:var(--brand2)}
+  .card p{margin:0; color:var(--mut); font-size:14px}
+  .tag{font-size:11px; font-weight:700; color:var(--mut2); background:var(--chip); border:1px solid var(--line2);
+    padding:2px 8px; border-radius:6px; margin-right:6px; display:inline-block; margin-top:8px}
+
+  .fit{overflow:hidden; border:1px solid var(--line); border-radius:14px}
+  .fitrow{display:grid; grid-template-columns:1.4fr 2.2fr .9fr; gap:0; border-bottom:1px solid var(--line)}
+  .fitrow:last-child{border-bottom:0}
+  .fitrow.head{background:var(--chip); font-weight:800; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut2)}
+  .fitrow>div{padding:14px 16px}
+  .fitrow .name{font-weight:700; color:var(--ink)}
+  .fitrow .name small{display:block; font-weight:500; color:var(--mut2); margin-top:3px}
+  .fitrow .desc{color:var(--mut); font-size:14px; border-left:1px solid var(--line); border-right:1px solid var(--line)}
+  .fitrow .verd{display:flex; align-items:center; justify-content:center}
+  .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
+  .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .badge.ok{background:rgba(15,118,110,.16); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
+
+  .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
+  .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
+  .callout.info{background:rgba(15,118,110,.08); border-color:rgba(15,118,110,.4)}
+  .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
+  .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
+  .callout.warn .cic{background:rgba(255,176,32,.16)}
+  .callout.info .cic{background:rgba(15,118,110,.16)}
+  .callout.bad .cic{background:rgba(255,93,108,.16)}
+  .callout h4{margin:0 0 5px; font-size:15.5px}
+  .callout p{margin:0; color:var(--mut); font-size:14.5px}
+  .callout.warn h4{color:var(--warn)}
+  .callout.bad h4{color:var(--bad)}
+  .callout .cic svg{width:19px;height:19px}
+
+  .picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
+  .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
+  .scn.active{border-color:var(--brand); background:rgba(15,118,110,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(15,118,110,.12)}
+  .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
+  .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
+  .rec h3{margin:6px 0 6px; font-size:18px}
+  .rec p{margin:0 0 8px; color:var(--mut); font-size:14.5px}
+  .rec .steps{margin:8px 0 0; padding-left:18px; color:var(--mut); font-size:14px}
+  .rec .steps li{margin:3px 0}
+
+  .filterbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--chip);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 12px}
+  .search input{border:0; background:transparent; color:var(--ink); font-size:14px; width:100%; outline:none}
+  .chip{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:7px 12px; border-radius:999px;
+    cursor:pointer; font-size:12.5px; font-weight:700}
+  .chip.active{background:var(--brand); color:#04122a; border-color:transparent}
+  .intgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .intitem{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px}
+  .intitem h5{margin:0 0 3px; font-size:14px}
+  .intitem span{font-size:12px; color:var(--mut2)}
+  .intitem .cat{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--brand2)}
+  .empty{color:var(--mut2); font-size:14px; padding:16px; text-align:center; grid-column:1/-1}
+
+  .covgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .covitem{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px; position:relative}
+  .covitem .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .covitem h5{margin:0; font-size:14.5px; color:var(--ink); font-weight:700; line-height:1.3}
+  .covitem .pil{font-size:10px; color:var(--mut2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+  .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
+  .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
+  .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .ttag.redundant{background:rgba(15,118,110,.14); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .ttag.partial{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
+    border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
+  .capname{color:var(--accent); font-weight:700}
+  .covcount{font-size:12.5px; color:var(--mut2); margin:0 0 10px}
+
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:10px; background:var(--panel)}
+  .acc>button{width:100%; text-align:left; background:transparent; border:0; color:var(--ink); padding:15px 18px;
+    font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .acc>button .ar{transition:transform .2s; color:var(--mut2)}
+  .acc.open>button .ar{transform:rotate(90deg)}
+  .acc .panel{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc.open .panel{max-height:1600px}
+  .acc .panel .inner{padding:0 18px 18px; color:var(--mut); font-size:14px}
+  code,.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px}
+  .codeblock{background:#0a1024; border:1px solid var(--line2); border-radius:10px; padding:13px 15px;
+    overflow:auto; color:#cfe0ff; margin:10px 0}
+  html[data-theme="light"] .codeblock{background:#0d1530; color:#dbe6ff}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:8px 0}
+  .kv code{color:var(--accent)}
+  .kv span{color:var(--mut)}
+
+  table.price{width:100%; border-collapse:collapse; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.price th,table.price td{padding:13px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top}
+  table.price th{background:var(--chip); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut2)}
+  table.price td.prod{font-weight:700; color:var(--ink)}
+  table.price td.prod small{display:block; font-weight:500; color:var(--mut2); margin-top:2px}
+  .money{font-weight:800; color:var(--accent)}
+  .quote{color:var(--warn); font-weight:700}
+  .freeword{color:var(--good); font-weight:800}
+
+  .refs{columns:2; column-gap:26px}
+  .refs .ref{break-inside:avoid; margin-bottom:12px; padding-left:14px; border-left:2px solid var(--line2)}
+  .refs .ref a{font-weight:600; font-size:13.5px}
+  .refs .ref p{margin:2px 0 0; color:var(--mut2); font-size:12px}
+
+  footer{padding:30px 0 60px; color:var(--mut2); font-size:12.5px; border-top:1px solid var(--line)}
+  .disc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px}
+
+  @media(max-width:860px){
+    .g2,.g3,.verdict,.intgrid,.covgrid{grid-template-columns:1fr}
+    .fitrow{grid-template-columns:1fr}
+    .fitrow .desc{border-left:0;border-right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .refs{columns:1}
+    h1{font-size:31px}
+    nav.links{display:none}
+  }
+  @media print{
+    header.top,.tbtn,.picker,.filterbar{display:none!important}
+    .tabpane{display:block!important} .acc .panel{max-height:none!important}
+    body{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><circle cx="6" cy="6" r="2.4" fill="#04122a"/><circle cx="18" cy="6" r="2.4" fill="#04122a"/><circle cx="12" cy="17" r="2.4" fill="#04122a"/><path d="M6.8 7.6L11 15M17.2 7.6L13 15M8 6h8" stroke="#04122a" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+      Sitebulb <span style="color:var(--mut2);font-weight:600">· Embedding Analysis</span>
+    </div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#embed">Embedding</a>
+      <a href="#api">API</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#coverage">Checks covered</a>
+      <a href="#recommend">Recommendation</a>
+      <a href="#refs">Sources</a>
+    </nav>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <span class="eyebrow">● Product &amp; Integration Assessment</span>
+    <h1>Sitebulb, assessed for <span class="grad">embedding into Snurra</span></h1>
+    <p class="sub">Sitebulb is an <b>SEO website crawler &amp; auditor</b> — it crawls a site in a real Chromium engine and produces prioritised <b>“Hints”</b> across technical SEO, indexability, internal links, redirects, structured data, hreflang, <b>accessibility (Deque axe‑core)</b>, security and <b>Lighthouse performance</b>. It ships as <b>Desktop</b> (installed) and <b>Cloud</b> (hosted) on one engine. The catch for embedding: it has <b>no public REST API and no CLI</b> — the only programmatic hooks are <b>Cloud webhooks</b> (aggregated audit‑level payload) and auto‑exported files. This page maps its capabilities, how it could realistically slot into Snurra’s worker, what it costs, and — held to a strict 100%‑certain bar — precisely which feasibility‑catalog checks it can cover.</p>
+    <div class="meta">
+      <span><b>Prepared:</b> 28 Jul 2026</span>
+      <span><b>Use case:</b> Technical‑SEO crawl, accessibility &amp; structured‑data coverage for the Snurra Site Audit</span>
+      <span><b>Catalog:</b> feasibility‑app · 217 checks</span>
+    </div>
+
+    <div class="tldr">
+      <div class="hd"><span class="dot"></span> Bottom line up front</div>
+      <div class="bd">
+        Sitebulb crawls in <strong>real Chromium</strong> and produces 300+ prioritised Hints. Held to a strict bar it can cover <strong>35 catalog checks</strong> — a broad technical‑SEO surface (crawl/URL inventory, broken links, redirects, indexation, metadata, canonicals, headings, hreflang, structured‑data validity), plus <strong>Deque axe‑core accessibility</strong>, a <strong>Response‑vs‑Render</strong> check, <strong>duplicate content</strong>, and <strong>Lighthouse performance</strong>. Its blocker for Snurra is integration: <strong>no REST API and no CLI</strong> (confirmed by Sitebulb’s own FAQ and long‑open feature requests). Programmatic access is limited to <strong>Cloud webhooks</strong> — an “Audit Finished” callback carrying <em>aggregated audit‑level</em> data, not per‑URL results — a <strong>Looker Studio connector</strong>, and a <strong>forthcoming MCP server</strong> (read/query, not a crawl trigger). Realistic wiring is out‑of‑band: schedule audits and ingest auto‑exported CSV/Excel, or receive the aggregated webhook. Pricing: Desktop <strong>Lite/Pro</strong> (14‑day trial), Cloud <strong>from £95/mo</strong>, metered by monthly URL volume + seats. It does <strong>not</strong> do consent‑timing behaviour, tag governance, SSL/DNS validity, uptime, or visual regression.
+        <div class="verdict">
+          <div class="vcard"><h4>Technical fit</h4><p><b>No public API and no CLI</b> to trigger a crawl or pull per‑URL data. Hooks are Cloud webhooks (aggregated) + auto‑export files — an <b>out‑of‑band</b> source, not a clean <code>ProviderAdapter</code>.</p><span class="pill bad">No API / no CLI</span></div>
+          <div class="vcard"><h4>What it covers</h4><p><b>35 checks</b> — broad technical‑SEO crawl + axe‑core accessibility + structured‑data validation + Lighthouse performance. Plus 6 net‑new candidates.</p><span class="pill good">Broad crawl surface</span></div>
+          <div class="vcard"><h4>Cost</h4><p><b>Desktop $18–42/mo</b> (Lite/Pro; 14‑day trial). <b>Cloud from £95/mo</b>, metered by monthly URL volume + seats. Exact $ figures third‑party.</p><span class="pill warn">Per‑seat + volume</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="kicker">01 · What Sitebulb actually does</div>
+    <h2>Capabilities</h2>
+    <p class="lead">Two layers matter for embedding: what the <b>crawler audits</b> (the Hints and reports it produces per URL) and its <b>automation surface</b> (how — or whether — a backend can drive it and get data out). Toggle between them:</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="scan">The crawler &amp; what it audits</button>
+      <button class="tab" data-tab="auto">Automation &amp; data‑out surface</button>
+    </div>
+
+    <div class="tabpane active" data-pane="scan">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 7l4 9M17 7l-4 9M8 6h8"/></svg></span>Crawl &amp; URL inventory</h3><p>Crawls a site with an <b>HTML</b> or <b>Chrome (JavaScript)</b> crawler on the same Evergreen Chromium engine as Google, inventorying every URL, internal‑link graph, resources and documents. Up to <b>500k URLs/audit</b> Desktop (raisable), <b>10m</b> Cloud.</p><span class="tag">HTML / JS crawler</span><span class="tag">Link graph</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 12l2 2 4-4"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></span>Indexability &amp; Hints</h3><p><b>300+ prioritised Hints</b> across Indexability, Links, On Page, Redirects, Internal, XML Sitemaps and more — robots.txt vs crawl, canonicals, redirect chains/loops, broken links &amp; 404s, duplicate/missing titles &amp; meta, heading structure.</p><span class="tag">300+ Hints</span><span class="tag">Severity</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg></span>Structured data</h3><p>Extracts <b>JSON‑LD and Microdata</b> and validates from two angles: <b>Schema.org</b> spec (S‑tagged) and <b>Google rich‑results</b> guidelines (G‑tagged). Also a standalone tool replacing Google’s retired Structured Data Testing Tool.</p><span class="tag">Schema.org</span><span class="tag">Google rich results</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 000 18M3 12h18"/></svg></span>International (hreflang)</h3><p>Dedicated hreflang checker: reciprocal‑pair validation, missing return tags, conflicting/ invalid annotations across every crawled locale.</p><span class="tag">hreflang</span><span class="tag">Reciprocity</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>Accessibility (axe‑core)</h3><p>Accessibility Hints <b>powered by Deque’s axe library</b> — <b>95+ automated checks</b>, coverage up to <b>WCAG 2.2 AAA</b>, selectable standard, each Hint linked to Deque University. Requires the Chrome crawler.</p><span class="tag">Deque axe‑core</span><span class="tag">WCAG 2.2</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>Performance (Lighthouse)</h3><p>The Performance report <b>captures Core Web Vitals</b> and runs a <b>Lighthouse audit</b> per URL — a Performance Score split into Opportunities and Diagnostics (page weight, render‑blocking, image optimisation).</p><span class="tag">Lighthouse</span><span class="tag">CWV lab</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/></svg></span>Response vs Render</h3><p>Compares the raw HTML <b>response</b> against the JavaScript‑<b>rendered</b> DOM — surfacing content that only appears after client‑side rendering. Plus a <b>Code Coverage</b> report for unused CSS/JS.</p><span class="tag">Render diff</span><span class="tag">Code coverage</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Security &amp; HTTPS</h3><p>The Security report flags <b>mixed content</b>, internal HTTP URLs, HTTPS→HTTP links, password fields / forms on HTTP, and protocol‑relative resources. (Named security headers such as HSTS/CSP were not confirmed on the docs read.)</p><span class="tag">Mixed content</span><span class="tag">HTTPS</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg></span>Content &amp; extraction</h3><p><b>Duplicate Content</b> detection, <b>Content Extraction &amp; Search</b> (XPath/regex over crawled markup for placeholder text, footer year, arbitrary patterns), and <b>audit comparisons</b> diffing one crawl against the previous.</p><span class="tag">Duplicate content</span><span class="tag">Custom search</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M12 3l9 16H3l9-16z" transform="rotate(180 12 12)"/><path d="M12 8v5M12 16h.01"/></svg></span>
+        <div><h4>The defining strength (for embedding)</h4><p>Sitebulb’s verdicts are <b>deterministic crawl output</b>: a URL returned 404, a canonical is self‑referential (or not), a title is missing/duplicated, an axe rule failed, a JSON‑LD block is invalid against Schema.org, an hreflang pair is non‑reciprocal — <b>no human, AI‑text or visual judgment</b>. Its accessibility (axe‑core) and structured‑data (Schema.org + Google) validators are the same engines a DIY build would use, wrapped in a mature crawler. The weakness is purely how you get the data <em>out</em> — covered next.</p></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="auto">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg></span>No public REST API</h3><p>Sitebulb’s FAQ, on full data/API access: <b>“Not yet, no.”</b> There is no documented endpoint to trigger a crawl or pull per‑URL results. This is the defining integration constraint — like Screaming Frog, it is fundamentally an app, not a service.</p><span class="tag">No API</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></span>No CLI</h3><p>Command‑line / headless‑trigger support exists only as <b>open feature requests</b> on Sitebulb’s own board (first asked 2019, still “under consideration”) — not a shipped feature. You cannot script a crawl from a pipeline.</p><span class="tag">Feature request</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 12a8 8 0 018-8M20 12a8 8 0 01-8 8"/><path d="M12 8v4l3 2"/></svg></span>Cloud webhooks</h3><p>Sitebulb Cloud posts an <b>“Audit Finished” callback</b> (plus progress/error events) carrying <b>aggregated audit‑level</b> data to your URL. The closest thing to a completion signal — but not per‑URL Hints, and you must build the receiver.</p><span class="tag">Aggregated</span><span class="tag">Cloud only</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>Exports &amp; auto‑drop</h3><p><b>CSV</b>, multi‑sheet <b>Excel</b>, white‑label <b>PDF</b>, <b>Google Sheets</b> and <b>Looker Studio</b>. Desktop <b>Data Exports</b> auto‑save files to a shared/cloud folder when an audit finishes — a file‑drop pipeline.</p><span class="tag">CSV / XLSX</span><span class="tag">Auto‑save</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Scheduling &amp; compare</h3><p><b>Scheduled / recurring audits</b> (Pro Desktop + Cloud; Cloud runs server‑side with nothing left on) and <b>audit comparisons</b> that diff a crawl against the previous run — the basis for change detection.</p><span class="tag">Recurring</span><span class="tag">Diff runs</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l2 5 5 .5-4 3.5 1.3 5L12 19l-4.3 3 1.3-5-4-3.5 5-.5z"/></svg></span>MCP server (coming)</h3><p>A <b>Model Context Protocol</b> server to query audits in plain English from Claude/ChatGPT is on a waitlist for paid Cloud/Desktop subscribers — a <b>read/query</b> interface for AI assistants, <b>not</b> a general crawl‑trigger API.</p><span class="tag">Forthcoming</span><span class="tag">Read‑only</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout warn">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 001.7 3h16.6A2 2 0 0022 18L13.7 3.9a2 2 0 00-3.4 0z"/></svg></span>
+        <div><h4>How Snurra would actually drive it</h4><p>There is <b>no <code>ProviderAdapter</code> shape here</b> — no request to build, no JSON response to map. The only realistic wiring is <b>out‑of‑band</b>: (a) schedule audits (Pro/Cloud) and have Snurra ingest the <b>auto‑exported CSV/Excel</b> from a shared folder, or (b) stand up a receiver for Cloud’s <b>aggregated “Audit Finished” webhook</b> and treat it as a trigger to fetch/parse the export. Neither returns per‑URL data over HTTP on demand. Treat Sitebulb as a <b>scheduled, file‑based data source</b>, degrade to <code>not‑applicable</code> when no fresh export exists, and note the Desktop app is <b>machine‑bound</b> (local CPU/RAM) — Cloud removes that but still has no per‑URL API.</p></div>
+      </div>
+    </div>
+
+    <div style="margin-top:14px" class="card">
+      <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></span>Standards &amp; frameworks it relies on</h3>
+      <p><b>Deque axe‑core</b> → WCAG 2.0/2.1/<b>2.2</b> (A→AAA, selectable). <b>Schema.org</b> spec + <b>Google Rich Results</b> guidelines for structured‑data validation (JSON‑LD, Microdata). <b>Google Lighthouse</b> + <b>Core Web Vitals</b> for the Performance report. <b>robots.txt</b> / <b>XML Sitemap</b> standards, <b>hreflang</b> annotations, <b>HTTPS</b> / mixed‑content. <b>Google Search Console</b> &amp; <b>GA4</b> integrations overlay real search/engagement data onto crawls (orphan‑URL discovery). Per‑metric CWV naming and BCP‑47 language‑code validation were not explicitly confirmed on the pages read — flagged in Sources.</p>
+      <span class="tag">axe‑core / WCAG 2.2</span><span class="tag">Schema.org + Google</span><span class="tag">Lighthouse / CWV</span><span class="tag">robots / sitemap / hreflang</span><span class="tag">GSC + GA4</span>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section id="embed">
+    <div class="kicker">02 · Applicability — how it slots into Snurra</div>
+    <h2>Embedding paths, ranked</h2>
+    <p class="lead">Unlike PageSpeed / ObservePoint / BrowserStack, Sitebulb is <b>not</b> an HTTP service you wrap in a <code>ProviderAdapter</code> — there is no API to trigger a crawl or fetch per‑URL data. The ranking below is therefore about the least‑bad <em>out‑of‑band</em> wiring, not a live adapter.</p>
+
+    <div class="fit">
+      <div class="fitrow head"><div>Path</div><div>What it's good for</div><div>Fit</div></div>
+      <div class="fitrow">
+        <div class="name">Scheduled audit → auto‑export → ingest files <small>(Desktop Pro / Cloud → shared folder → Snurra parses CSV/XLSX)</small></div>
+        <div class="desc">The only path that yields <b>per‑URL data</b>. Schedule recurring audits, auto‑save exports to a shared/cloud folder on finish, and have Snurra ingest and parse the CSV/Excel out‑of‑band. Delivers the full crawl / technical‑SEO / axe‑core / structured‑data / performance surface — just on a schedule, not on demand.</div>
+        <div class="verd"><span class="badge ok">Best available</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Cloud “Audit Finished” webhook <small>(aggregated payload → trigger ingest)</small></div>
+        <div class="desc">Stand up a receiver for Cloud’s completion callback. Good as a <b>“crawl is done”</b> signal and for <b>top‑level Hint counts</b>, but the payload is <b>aggregated audit‑level</b> data — not per‑URL Hints — so pair it with the export ingest above for detail.</div>
+        <div class="verd"><span class="badge cond">Partial</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">MCP server for AI‑driven queries <small>(forthcoming; read/query)</small></div>
+        <div class="desc">When released, lets an assistant query audit data in natural language. Useful for ad‑hoc analysis, not a deterministic data feed — <b>not yet available</b>, and read‑only (cannot trigger a crawl).</div>
+        <div class="verd"><span class="badge cond">Not yet</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Live per‑URL pull in the audit hot path <small>(trigger + fetch inside a request)</small></div>
+        <div class="desc">There is no public API or CLI to trigger a crawl or read a URL’s Hints synchronously. This cannot be built without scraping the desktop app’s local store — brittle and unsupported.</div>
+        <div class="verd"><span class="badge no">Not possible</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="callout warn">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 001.7 3h16.6A2 2 0 0022 18L13.7 3.9a2 2 0 00-3.4 0z"/></svg></span>
+      <div>
+        <h4>Integration shape (contrast with the sync tools)</h4>
+        <p>PSI is a single GET; ObservePoint is trigger→webhook→fetch. Sitebulb is neither — the adapter would be a <b>file/inbox watcher</b>, not <code>buildRequest()/mapResponse()</code>. Config (start URL, HTML‑vs‑Chrome crawler, extraction toggles, GSC/GA OAuth) lives in the Sitebulb project; a human or scheduler kicks the crawl; Snurra reacts to a <b>new export landing in a folder</b> (or the Cloud webhook) and parses it. Gate on “is there a fresh export for this domain?”; degrade to <code>not‑applicable</code> otherwise. Because the Chrome crawler is required for <b>accessibility and structured‑data</b> analysis (and Lighthouse for performance), those must be enabled in the project config, and the crawl is <b>slower and heavier</b> than an HTML‑only crawl.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API / TECHNICAL -->
+  <section id="api">
+    <div class="kicker">03 · Technical detail — automation surface, scale &amp; licensing</div>
+    <h2>What integrating actually looks like</h2>
+    <p class="lead">Enough to scope an integration spike. The headline is what’s <em>absent</em>. Expand for detail:</p>
+
+    <div class="acc open">
+      <button>No REST API / no CLI — the defining constraint <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        Sitebulb’s own FAQ, on whether full data extraction / API access is available: <b>“Not yet, no. You are able to extract aggregated data via webhooks or through our Data Studio Connector.”</b> There is no endpoint to trigger a crawl or pull per‑URL results, and CLI support is an <b>open feature request</b> (since 2019), not a feature.
+        <div class="codeblock mono">
+# There is NO endpoint like:  POST /crawls   or   GET /audits/{id}/urls<br>
+# The only programmatic hooks are Cloud webhooks + file export.<br><br>
+# 1) Sitebulb Cloud → Settings → Webhooks → "Audit Finished URL"<br>
+#    On completion Cloud POSTs AGGREGATED audit-level data (not per-URL Hints):<br>
+POST https://your-endpoint.example/sitebulb-hook<br>
+{ "event":"audit_finished", "domain":"example.com",<br>
+&nbsp;&nbsp;"urlsCrawled": 24310, "hints": { "critical": 12, "warning": 40 },<br>
+&nbsp;&nbsp;"scores": { "accessibility": 78, "seo": 91 } }&nbsp;&nbsp;// shape illustrative<br><br>
+# 2) Desktop → Project → Data Exports → auto-save CSV/XLSX to a shared folder on finish<br>
+#    + a scheduled audit = an out-of-band file drop Snurra ingests &amp; parses.
+        </div>
+        The payload shape above is <b>illustrative</b> — Sitebulb documents that the webhook carries "all top‑level aggregated audit data", but the exact field names were not published on the pages read. Treat per‑URL detail as available only via the file exports.
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Crawlers, rendering &amp; scale <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Crawler</code><span><b>HTML</b> or <b>Chrome (JavaScript)</b> crawler on the same <b>Evergreen Chromium</b> engine as Google. The <b>Chrome crawler is required</b> for accessibility (axe‑core) and structured‑data analysis; Lighthouse powers the Performance report.</span>
+          <code>Desktop scale</code><span><b>500,000 URLs/audit</b> default (raisable to ~2m, machine‑permitting); <b>Lite</b> capped at <b>10,000</b>. Bound by local CPU/RAM. No project limit.</span>
+          <code>Cloud scale</code><span>Up to <b>10m URLs/audit</b>; tiers meter a <b>monthly URL allowance</b> + per‑audit cap + seats (Mini 50k/mo · Small 1m · Medium 2.5m · Enterprise 5m+).</span>
+          <code>Concurrency</code><span>Cloud markets "multiple audits running simultaneously"; exact concurrency numbers are not published (flagged).</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Scheduling, comparisons &amp; data‑out <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Scheduling</code><span>Recurring/scheduled audits on <b>Pro (Desktop)</b> and <b>Cloud</b> (server‑side; nothing left running). Not in Lite.</span>
+          <code>Comparisons</code><span><b>Audit comparisons</b> diff a crawl against the previous run — surfacing new/removed URLs and Hint deltas (the basis for change detection).</span>
+          <code>Exports</code><span><b>CSV</b> (default), multi‑sheet <b>Excel</b>, white‑label <b>PDF</b>, <b>Google Sheets</b>, <b>Looker Studio</b> connector. Desktop <b>Data Exports</b> auto‑save to a local/shared/cloud folder on finish.</span>
+          <code>Webhooks</code><span>Cloud only — audit‑finished / progress / error callbacks carrying <b>aggregated</b> data. No per‑URL push.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Integrations &amp; forthcoming MCP <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Google</code><span><b>Search Console</b> + <b>GA4</b> overlay real search/engagement data onto the crawl — the basis for orphan‑URL discovery and the Search Traffic report.</span>
+          <code>BI</code><span><b>Looker Studio (Data Studio) connector</b> for aggregated dashboards. No general data‑warehouse connector found.</span>
+          <code>MCP</code><span>A <b>Model Context Protocol</b> server (query audits in plain English from Claude/ChatGPT) is on a waitlist for paid subscribers — <b>read/query only</b>, not a crawl‑trigger API.</span>
+          <code>Platforms</code><span>Desktop on Windows / Mac / Linux (Linux/server use referenced on the community board — treat as semi‑official).</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <section id="integrations">
+    <div class="kicker">04 · Feature &amp; ecosystem map</div>
+    <h2>What it audits &amp; plugs into</h2>
+    <p class="lead">A quick map of Sitebulb’s surface — the crawl engines, the report/validation layers, its (limited) automation hooks and ecosystem integrations. Filter it:</p>
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="intSearch" type="text" placeholder="Search features & integrations…">
+      </div>
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="Crawling">Crawling</button>
+      <button class="chip" data-cat="Reports">Reports</button>
+      <button class="chip" data-cat="Automation">Automation</button>
+      <button class="chip" data-cat="Integration">Integration</button>
+    </div>
+    <div class="intgrid" id="intGrid"></div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="kicker">05 · Pricing</div>
+    <h2>What it costs</h2>
+    <p class="lead">Two products. <b>Desktop</b> is per‑seat with a per‑audit URL cap; <b>Cloud</b> is metered by <b>monthly URL volume</b> + seats. Plan <b>specs</b> (URL limits, seats) are from the official pricing table; the official page renders the <b>currency figures via JavaScript</b>, so the dollar amounts below are <b>third‑party‑corroborated (G2 / Capterra / TMB) and approximate</b> — verify against a live quote.</p>
+    <table class="price">
+      <thead><tr><th>Plan</th><th>Price</th><th>Model &amp; notes</th></tr></thead>
+      <tbody>
+        <tr><td class="prod">Desktop Lite<small>1 user</small></td><td><span class="quote">~$18</span>/mo</td><td>Official spec: <b>10,000 URLs/audit</b>, 100+ Hints, <b>14‑day free trial</b>. The $18 (≈$13.50/mo annual) figure is <b>third‑party</b> (G2/Capterra).</td></tr>
+        <tr><td class="prod">Desktop Pro<small>1 user · +$11/£7 each</small></td><td><span class="quote">~$42</span>/mo</td><td>Official spec: <b>500,000 URLs/audit</b>, 300+ Hints, <b>scheduled audits</b>, <b>audit comparisons</b>, customised PDF reports. Extra users <b>£7</b>/mo (official) ≈ $11 (third‑party). Price figure third‑party.</td></tr>
+        <tr><td class="prod">Cloud Mini<small>2 users</small></td><td><span class="quote">~$125</span>/mo</td><td>Official spec: <b>50,000 URLs/mo</b>, 50k max/audit, no desktop licences. Official page states Cloud starts <b>“from £95/month.”</b> USD figure third‑party.</td></tr>
+        <tr><td class="prod">Cloud Small<small>5 users</small></td><td><span class="quote">~$245</span>/mo</td><td>Official spec: <b>1,000,000 URLs/mo</b>, 250k max/audit, desktop licences included. USD figure third‑party.</td></tr>
+        <tr><td class="prod">Cloud Medium<small>10 users</small></td><td><span class="quote">~$495</span>/mo</td><td>Official spec: <b>2.5m URLs/mo</b>, 1m max/audit, desktop licences. USD figure third‑party.</td></tr>
+        <tr><td class="prod">Cloud Enterprise<small>10+ users</small></td><td><span class="quote">Custom quote</span></td><td>Official spec: <b>5m+ URLs/mo</b>, 2.5m+ max/audit. Official page: Enterprise <b>“in excess of £20k/year.”</b></td></tr>
+        <tr><td class="prod">Free trial<small>Desktop only</small></td><td><span class="freeword">14 days</span></td><td>14‑day free trial of Sitebulb Desktop (equivalent to Pro), no credit card. <b>Sitebulb Cloud has no free trial.</b> No credit system; no API ⇒ no API rate limits.</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--mut2);font-size:12.5px;margin-top:10px">Plan <b>specs</b> (URL caps, seats, trial, £95/£20k Cloud anchors) are grounded in Sitebulb’s official pricing pages. The <b>USD amounts</b> are <b>third‑party (G2 / Capterra / thatmarketingbuddy) and approximate</b>, gathered 28 Jul 2026 — the official page’s figures are JS‑rendered and should be confirmed by quote. The real cost driver: Desktop = per‑audit URL cap + seats; Cloud = monthly URL crawl volume + seats.</p>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="coverage">
+    <div class="kicker">06 · Which catalog checks it can cover</div>
+    <h2>Coverage — held to a 100%‑certain bar</h2>
+    <p class="lead">A check is listed <b>only if</b> Sitebulb can produce its verdict as <b>deterministic crawl output</b> — a status code, a canonical/redirect/indexability fact, a metadata presence/length, an axe‑core rule result, a Schema.org/Google structured‑data validation, an hreflang reciprocity check, a Lighthouse metric, a render diff or a run‑over‑run comparison — with <b>no human, AI‑text or visual judgment</b>. Checks where Sitebulb captures only part of the signal (e.g. “descriptive” alt text, security‑header specifics, regional‑canonical correctness) are excluded; this is the set it can cover end‑to‑end. Several require the <b>Chrome crawler</b> (accessibility, structured data, performance) or a configured <b>Content Search</b> / a <b>second audit</b> to compare.</p>
+
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="covSearch" type="text" placeholder="Search covered checks…">
+      </div>
+    </div>
+    <p class="covcount" id="covCount"></p>
+    <div class="covgrid" id="covGrid"></div>
+
+    <div class="newcov" style="margin-top:32px">
+      <h3 style="font-size:19px;margin:0 0 6px">Additional checks it can cover — <span style="color:var(--mut2);font-weight:600">not in the catalog</span></h3>
+      <p class="lead" style="margin-top:0">Deterministic checks Sitebulb covers that have <b>no matching entry</b> in <code>checks.ts</code> — candidate additions to the catalog. Each is referenced.</p>
+      <div class="covgrid" id="newCovGrid"></div>
+    </div>
+
+    <div style="margin-top:18px" class="callout bad">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>
+      <div>
+        <h4>What Sitebulb does NOT cover (for Snurra)</h4>
+        <p>Excluded, because Sitebulb can’t deliver these verdicts on its own: <b>consent‑timing behaviour</b> (tags/cookies firing before/after a consent click — it inventories markup, it doesn’t drive a CMP) · <b>tag/analytics governance</b> (GA4‑post‑consent, duplicate pageviews, correct‑property — it isn’t a network/dataLayer validator) · <b>SSL certificate validity / expiry, DNS &amp; domain‑whois</b> (it flags mixed content, not cert chains) · <b>uptime monitoring</b> · <b>visual regression</b> · <b>real‑device / geo content correctness</b> · <b>compliance <em>meaning</em></b> (PI/ISI/GDPR wording — AI‑text judgments) · and the <b>fuller accessibility verdicts</b> beyond axe’s deterministic rules (true keyboard operability, alt‑text <em>descriptiveness</em>).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommend">
+    <div class="kicker">07 · Recommendation</div>
+    <h2>Pick your scenario</h2>
+    <p class="lead">Sitebulb’s value is a broad, mature crawl surface; its constraint is that data only comes out of band. The recommendation is about wiring that reality sensibly. Click the closest match:</p>
+    <div class="picker" id="picker">
+      <button class="scn active" data-s="a">Ingest the crawl surface via scheduled exports<small>the only per‑URL path</small></button>
+      <button class="scn" data-s="b">Use the Cloud webhook as a trigger<small>aggregated “audit finished”</small></button>
+      <button class="scn" data-s="c">Lean on axe‑core + structured‑data<small>Chrome crawler required</small></button>
+      <button class="scn" data-s="d">Change detection via audit comparison<small>run‑over‑run diff</small></button>
+    </div>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="kicker">08 · Sources</div>
+    <h2>References</h2>
+    <p class="lead">Sitebulb facts are from sitebulb.com, its documentation/support (support.sitebulb.com) and its own FAQ/feature board, gathered 28 Jul 2026. Plan <b>specs</b> are official; the <b>USD price figures are third‑party</b> (G2 / Capterra / thatmarketingbuddy) because the official amounts are JS‑rendered. Items flagged <b>UNVERIFIED</b> could not be confirmed on the pages read. Check names are quoted verbatim from <code>feasibility-app/data/checks.ts</code>.</p>
+    <div class="refs">
+      <div class="ref"><a href="https://sitebulb.com/product/" target="_blank" rel="noopener">Sitebulb — product</a><p>Reports: Crawl Maps, Structured Data, Content Extraction &amp; Search, Code Coverage, Response vs Render, Single Page Analysis, Performance (Lighthouse + CWV).</p></div>
+      <div class="ref"><a href="https://sitebulb.com/hints/" target="_blank" rel="noopener">Hints (15 categories)</a><p>Indexability, Links, On Page, Redirects, Internal, Search Traffic, XML Sitemaps, Security, International, Accessibility, AMP, Duplicate Content, Mobile Friendly, Performance, Rendered.</p></div>
+      <div class="ref"><a href="https://sitebulb.com/features/" target="_blank" rel="noopener">Features</a><p>300+ Hints; scheduled audits (Pro); Evergreen Chromium JS rendering.</p></div>
+      <div class="ref"><a href="https://sitebulb.com/product/accessibility/" target="_blank" rel="noopener">Accessibility (axe‑core)</a><p>Powered by Deque’s axe library; 95+ automated checks; up to WCAG 2.2 AAA; selectable standard; requires Chrome crawler.</p></div>
+      <div class="ref"><a href="https://sitebulb.com/product/structured-data/" target="_blank" rel="noopener">Structured data</a><p>JSON‑LD + Microdata; Schema.org (S) + Google Features (G) validation; STDT replacement.</p></div>
+      <div class="ref"><a href="https://sitebulb.com/hints/performance/" target="_blank" rel="noopener">Performance Hints</a><p>Captures Core Web Vitals + Lighthouse audit; Performance Score, Opportunities &amp; Diagnostics. (Per‑metric LCP/INP/CLS naming &amp; PSI‑API use UNVERIFIED at that granularity.)</p></div>
+      <div class="ref"><a href="https://sitebulb.com/hints/security/" target="_blank" rel="noopener">Security Hints</a><p>Mixed content, internal HTTP, HTTPS→HTTP links, password/forms on HTTP, protocol‑relative resources. (Named headers HSTS/CSP UNVERIFIED.)</p></div>
+      <div class="ref"><a href="https://sitebulb.com/faqs/" target="_blank" rel="noopener">Sitebulb FAQ</a><p>“Not yet, no” on API/full‑data access — aggregated data via webhooks / Data Studio connector only. 500k URL default; 14‑day trial; no Cloud trial.</p></div>
+      <div class="ref"><a href="https://features.sitebulb.com/suggestions/52576/cli-access" target="_blank" rel="noopener">CLI access (feature request)</a><p>Community board — CLI is an open, unshipped request (2019).</p></div>
+      <div class="ref"><a href="https://sitebulb.com/documentation/sitebulb-cloud/extracting-crawl-data-via-webhooks/" target="_blank" rel="noopener">Cloud webhooks</a><p>Audit Finished / progress / error callbacks carrying aggregated audit‑level data; you build the receiver.</p></div>
+      <div class="ref"><a href="https://support.sitebulb.com/en/articles/9854016-data-exports-settings" target="_blank" rel="noopener">Data Exports settings</a><p>Auto‑save CSV/XLSX exports to a local/shared/cloud folder when an audit finishes.</p></div>
+      <div class="ref"><a href="https://support.sitebulb.com/en/articles/9497280-build-pdf-reports-from-sitebulb-audits" target="_blank" rel="noopener">PDF reports</a><p>Per‑report / whole‑audit, white‑labelable.</p></div>
+      <div class="ref"><a href="https://sitebulb.com/features/integrations/" target="_blank" rel="noopener">Integrations</a><p>Google Search Console + GA4 overlays (orphan URLs); Looker Studio; MCP listed.</p></div>
+      <div class="ref"><a href="https://sitebulb.com/mcp/" target="_blank" rel="noopener">MCP server (waitlist)</a><p>Query audits in plain English from Claude/ChatGPT — read/query, forthcoming, paid subscribers.</p></div>
+      <div class="ref"><a href="https://sitebulb.com/cloud/compare/desktop-vs-cloud/" target="_blank" rel="noopener">Desktop vs Cloud</a><p>Same engine; Cloud up to 10m URLs/audit, collaboration, server‑side recurring audits, multiple simultaneous audits.</p></div>
+      <div class="ref"><a href="https://sitebulb.com/subscriptions/pricing/server/" target="_blank" rel="noopener">Cloud pricing table</a><p>Official specs: Mini 50k/mo · Small 1m · Medium 2.5m · Enterprise 5m+ URLs/month; seats per tier.</p></div>
+      <div class="ref"><a href="https://sitebulb.com/subscriptions/pricing/index/" target="_blank" rel="noopener">Desktop pricing / specs</a><p>Lite 10k URLs; Pro 500k; +user £7/mo; 14‑day trial; “from £95/mo” Cloud, Enterprise “£20k/year”.</p></div>
+      <div class="ref"><a href="https://www.g2.com/products/sitebulb/pricing" target="_blank" rel="noopener">G2 / Capterra pricing (third‑party)</a><p>USD figures: Lite ~$18, Pro ~$42, +user ~$11 — third‑party, approximate.</p></div>
+      <div class="ref"><a href="https://checks-catalog.vercel.app/" target="_blank" rel="noopener">Feasibility checks catalog</a><p>The 217‑check catalog this coverage maps against (source: feasibility‑app).</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="disc">
+      <strong>How to read this.</strong> This is an independent capability/integration assessment compiled from public sources for planning purposes — it is not from or endorsed by Sitebulb, and it is not legal advice. Pricing and features change; USD figures here are third‑party and approximate, and items marked UNVERIFIED could not be confirmed on the pages read — verify with a live quote/trial before committing. The coverage list is deliberately conservative: checks are included only where deterministic crawl output makes the verdict 100% certain, and the integration verdict reflects that Sitebulb has no public API or CLI.
+    </div>
+    Sitebulb® is a trademark of Sitebulb Ltd. Prepared 28 Jul 2026 · for internal planning.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'),
+    thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var dark=root.getAttribute('data-theme')==='dark';
+  root.setAttribute('data-theme', dark?'light':'dark');
+  thTxt.textContent = dark?'Dark':'Light';
+});
+
+// ---- Capability tabs ----
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var k=t.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.getAttribute('data-pane')===k);
+    });
+  });
+});
+
+// ---- Accordions ----
+document.querySelectorAll('.acc>button').forEach(function(b){
+  b.addEventListener('click',function(){ b.parentElement.classList.toggle('open'); });
+});
+
+// ---- Feature / ecosystem data + filter ----
+var INTS=[
+  {n:'HTML crawler',c:'Crawling',d:'Fast source-HTML crawl — URLs, links, status, metadata, canonicals'},
+  {n:'Chrome (JavaScript) crawler',c:'Crawling',d:'Evergreen Chromium render — required for accessibility, structured data, performance'},
+  {n:'Crawl Maps',c:'Crawling',d:'Visual site-architecture / crawl-depth diagram'},
+  {n:'Response vs Render',c:'Crawling',d:'Diff raw HTML response against the JS-rendered DOM'},
+  {n:'Single Page Analysis',c:'Crawling',d:'Deep on-demand audit of one URL'},
+  {n:'Indexability Hints',c:'Reports',d:'robots.txt vs crawl, canonicals, noindex, sitemap coverage'},
+  {n:'Links & Internal',c:'Reports',d:'Broken links/404s, redirect chains & loops, internal link graph'},
+  {n:'On Page Hints',c:'Reports',d:'Titles, meta descriptions, headings/H1, duplicate/missing metadata'},
+  {n:'Structured Data',c:'Reports',d:'JSON-LD/Microdata — Schema.org (S) + Google rich-results (G) validation'},
+  {n:'International (hreflang)',c:'Reports',d:'Reciprocal-pair validation, missing/invalid annotations per locale'},
+  {n:'Accessibility (axe-core)',c:'Reports',d:'Deque axe, 95+ checks, up to WCAG 2.2 AAA, selectable standard'},
+  {n:'Performance (Lighthouse)',c:'Reports',d:'Core Web Vitals + Lighthouse — score, Opportunities & Diagnostics'},
+  {n:'Security',c:'Reports',d:'Mixed content, HTTP resources, HTTPS→HTTP links, insecure forms'},
+  {n:'Duplicate Content',c:'Reports',d:'Near-duplicate / duplicate body-content detection across pages'},
+  {n:'Content Extraction & Search',c:'Reports',d:'XPath/regex extraction & search over crawled markup'},
+  {n:'Code Coverage',c:'Reports',d:'Unused CSS / JavaScript per page'},
+  {n:'AMP',c:'Reports',d:'Dedicated AMP validation Hints'},
+  {n:'Scheduled audits',c:'Automation',d:'Recurring crawls — Pro (Desktop) & Cloud (server-side)'},
+  {n:'Audit comparisons',c:'Automation',d:'Diff a crawl against the previous run — new/removed URLs, Hint deltas'},
+  {n:'Cloud webhooks',c:'Automation',d:'Audit Finished / progress / error callbacks — aggregated audit-level data'},
+  {n:'Data Exports (auto-save)',c:'Automation',d:'CSV/XLSX auto-written to a shared/cloud folder on finish'},
+  {n:'Google Search Console + GA4',c:'Integration',d:'Overlay real search/engagement data — orphan-URL discovery'},
+  {n:'Looker Studio connector',c:'Integration',d:'Aggregated audit data into Data Studio dashboards'},
+  {n:'PDF / Google Sheets export',c:'Integration',d:'White-label PDF reports; export to Google Sheets'},
+  {n:'MCP server (forthcoming)',c:'Integration',d:'Query audits in natural language from Claude/ChatGPT — read-only'}
+];
+var grid=document.getElementById('intGrid'), search=document.getElementById('intSearch'), curCat='all';
+function renderInts(){
+  var q=(search.value||'').toLowerCase();
+  var rows=INTS.filter(function(i){
+    var okc = curCat==='all' || i.c===curCat;
+    var okq = !q || i.n.toLowerCase().indexOf(q)>-1 || i.d.toLowerCase().indexOf(q)>-1;
+    return okc && okq;
+  });
+  grid.innerHTML = rows.length ? rows.map(function(i){
+    return '<div class="intitem"><div class="cat">'+i.c+'</div><h5>'+i.n+'</h5><span>'+i.d+'</span></div>';
+  }).join('') : '<div class="empty">No matches.</div>';
+}
+document.querySelectorAll('#integrations .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#integrations .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); curCat=c.getAttribute('data-cat'); renderInts();
+  });
+});
+search.addEventListener('input',renderInts);
+renderInts();
+
+// ---- Coverage data + filter ----
+// check names are verbatim from feasibility-app/data/checks.ts
+var COV=[
+  {ch:'Full-site crawl & URL inventory', p:'IA & Structure', cap:'Crawl engine', gate:[], note:'Sitebulb’s core function — crawls the site and inventories every URL.'},
+  {ch:'Internal link graph / cross-linking', p:'IA & Structure', cap:'Internal report', gate:[], note:'Records the page-to-page link graph and cross-linking discovered during the crawl.'},
+  {ch:'Document & resource link inventory', p:'IA & Structure', cap:'Crawl engine', gate:[], note:'Inventories links to documents and resources (PDF/media/etc.) found while crawling.'},
+  {ch:'No broken internal links (404 errors)', p:'Navigation', cap:'Links Hints', gate:[], note:'Flags internal links returning 4xx across the crawl.'},
+  {ch:'Broken links & 404 scan', p:'Technical SEO & Redirects', cap:'Links Hints', gate:[], note:'Reports broken links and 404 responses site-wide — a core crawler output.'},
+  {ch:'Redirect chains + legacy/sunset domain surface', p:'Technical SEO & Redirects', cap:'Redirects Hints', gate:[], note:'The Redirects report surfaces redirect chains and where they resolve, including off-domain hops.'},
+  {ch:'No infinite redirect loop on direct regional URL', p:'Geo Detection', cap:'Redirects Hints', gate:[], note:'Redirect-loop detection flags URLs that never resolve — a deterministic Redirects Hint.'},
+  {ch:'Indexation (robots, sitemap, canonicals)', p:'Technical SEO & Redirects', cap:'Indexability Hints', gate:[], note:'The Indexability report evaluates robots.txt directives, sitemap coverage and canonical signals.'},
+  {ch:'robots.txt does not block important pages', p:'Performance & SEO', cap:'Indexability Hints', gate:[], note:'Parses robots.txt and flags crawled URLs blocked by Disallow rules.'},
+  {ch:'XML sitemap accessible', p:'Performance & SEO', cap:'XML Sitemaps Hints', gate:[], note:'The XML Sitemaps report fetches and validates the sitemap’s accessibility.'},
+  {ch:'Metadata completeness (title/desc/H1/alt)', p:'Technical SEO & Redirects', cap:'On Page Hints', gate:[], note:'On Page Hints capture title, meta description, H1 and image-alt presence per URL.'},
+  {ch:'Unique title tag present on every page', p:'Performance & SEO', cap:'On Page Hints', gate:[], note:'Flags missing titles and reports duplicate titles across the crawl.'},
+  {ch:'Meta description present and correct length', p:'Performance & SEO', cap:'On Page Hints', gate:[], note:'Flags missing meta descriptions and out-of-range lengths per page.'},
+  {ch:'Canonical self-referential check', p:'Technical SEO & Redirects', cap:'Indexability Hints', gate:[], note:'Reports each page’s canonical target and flags non-self-referential / conflicting canonicals.'},
+  {ch:'Heading outline / hierarchy & multiple-H1', p:'Technical SEO & Redirects', cap:'On Page Hints', gate:[], note:'Reports heading structure and flags missing or multiple H1s.'},
+  {ch:'hreflang tags correct for all served locales', p:'Performance & SEO', cap:'International Hints', gate:['Chrome'], note:'The hreflang validator checks reciprocal pairs and flags missing/invalid return tags across locales.'},
+  {ch:'Structured data / schema presence', p:'Technical SEO & Redirects', cap:'Structured Data report', gate:['Chrome'], note:'Extracts JSON-LD and Microdata and reports which structured-data types are present.'},
+  {ch:'Structured-data JSON validity', p:'Technical SEO & Redirects', cap:'Schema + Google validation', gate:['Chrome'], note:'Validates structured data against the Schema.org spec (and Google rich-results guidelines).'},
+  {ch:'HTTP automatically redirects to HTTPS', p:'Security', cap:'Redirects / Security', gate:[], note:'The crawl records the HTTP→HTTPS redirect and flags HTTP URLs that don’t upgrade.'},
+  {ch:'HTTP redirects to HTTPS correctly on all paths', p:'SSL & Domain Health', cap:'Redirects / Security', gate:[], note:'Crawling every path surfaces any URL that fails to redirect to the secure version.'},
+  {ch:'No mixed content warnings in browser', p:'Security', cap:'Security Hints', gate:['Chrome'], note:'The Security report flags http:// subresources loaded on https pages (mixed content).'},
+  {ch:'Client vs server render check', p:'Platform & Tech / Code Health', cap:'Response vs Render', gate:['Chrome'], note:'Response vs Render diffs raw HTML against the rendered DOM — showing what is client-rendered.'},
+  {ch:'Duplicate content similarity across pages', p:'Content Quality', cap:'Duplicate Content report', gate:[], note:'Detects duplicate / near-duplicate body content across crawled pages.'},
+  {ch:'No placeholder text on any page', p:'Content Change Detection', cap:'Content Search', gate:['config'], note:'A configured Content Search / extraction for lorem-ipsum / TODO / placeholder patterns flags any page containing them.'},
+  {ch:'Copyright year current across all pages', p:'Content Change Detection', cap:'Content Extraction', gate:['config'], note:'Extract the footer copyright year via Content Extraction and flag pages not showing the current year.'},
+  {ch:'No new pages published unexpectedly', p:'Content Change Detection', cap:'Audit comparison', gate:['2 runs'], note:'Comparing a scheduled crawl to the previous audit surfaces URLs that weren’t in the prior run.'},
+  {ch:'No pages deleted or returning 404 unexpectedly', p:'Content Change Detection', cap:'Audit comparison', gate:['2 runs'], note:'Audit comparison flags previously-live URLs now missing or returning 404.'},
+  {ch:'Colour contrast meets 4.5:1 ratio', p:'Accessibility', cap:'axe-core (color-contrast)', gate:['Chrome'], note:'Sitebulb’s axe-core accessibility engine runs the color-contrast rule against WCAG thresholds.'},
+  {ch:'Axe scan shows zero critical violations', p:'Accessibility', cap:'axe-core severity', gate:['Chrome'], note:'axe-core assigns severities; a page with zero critical violations is a deterministic verdict.'},
+  {ch:'Automated WCAG scan on key pages', p:'Accessibility', cap:'axe-core (95+ checks)', gate:['Chrome'], note:'Running axe-core (up to WCAG 2.2 AAA) on crawled pages IS an automated WCAG scan.'},
+  {ch:'HTML lang present + valid (BCP-47)', p:'Accessibility', cap:'axe-core (html-lang-valid)', gate:['Chrome'], note:'axe’s html-has-lang / html-lang-valid rules flag a missing or invalid lang attribute.'},
+  {ch:'Viewport meta valid (zoom not disabled)', p:'Mobile', cap:'axe-core (meta-viewport)', gate:['Chrome'], note:'axe’s meta-viewport rule flags user-scalable=no / a maximum-scale that disables zoom.'},
+  {ch:'Core Web Vitals — lab (LCP/INP/CLS)', p:'Performance', cap:'Lighthouse audit', gate:['Chrome'], note:'The Performance report captures Core Web Vitals via a per-URL Lighthouse lab audit.'},
+  {ch:'Page weight + render-blocking resources', p:'Performance', cap:'Lighthouse Opportunities', gate:['Chrome'], note:'Lighthouse Opportunities/Diagnostics report page weight and render-blocking resources.'},
+  {ch:'Image optimisation + next-gen formats & lazy-load', p:'Performance', cap:'Lighthouse Opportunities', gate:['Chrome'], note:'Lighthouse image audits flag unoptimised images, next-gen format opportunities and off-screen/lazy candidates.'}
+];
+var covGrid=document.getElementById('covGrid'), covSearch=document.getElementById('covSearch'),
+    covCount=document.getElementById('covCount'), curCov='all';
+function renderCov(){
+  var q=(covSearch.value||'').toLowerCase();
+  var rows=COV.filter(function(i){
+    return !q || i.ch.toLowerCase().indexOf(q)>-1 || i.p.toLowerCase().indexOf(q)>-1 || i.cap.toLowerCase().indexOf(q)>-1;
+  });
+  covCount.innerHTML='Showing <b style="color:var(--ink)">'+rows.length+'</b> of '+COV.length+' checks Sitebulb can cover';
+  covGrid.innerHTML = rows.length ? rows.map(function(i){
+    var gates=(i.gate||[]).map(function(g){
+      return '<span class="gate">'+g+'</span>';
+    }).join('');
+    return '<div class="covitem"><div class="top"><div><h5>'+i.ch+'</h5>'+
+      '<div class="pil">'+i.p+' · <span class="capname">'+i.cap+'</span></div></div></div>'+
+      '<p>'+i.note+'</p>'+(gates?('<div>'+gates+'</div>'):'')+'</div>';
+  }).join('') : '<div class="empty">No checks match that filter.</div>';
+}
+covSearch.addEventListener('input',renderCov);
+renderCov();
+
+// ---- Additional checks NOT in the catalog (candidate new checks) ----
+var NEWCOV=[
+  {name:'Orphan URLs — pages with no internal inbound links', cap:'Crawl + GSC/GA/sitemap', note:'Combines the crawl with Search Console / GA4 / XML-sitemap data to surface URLs that exist but have no internal links — the catalog has no orphan-URL check.', ref:'sitebulb.com/features/integrations'},
+  {name:'Crawl depth — pages more than N clicks from the start URL', cap:'Crawl Maps / Internal', note:'Reports how many clicks each page sits from the start URL and visualises it in Crawl Maps — a depth metric the catalog does not represent.', ref:'sitebulb.com/product'},
+  {name:'AMP validation errors', cap:'AMP Hints', note:'A dedicated AMP report validates AMP pages and flags markup errors. The catalog has no AMP check.', ref:'sitebulb.com/hints'},
+  {name:'Sitemap lists non-indexable / orphaned / missing URLs', cap:'XML Sitemaps report', note:'Cross-references the XML sitemap against the crawl to flag sitemap URLs that are non-indexable, orphaned or missing — beyond the catalog’s “sitemap accessible” check.', ref:'sitebulb.com/hints'},
+  {name:'Rich-result eligibility (Google Features Validation)', cap:'Structured Data (G-tagged)', note:'Validates structured data against Google’s rich-results guidelines (distinct from Schema.org validity) — the catalog only has schema presence + JSON validity.', ref:'sitebulb.com/product/structured-data'},
+  {name:'Unused CSS / JavaScript per page (Code Coverage)', cap:'Code Coverage report', note:'Reports the proportion of CSS/JS downloaded but unused on each page — a code-health metric with no catalog equivalent.', ref:'sitebulb.com/product'}
+];
+(function(){
+  var g=document.getElementById('newCovGrid'); if(!g) return;
+  g.innerHTML=NEWCOV.map(function(i){
+    return '<div class="covitem"><div class="top"><div><h5>'+i.name+'</h5>'+
+      '<div class="pil"><span class="capname">'+i.cap+'</span></div></div><span class="gate">new</span></div>'+
+      '<p>'+i.note+'</p><div class="pil" style="margin-top:8px">↳ <span class="capname">'+i.ref+'</span></div></div>';
+  }).join('');
+})();
+
+// ---- Scenario recommender ----
+var RECS={
+  a:{label:'Recommended path',h:'Ingest the crawl surface via scheduled exports',
+     p:'The only way to get per-URL data out of Sitebulb is the file exports. Schedule recurring audits and have Snurra ingest the auto-saved CSV/Excel — this delivers the full crawl / technical-SEO / axe-core / structured-data / performance surface, on a schedule.',
+     s:['Configure the Sitebulb project (start URL, Chrome crawler ON for a11y/structured-data/performance, GSC/GA if used).','Enable Data Exports to auto-save CSV/XLSX to a shared/cloud folder on audit finish; schedule the audit (Pro/Cloud).','Have Snurra watch the folder, parse the exports into neutral check inputs, and degrade to not-applicable when no fresh export exists.']},
+  b:{label:'Recommended path',h:'Use the Cloud webhook as a completion trigger',
+     p:'Sitebulb Cloud’s “Audit Finished” webhook carries aggregated audit-level data. Treat it as a signal that a crawl is done and its exports are ready — not as the per-URL data source itself.',
+     s:['In Cloud settings, point the Audit Finished URL at a small Snurra receiver.','On the callback, use the aggregated Hint counts/scores for a quick status, then fetch/parse the detailed export for per-URL findings.','Remember the payload is aggregated only — never rely on it for per-URL verdicts.']},
+  c:{label:'Recommended path',h:'Lean on axe-core accessibility + structured-data validation',
+     p:'Sitebulb’s strongest net-new signal over a plain crawler is the Deque axe-core accessibility engine (up to WCAG 2.2 AAA) and the two-perspective structured-data validation (Schema.org + Google rich results).',
+     s:['Enable the Chrome crawler — required for accessibility, structured-data and performance analysis.','Select the target WCAG standard in Accessibility Advanced Settings.','Ingest the axe results (contrast, critical violations, lang/viewport) and structured-data validity from the export; treat “descriptive alt / full keyboard” as out of scope.']},
+  d:{label:'Recommended path',h:'Change detection via audit comparison',
+     p:'For “no new/removed pages unexpectedly”, use Sitebulb’s audit comparison — it diffs a scheduled crawl against the previous run at URL level.',
+     s:['Schedule recurring audits (Pro/Cloud) so there is always a prior run to compare against.','Use the comparison to surface new URLs, removed/404 URLs and Hint deltas.','Feed the diff into Snurra’s Content-Change-Detection checks; note this needs at least two runs before it yields a verdict.']}
+};
+function showRec(k){
+  var r=RECS[k];
+  document.getElementById('rec').innerHTML =
+    '<div class="rlabel">'+r.label+'</div><h3>'+r.h+'</h3><p>'+r.p+'</p><ul class="steps"><li>'+r.s.join('</li><li>')+'</li></ul>';
+}
+document.querySelectorAll('.scn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.scn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active'); showRec(b.getAttribute('data-s'));
+  });
+});
+showRec('a');
+</script>
+</body>
+</html>

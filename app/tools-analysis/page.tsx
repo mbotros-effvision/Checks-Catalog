@@ -5,12 +5,14 @@ export const metadata = { title: 'Tools Analysis — Pillar Feasibility' };
 // Each analysis is a self-contained static HTML file served from public/tools/.
 // The summary is embedded via an iframe; these give direct new-tab access too.
 const ANALYSES = [
+  { file: 'sitebulb-analysis.html', name: 'Sitebulb', meta: '35 catalog · +6 net-new' },
   { file: 'screaming-frog-analysis.html', name: 'Screaming Frog SEO Spider', meta: '48 catalog · +5 net-new' },
   { file: 'observepoint-analysis.html', name: 'ObservePoint', meta: '39 catalog · +6 net-new' },
   { file: 'semrush-analysis.html', name: 'SEMrush', meta: '30 catalog · +6 net-new' },
   { file: 'browserstack-automate-analysis.html', name: 'BrowserStack Automate', meta: '29 catalog · +5 net-new' },
   { file: 'percy-analysis.html', name: 'Percy', meta: '9 catalog · +4 net-new' },
   { file: 'immuniweb-analysis.html', name: 'ImmuniWeb', meta: '6 catalog · +10 net-new' },
+  { file: 'cookiebot-analysis.html', name: 'Cookiebot (Usercentrics)', meta: '2 catalog · +7 net-new' },
 ];
 
 export default function ToolsAnalysisPage() {
@@ -19,7 +21,7 @@ export default function ToolsAnalysisPage() {
       <div className="view-head">
         <h1 className="view-title">Tools Analysis</h1>
         <p className="view-sub">
-          Capability &amp; embedding analysis of six vendor tools evaluated for the Snurra Site Audit — the
+          Capability &amp; embedding analysis of eight vendor tools evaluated for the Snurra Site Audit — the
           comparison summary is embedded below, with a full analysis page for each tool.
         </p>
       </div>
