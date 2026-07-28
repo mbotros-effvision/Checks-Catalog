@@ -24,6 +24,10 @@
   code{background:var(--chip);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font:12.5px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink)}
   /* header */
   header.top{position:sticky;top:0;z-index:20;background:color-mix(in oklab,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  body.embed{background:transparent}
+  body.embed header.top{display:none}
+  body.embed .hero{padding-top:8px}
+  body.embed .wrap{padding-left:0;padding-right:0}
   .topbar{display:flex;align-items:center;justify-content:space-between;height:56px}
   .logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:15px}
   .mark{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--grad1),var(--grad2));display:grid;place-items:center}
@@ -257,6 +261,20 @@ document.getElementById('totUnion').innerHTML=u+'<small> / '+CATALOG_TOTAL+'</sm
 document.getElementById('totBar').style.width=(u/CATALOG_TOTAL*100).toFixed(1)+'%';
 document.getElementById('totSum').textContent=sum;
 document.getElementById('totNew').textContent=newsum;
+
+// When embedded in the app's Tools Analysis tab (?embed=1): hide our own header
+// (the app already provides brand + theme toggle) and report our content height so
+// the host iframe can size to fit — no nested scrollbar, reads as one page.
+(function(){
+  if(new URLSearchParams(location.search).get('embed')!=='1') return;
+  document.body.classList.add('embed');
+  function h(){ return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight); }
+  function post(){ parent.postMessage({type:'toolsummary-height', height:h()}, '*'); }
+  if(window.ResizeObserver){ new ResizeObserver(post).observe(document.body); }
+  window.addEventListener('message', function(e){ if(e && e.data && e.data.type==='request-height') post(); });
+  window.addEventListener('load', post);
+  post();
+})();
 </script>
 </body>
 </html>
