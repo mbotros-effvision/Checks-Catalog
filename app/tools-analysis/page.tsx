@@ -15,6 +15,7 @@ const ANALYSES = [
   { file: 'cookiebot-analysis.html', name: 'Cookiebot (Usercentrics)', meta: '2 catalog · +7 net-new' },
   { file: 'wp-umbrella-analysis.html', name: 'WP Umbrella', meta: '6 catalog · +8 net-new' },
   { file: 'pentest-tools-analysis.html', name: 'Pentest-Tools.com', meta: '7 catalog · +10 net-new' },
+  { file: 'wave-analysis.html', name: 'WAVE (WebAIM)', meta: '4 catalog · +8 net-new' },
 ];
 
 export default function ToolsAnalysisPage() {

@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAVE (WebAIM) — Capabilities &amp; Embedding Analysis</title>
+<style>
+  :root{
+    --bg:#fbfaf6; --bg2:#f5f2ea; --panel:#ffffff; --panel2:#f7f5ef;
+    --line:#e9e5db; --line2:#ddd8cc;
+    --ink:#1c1a17; --mut:#6f6a61; --mut2:#9a948a;
+    --brand:#0f766e; --brand2:#0f766e; --accent:#0f766e;
+    --warn:#b45309; --bad:#b91c1c; --good:#0f766e;
+    --chip:#f2efe8; --shadow:0 1px 2px rgba(28,26,23,.04),0 8px 24px -12px rgba(28,26,23,.12);
+    --radius:14px;
+  }
+  html[data-theme="dark"]{
+    --bg:#131316; --bg2:#17171b; --panel:#1b1b1f; --panel2:#232328;
+    --line:#2c2c31; --line2:#3a3a41; --ink:#eceae4; --mut:#a39d93; --mut2:#6f6a62;
+    --brand:#2dd4bf; --brand2:#2dd4bf; --accent:#2dd4bf; --good:#2dd4bf;
+    --warn:#fbbf24; --bad:#f87171;
+    --chip:#232328; --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1100px 520px at 88% -8%,#eef6f4,transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,#f6f1e9,transparent 55%),
+               var(--bg);
+    background-attachment:fixed;
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  html[data-theme="dark"] body{
+    background:radial-gradient(1100px 520px at 88% -8%,rgba(45,212,191,.07),transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,rgba(180,140,60,.06),transparent 55%),
+               var(--bg);
+  }
+  a{color:var(--brand2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 22px}
+
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(15,118,110,.5)}
+  .logo .mark svg{width:18px;height:18px}
+  nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
+  nav.links a:hover{background:var(--chip); color:var(--ink); text-decoration:none}
+  .tbtn{border:1px solid var(--line2); background:var(--chip); color:var(--ink); border-radius:9px;
+    padding:7px 10px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; gap:6px; align-items:center}
+  .tbtn:hover{border-color:var(--brand)}
+
+  .hero{padding:46px 0 26px}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:var(--chip);
+    border:1px solid var(--line2); padding:6px 12px; border-radius:999px}
+  h1{font-size:40px; line-height:1.12; margin:16px 0 10px; letter-spacing:-.5px}
+  h1 .grad{background:linear-gradient(120deg,var(--brand2),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--mut); font-size:17px; max-width:810px}
+  .meta{margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; color:var(--mut2); font-size:13px}
+  .meta b{color:var(--mut)}
+
+  .tldr{margin-top:26px; border:1px solid var(--line2); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:var(--shadow); overflow:hidden}
+  .tldr .hd{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line);
+    font-weight:800; letter-spacing:.3px}
+  .tldr .hd .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,170,.18)}
+  .tldr .bd{padding:18px 20px; color:var(--mut); font-size:15.5px}
+  .tldr .bd strong{color:var(--ink)}
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .vcard{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .vcard h4{margin:0 0 4px; font-size:13px; color:var(--mut2); text-transform:uppercase; letter-spacing:.08em}
+  .vcard p{margin:0; font-size:14px; color:var(--ink)}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; margin-top:8px}
+  .pill.good{background:rgba(34,211,170,.14); color:var(--good); border:1px solid rgba(34,211,170,.35)}
+  .pill.warn{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.35)}
+  .pill.bad{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.35)}
+
+  section{padding:34px 0; border-top:1px solid var(--line)}
+  .kicker{font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--brand2)}
+  h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.3px}
+  .lead{color:var(--mut); max-width:880px; margin:0 0 20px}
+
+  .tabs{display:flex; gap:8px; margin:6px 0 18px; flex-wrap:wrap}
+  .tab{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:9px 16px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:14px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--accent)); color:#04122a; border-color:transparent}
+  .tabpane{display:none; animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .grid{display:grid; gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:16.5px; display:flex; align-items:center; gap:9px}
+  .card .ic{width:30px;height:30px;border-radius:9px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .card .ic svg{width:17px;height:17px;stroke:var(--brand2)}
+  .card p{margin:0; color:var(--mut); font-size:14px}
+  .tag{font-size:11px; font-weight:700; color:var(--mut2); background:var(--chip); border:1px solid var(--line2);
+    padding:2px 8px; border-radius:6px; margin-right:6px; display:inline-block; margin-top:8px}
+
+  .fit{overflow:hidden; border:1px solid var(--line); border-radius:14px}
+  .fitrow{display:grid; grid-template-columns:1.4fr 2.2fr .9fr; gap:0; border-bottom:1px solid var(--line)}
+  .fitrow:last-child{border-bottom:0}
+  .fitrow.head{background:var(--chip); font-weight:800; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut2)}
+  .fitrow>div{padding:14px 16px}
+  .fitrow .name{font-weight:700; color:var(--ink)}
+  .fitrow .name small{display:block; font-weight:500; color:var(--mut2); margin-top:3px}
+  .fitrow .desc{color:var(--mut); font-size:14px; border-left:1px solid var(--line); border-right:1px solid var(--line)}
+  .fitrow .verd{display:flex; align-items:center; justify-content:center}
+  .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
+  .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .badge.ok{background:rgba(15,118,110,.16); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
+
+  .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
+  .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
+  .callout.info{background:rgba(15,118,110,.08); border-color:rgba(15,118,110,.4)}
+  .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
+  .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
+  .callout.warn .cic{background:rgba(255,176,32,.16)}
+  .callout.info .cic{background:rgba(15,118,110,.16)}
+  .callout.bad .cic{background:rgba(255,93,108,.16)}
+  .callout h4{margin:0 0 5px; font-size:15.5px}
+  .callout p{margin:0; color:var(--mut); font-size:14.5px}
+  .callout.warn h4{color:var(--warn)}
+  .callout.bad h4{color:var(--bad)}
+  .callout .cic svg{width:19px;height:19px}
+
+  .picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
+  .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
+  .scn.active{border-color:var(--brand); background:rgba(15,118,110,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(15,118,110,.12)}
+  .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
+  .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
+  .rec h3{margin:6px 0 6px; font-size:18px}
+  .rec p{margin:0 0 8px; color:var(--mut); font-size:14.5px}
+  .rec .steps{margin:8px 0 0; padding-left:18px; color:var(--mut); font-size:14px}
+  .rec .steps li{margin:3px 0}
+
+  .filterbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--chip);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 12px}
+  .search input{border:0; background:transparent; color:var(--ink); font-size:14px; width:100%; outline:none}
+  .chip{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:7px 12px; border-radius:999px;
+    cursor:pointer; font-size:12.5px; font-weight:700}
+  .chip.active{background:var(--brand); color:#04122a; border-color:transparent}
+  .intgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .intitem{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px}
+  .intitem h5{margin:0 0 3px; font-size:14px}
+  .intitem span{font-size:12px; color:var(--mut2)}
+  .intitem .cat{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--brand2)}
+  .empty{color:var(--mut2); font-size:14px; padding:16px; text-align:center; grid-column:1/-1}
+
+  .covgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .covitem{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px; position:relative}
+  .covitem .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .covitem h5{margin:0; font-size:14.5px; color:var(--ink); font-weight:700; line-height:1.3}
+  .covitem .pil{font-size:10px; color:var(--mut2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+  .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
+  .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
+  .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .ttag.redundant{background:rgba(15,118,110,.14); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .ttag.partial{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
+    border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
+  .capname{color:var(--accent); font-weight:700}
+  .covcount{font-size:12.5px; color:var(--mut2); margin:0 0 10px}
+
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:10px; background:var(--panel)}
+  .acc>button{width:100%; text-align:left; background:transparent; border:0; color:var(--ink); padding:15px 18px;
+    font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .acc>button .ar{transition:transform .2s; color:var(--mut2)}
+  .acc.open>button .ar{transform:rotate(90deg)}
+  .acc .panel{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc.open .panel{max-height:1600px}
+  .acc .panel .inner{padding:0 18px 18px; color:var(--mut); font-size:14px}
+  code,.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px}
+  .codeblock{background:#0a1024; border:1px solid var(--line2); border-radius:10px; padding:13px 15px;
+    overflow:auto; color:#cfe0ff; margin:10px 0}
+  html[data-theme="light"] .codeblock{background:#0d1530; color:#dbe6ff}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:8px 0}
+  .kv code{color:var(--accent)}
+  .kv span{color:var(--mut)}
+
+  table.price{width:100%; border-collapse:collapse; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.price th,table.price td{padding:13px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top}
+  table.price th{background:var(--chip); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut2)}
+  table.price td.prod{font-weight:700; color:var(--ink)}
+  table.price td.prod small{display:block; font-weight:500; color:var(--mut2); margin-top:2px}
+  .money{font-weight:800; color:var(--accent)}
+  .quote{color:var(--warn); font-weight:700}
+  .freeword{color:var(--good); font-weight:800}
+
+  .refs{columns:2; column-gap:26px}
+  .refs .ref{break-inside:avoid; margin-bottom:12px; padding-left:14px; border-left:2px solid var(--line2)}
+  .refs .ref a{font-weight:600; font-size:13.5px}
+  .refs .ref p{margin:2px 0 0; color:var(--mut2); font-size:12px}
+
+  footer{padding:30px 0 60px; color:var(--mut2); font-size:12.5px; border-top:1px solid var(--line)}
+  .disc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px}
+
+  @media(max-width:860px){
+    .g2,.g3,.verdict,.intgrid,.covgrid{grid-template-columns:1fr}
+    .fitrow{grid-template-columns:1fr}
+    .fitrow .desc{border-left:0;border-right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .refs{columns:1}
+    h1{font-size:31px}
+    nav.links{display:none}
+  }
+  @media print{
+    header.top,.tbtn,.picker,.filterbar{display:none!important}
+    .tabpane{display:block!important} .acc .panel{max-height:none!important}
+    body{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="#04122a" stroke-width="1.8"/><path d="M16 16l4.5 4.5" stroke="#04122a" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="11" r="2.4" fill="#04122a"/></svg></span>
+      WAVE <span style="color:var(--mut2);font-weight:600">· Embedding Analysis</span>
+    </div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#embed">Embedding</a>
+      <a href="#api">API</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#coverage">Checks covered</a>
+      <a href="#recommend">Recommendation</a>
+      <a href="#refs">Sources</a>
+    </nav>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <span class="eyebrow">● Product &amp; Integration Assessment</span>
+    <h1>WAVE (WebAIM), assessed for <span class="grad">embedding into Snurra</span></h1>
+    <!-- snurraFit pill: api-native #0f766e "API-native" -->
+    <div style="margin:12px 0 4px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid #0f766e;color:#0f766e;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;white-space:nowrap"><span style="width:7px;height:7px;border-radius:50%;background:currentColor"></span>Fits into Snurra: API-native</span>
+      <span style="font-size:12.5px;color:var(--mut,#6f6a61)">URL-in synchronous GET &mdash; one call returns the full accessibility report &mdash; a drop-in ProviderAdapter like PageSpeed; each scan spends 1&ndash;3 WAVE credits, so meter usage.</span>
+    </div>
+    <p class="sub">WAVE is <b>WebAIM's web-accessibility evaluation engine</b>, offered as a <b>hosted REST API</b> &mdash; you send it a <b>page URL</b> and it renders the page (after CSS/JS) and returns a structured breakdown of <b>WCAG accessibility errors, colour-contrast failures, alerts, features, structural elements and ARIA</b>, each mapped to a WCAG 2.1 guideline. It is a genuine <b>URL-in, synchronous JSON API</b> (single GET) &mdash; so it embeds cleanly behind an HTTP adapter like PageSpeed. Its strength is <b>deterministic, single-page automated accessibility auditing</b> from a trusted non-profit engine. This page maps its capabilities, how it slots into Snurra's worker, what it costs, and &mdash; held to a strict 100%-certain bar &mdash; precisely which feasibility-catalog checks it can cover.</p>
+    <div class="meta">
+      <span><b>Prepared:</b> 29 Jul 2026</span>
+      <span><b>Use case:</b> Automated WCAG accessibility auditing for the Snurra Site Audit</span>
+      <span><b>Catalog:</b> feasibility-app · 217 checks</span>
+    </div>
+
+    <div class="tldr">
+      <div class="hd"><span class="dot"></span> Bottom line up front</div>
+      <div class="bd">
+        WAVE takes a <strong>URL</strong> and returns a <strong>deterministic WCAG accessibility report</strong> &mdash; errors, contrast failures, alerts, features, structural elements and ARIA, each mapped to a WCAG 2.1 guideline. Held to a 100%-certain bar it maps to <strong>4 catalog checks</strong> (colour contrast, image alt text, the automated-WCAG scan, heading structure), but its <strong>real value is net-new</strong>: a full taxonomy of specific WCAG failures (empty links/buttons, unlabelled form inputs, broken ARIA references, missing table headers) that the catalog's single "axe scan" check doesn't itemise. It is a <strong>true URL-in synchronous REST API</strong> (<code>GET wave.webaim.org/api/request?key=&amp;url=</code>, JSON) &mdash; the cleanest possible adapter, one GET in, one report out. Pricing is <strong>credit-metered</strong> &mdash; 100 free credits, then ~$0.025&ndash;0.04/credit (1&ndash;3 credits per scan). It is a <strong>single-page static audit</strong>: no keyboard-operability, no focus-order walk, no multi-page crawl.
+        <div class="verdict">
+          <div class="vcard"><h4>Technical fit</h4><p>Cleanest possible fit &mdash; <b>URL-in synchronous GET</b>, one report out. Drop-in <code>ProviderAdapter</code> like PageSpeed.</p><span class="pill good">API-native</span></div>
+          <div class="vcard"><h4>What it covers</h4><p><b>4 catalog checks</b> (contrast, alt text, WCAG scan, headings) &mdash; plus a rich net-new taxonomy of specific WCAG failures.</p><span class="pill good">Accessibility</span></div>
+          <div class="vcard"><h4>Cost</h4><p><b>Credit-metered</b> &mdash; 100 free credits, then ~$0.025&ndash;0.04/credit; 1&ndash;3 credits per scan by report depth.</p><span class="pill warn">Credit-metered</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="kicker">01 · What WAVE actually does</div>
+    <h2>Capabilities</h2>
+    <p class="lead">Two layers matter for embedding: what the <b>engine evaluates</b> (the WCAG errors, contrast failures and structure it detects in a rendered page) and its <b>automation surface</b> (the single URL-in REST call a backend drives it through). Toggle between them:</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="scan">The engine &amp; what it evaluates</button>
+      <button class="tab" data-tab="auto">Automation &amp; API surface</button>
+    </div>
+
+    <div class="tabpane active" data-pane="scan">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></span>Errors</h3><p>Definite accessibility failures that will impact users &mdash; <b>missing alternative text</b>, <b>empty links/buttons</b>, <b>missing form labels</b>, <b>missing document language</b>, empty headings. Each returned with its WCAG success criterion.</p><span class="tag">WCAG failures</span><span class="tag">Deterministic</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 000 18z"/></svg></span>Contrast Errors</h3><p>Computes the <b>contrast ratio</b> of text against its background and flags any text below the <b>WCAG AA 4.5:1</b> threshold. Report types 3/4 return the exact ratio and element location.</p><span class="tag">4.5:1 ratio</span><span class="tag">Computed</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></span>Alerts</h3><p>Probable issues needing review &mdash; <b>skipped heading levels</b>, redundant links, suspicious alt text, very small or justified text, missing fieldset/legend. Not definite failures, but flagged deterministically.</p><span class="tag">Review items</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></span>Features</h3><p>Elements that <b>improve accessibility when present</b> &mdash; alt text supplied, form label associated, ARIA labels, table headers. Confirms good practice, not just failures.</p><span class="tag">Good practice</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h6"/></svg></span>Structural Elements</h3><p>Inventories page structure &mdash; every <b>heading (H1&ndash;H6)</b>, lists, regions, iframes and other landmarks &mdash; so heading outline and document structure can be validated.</p><span class="tag">Headings</span><span class="tag">Regions</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8"/></svg></span>ARIA</h3><p>Reports <b>ARIA roles and attributes</b> present on the page and flags <b>broken ARIA references</b> (aria-labelledby/describedby pointing at IDs that don't exist).</p><span class="tag">ARIA roles</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>WCAG 2.1 mapping</h3><p>Every returned item maps to a <b>WCAG 2.1 success criterion</b> (A/AA/AAA), retrievable in detail from the companion <code>/api/docs</code> endpoint. Also aligns with Section 508.</p><span class="tag">WCAG 2.1</span><span class="tag">Section 508</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/></svg></span>Renders the real page</h3><p>Evaluates the <b>computed page after CSS &amp; JavaScript</b> (not raw HTML), at a configurable <b>viewport width</b> and <b>evaluation delay</b> &mdash; so dynamically-injected content is assessed.</p><span class="tag">Post-CSS/JS</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>Element locations</h3><p>Higher report tiers return the <b>exact DOM location</b> of each issue &mdash; <b>XPath</b> (type 3) or <b>CSS selector</b> (type 4) &mdash; plus contrast values, so findings are actionable.</p><span class="tag">XPath / CSS</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 8v5M12 16h.01"/></svg></span>
+        <div><h4>The defining strength (for embedding)</h4><p>WAVE's verdict is a <b>deterministic static evaluation</b>: the image has no alt attribute (or it does), the contrast ratio is 3.9:1 (below 4.5:1), the form input has no associated label, the ARIA reference points at a missing id &mdash; <b>no human, AI-text or visual judgment</b>. That makes it a trustworthy source for the automatable slice of WCAG. It does <b>not</b> test keyboard operability, focus order or anything requiring interaction &mdash; automated tools catch only a portion of all WCAG issues.</p></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="auto">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></span>REST API (single GET)</h3><p>Base <code>https://wave.webaim.org/api/request</code>. One <b>synchronous GET</b> with <code>url</code> + <code>key</code> returns the full report as <b>JSON</b> (or XML). No job, no polling &mdash; the simplest possible integration.</p><span class="tag">JSON</span><span class="tag">Sync</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Auth — API key</h3><p>Register for a key; pass it as the <code>key</code> query parameter. HTTPS supported. No OAuth, no account provisioning of the target &mdash; any public URL works.</p><span class="tag">key param</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>Report types 1&ndash;4</h3><p><b>1</b> = statistics (counts, AIM score); <b>2</b> = itemised issue types; <b>3</b> = adds XPath + contrast data; <b>4</b> = CSS selectors. Depth chosen per call; 1&ndash;3 credits each.</p><span class="tag">Depth control</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8"/></svg></span>Render controls</h3><p><code>viewportwidth</code> (default 1200), <code>evaldelay</code> (ms, default 250) and <code>useragent</code> override let you audit responsive layouts and JS-injected content deterministically.</p><span class="tag">viewport</span><span class="tag">delay</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Authenticated pages</h3><p>Optional <code>username</code>/<code>password</code> parameters let WAVE evaluate <b>HTTP-authenticated</b> pages &mdash; useful for staging environments behind Basic auth.</p><span class="tag">HTTP auth</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>Stand-alone API</h3><p>The engine can be <b>licensed to run on your own server</b> &mdash; unlimited pages, including <b>intranet, non-public and secure pages</b> the hosted API can't reach.</p><span class="tag">Self-host</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+        <div><h4>How Snurra would actually drive it</h4><p>A <code>ProviderAdapter</code> exactly like the PageSpeed one: <code>buildRequest()</code> issues a single GET to <code>wave.webaim.org/api/request?key=&amp;url=&amp;reporttype=2</code>; <code>mapResponse()</code> reads the <code>categories</code> (error / contrast / alert / structure / aria) and maps them to neutral check inputs. Gate <code>isConfigured()</code> on the API key <b>and remaining credit balance</b>; degrade to <code>not-applicable</code> on error or exhausted credits. Cache per URL and keep to <b>&le;2 simultaneous requests</b> to avoid rate limiting &mdash; because each call spends a credit, run accessibility scans <b>off the per-request hot path</b>.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section id="embed">
+    <div class="kicker">02 · Applicability — how it slots into Snurra</div>
+    <h2>Embedding paths, ranked</h2>
+    <p class="lead">WAVE is the simplest tool in this evaluation set to embed &mdash; a single URL-in synchronous GET behind a <code>ProviderAdapter</code>, exactly like PageSpeed. The ranking is about <em>which report depth</em> and <em>which pages</em> to point it at.</p>
+
+    <div class="fit">
+      <div class="fitrow head"><div>Path</div><div>What it's good for</div><div>Fit</div></div>
+      <div class="fitrow">
+        <div class="name">URL-in accessibility adapter <small>(single GET → JSON report)</small></div>
+        <div class="desc">The core integration: one GET per audited URL returns errors, contrast failures and structure. Map to the colour-contrast, alt-text, WCAG-scan and heading catalog checks, plus the net-new WCAG failure taxonomy. No provisioning, no polling.</div>
+        <div class="verd"><span class="badge best">Best fit ✓</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Report type 3/4 for element-level findings <small>(XPath / CSS + contrast values)</small></div>
+        <div class="desc">Use the deeper report tiers when Snurra needs to point users at the exact failing element and the measured contrast ratio &mdash; richer output for 3 credits instead of 1.</div>
+        <div class="verd"><span class="badge ok">Strong</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Stand-alone API for secure / staging pages <small>(self-hosted engine)</small></div>
+        <div class="desc">License the engine on your own infrastructure to audit intranet, authenticated or pre-launch pages the hosted API can't reach &mdash; and to remove the per-credit cost at volume.</div>
+        <div class="verd"><span class="badge cond">Conditional</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Firing a WAVE scan inline on every page-audit request</div>
+        <div class="desc">Each call spends a credit and adds render latency. Firing WAVE synchronously inside a user-facing request burns the credit budget and blocks on the scan &mdash; schedule/cache accessibility scans off the hot path.</div>
+        <div class="verd"><span class="badge no">Don't</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="callout info">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+      <div>
+        <h4>Integration shape (a textbook sync adapter)</h4>
+        <p>This is the same shape as PageSpeed: a <b>single synchronous GET</b>, URL in, JSON out &mdash; no async job, no webhook, no pre-provisioned target. <code>buildRequest()</code> builds the query string; <code>mapResponse()</code> reads <code>statistics</code> + <code>categories</code>. Gate <code>isConfigured()</code> on the key and credit balance; degrade to <code>not-applicable</code> on error/exhaustion. The only operational constraints are the <b>credit budget</b> (1&ndash;3 per scan) and the <b>&le;2 simultaneous request</b> guidance &mdash; both handled by scheduling scans and caching by URL.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API / TECHNICAL -->
+  <section id="api">
+    <div class="kicker">03 · Technical detail — API, credits, limits &amp; licensing</div>
+    <h2>What integrating actually looks like</h2>
+    <p class="lead">Enough to scope an integration spike. Expand for detail:</p>
+
+    <div class="acc open">
+      <button>The REST API — endpoint, parameters, response <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        Base <code>https://wave.webaim.org/api/request</code>, JSON (or XML). One <b>synchronous GET</b>; the report is in the response body &mdash; there is no job/poll step.
+        <div class="codeblock mono">
+# single synchronous request — returns the full report as JSON<br>
+curl "https://wave.webaim.org/api/request?key=$WAVE_KEY\<br>
+&nbsp;&nbsp;&amp;url=https://example.com/page\<br>
+&nbsp;&nbsp;&amp;reporttype=2&amp;format=json&amp;viewportwidth=1200"<br><br>
+# response shape (abridged)<br>
+{ "status": { "success": true, "httpstatuscode": 200 },<br>
+&nbsp;&nbsp;"statistics": { "pagetitle":"…", "pageurl":"…", "creditsremaining": 97, "allitemcount": 42, "totalelements": 812, "waveurl":"…" },<br>
+&nbsp;&nbsp;"categories": {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"error":    { "count": 5, "items": { "alt_missing": {"count":3, "xpaths":[…]}, "label_missing": {"count":2} } },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"contrast": { "count": 7, "items": { "contrast": {"count":7, "contrastdata":[…]} } },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"alert": {…}, "feature": {…}, "structure": {…}, "aria": {…} } }
+        </div>
+        Request parameters: <code>key</code>, <code>url</code> (required); <code>reporttype</code> (1&ndash;4), <code>format</code> (json/xml), <code>viewportwidth</code> (default 1200), <code>evaldelay</code> (ms, default 250), <code>useragent</code>, and <code>username</code>/<code>password</code> for HTTP-authenticated pages.
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Report types &amp; credit cost <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Type 1</code><span><b>1 credit</b> — statistics only: item counts per category, total elements, page title, AIM score, credits remaining.</span>
+          <code>Type 2</code><span><b>2 credits</b> — adds an itemised breakdown: each distinct issue type and its count within every category.</span>
+          <code>Type 3</code><span><b>3 credits</b> — adds <b>XPath</b> locations for each item plus <b>contrast-ratio data</b>.</span>
+          <code>Type 4</code><span><b>3 credits</b> — as type 3 but with <b>CSS selectors</b> instead of XPath for locating elements.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Rate limits &amp; synchronous execution <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Execution</code><span><b>Synchronous.</b> The GET returns the finished report &mdash; no async job, no webhook, no polling. Latency is one page render (tune with <code>evaldelay</code>).</span>
+          <code>Concurrency</code><span>WebAIM asks callers to keep to <b>&le;2 simultaneous requests</b>; exceeding it may trigger rate limiting. Serialise/queue scans accordingly.</span>
+          <code>Metering</code><span>Billed in <b>credits</b> (1&ndash;3 per scan by report type), decremented from the account balance &mdash; <code>creditsremaining</code> is returned on every call.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Scope, scheduling &amp; the stand-alone engine <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Scope</code><span><b>One page per call.</b> WAVE evaluates a single URL &mdash; there is no crawl; Snurra supplies each URL to audit.</span>
+          <code>Scheduling / webhooks</code><span><b>None built in.</b> Being a plain sync API, scheduling and retries live on Snurra's side (the worker decides when to scan).</span>
+          <code>Stand-alone API</code><span>The engine can be <b>licensed for on-server use</b> — unlimited pages incl. intranet/secure/non-public, no per-credit cost. The route to high volume and private pages.</span>
+          <code>Batch (AIM)</code><span>For large one-off audits WebAIM offers an <b>AIM Report</b> (up to 20,000 pages for a flat fee) &mdash; a managed batch, not an API surface.</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <section id="integrations">
+    <div class="kicker">04 · Feature &amp; capability map</div>
+    <h2>What it evaluates &amp; how you drive it</h2>
+    <p class="lead">A quick map of the engine's surface — the evaluation categories, the render controls, the API surface and the deployment options. Filter it:</p>
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="intSearch" type="text" placeholder="Search features…">
+      </div>
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="Evaluation">Evaluation</button>
+      <button class="chip" data-cat="Rendering">Rendering</button>
+      <button class="chip" data-cat="Automation">Automation</button>
+      <button class="chip" data-cat="Deployment">Deployment</button>
+    </div>
+    <div class="intgrid" id="intGrid"></div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="kicker">05 · Pricing</div>
+    <h2>What it costs</h2>
+    <p class="lead">Pricing is <b>credit-metered</b>: every account gets <b>100 free credits</b> on signup, and each scan spends <b>1&ndash;3 credits</b> depending on report depth. Credits are bought in bulk; the per-credit rate drops with volume. All figures below are from WebAIM's own API page, gathered 29 Jul 2026.</p>
+    <table class="price">
+      <thead><tr><th>Plan / lever</th><th>Price</th><th>Model &amp; notes</th></tr></thead>
+      <tbody>
+        <tr><td class="prod">Free<small>on signup</small></td><td><span class="freeword">Free</span> · 100 credits</td><td>Every new account receives <b>100 free credits</b> &mdash; enough for ~33&ndash;100 scans to prototype the adapter, depending on report type.</td></tr>
+        <tr><td class="prod">Credits<small>250&ndash;999</small></td><td><span class="money">$0.04</span>/credit</td><td>Pay-as-you-go; 250-credit minimum purchase. A type-2 scan (2 credits) ≈ $0.08.</td></tr>
+        <tr><td class="prod">Credits<small>1,000&ndash;9,999</small></td><td><span class="money">$0.03</span>/credit</td><td>Mid-volume rate.</td></tr>
+        <tr><td class="prod">Credits<small>10,000+</small></td><td><span class="money">$0.025</span>/credit</td><td>Best rate at volume &mdash; ~$0.05&ndash;0.075 per full scan.</td></tr>
+        <tr><td class="prod">AIM Report<small>managed batch</small></td><td><span class="money">$500</span> / 20k pages</td><td>One-time large-scale audit up to 20,000 pages; +$100 per additional 20,000. Not an API &mdash; a managed report.</td></tr>
+        <tr><td class="prod">Stand-alone API<small>self-host</small></td><td><span class="quote">Licensed / quote</span></td><td>Run the engine on your own server &mdash; <b>unlimited pages</b> incl. intranet/secure/non-public, no per-credit cost. Pricing by quote.</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--mut2);font-size:12.5px;margin-top:10px">All figures are from WebAIM's public API pricing page. The real embedding constraint is the <b>credit budget</b>: a scan costs 1&ndash;3 credits, so at scale either buy credits in the 10k+ band or license the stand-alone engine. Verify current rates before committing.</p>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="coverage">
+    <div class="kicker">06 · Which catalog checks it can cover</div>
+    <h2>Coverage — held to a 100%-certain bar</h2>
+    <p class="lead">A check is listed <b>only if</b> WAVE can produce its verdict as a <b>deterministic static evaluation</b> &mdash; an image with no alt attribute, a contrast ratio below 4.5:1, a heading structure, a WCAG-mapped failure &mdash; <b>no human, AI-text or interaction judgment</b>. Checks that need keyboard operability, focus order or content-meaning are excluded; this is the set WAVE can cover end-to-end.</p>
+
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="covSearch" type="text" placeholder="Search covered checks…">
+      </div>
+    </div>
+    <p class="covcount" id="covCount"></p>
+    <div class="covgrid" id="covGrid"></div>
+
+    <div class="newcov" style="margin-top:32px">
+      <h3 style="font-size:19px;margin:0 0 6px">Additional checks it can cover — <span style="color:var(--mut2);font-weight:600">not in the catalog</span></h3>
+      <p class="lead" style="margin-top:0">Deterministic WCAG failures WAVE detects that have <b>no matching entry</b> in <code>checks.ts</code> &mdash; candidate additions to the catalog. Each is referenced.</p>
+      <div class="covgrid" id="newCovGrid"></div>
+    </div>
+
+    <div style="margin-top:18px" class="callout bad">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>
+      <div>
+        <h4>What WAVE does NOT cover (for Snurra)</h4>
+        <p>Excluded, because WAVE can't deliver these verdicts on its own: <b>keyboard operability &amp; focus order</b> (it is a static engine — no interaction, no Tab walk) · <b>screen-reader behaviour</b> · <b>cognitive / content-meaning WCAG criteria</b> (reading level, meaningful link text, alt <em>quality</em> — human judgment) · <b>multi-page crawl</b> (one URL per call) · <b>visual regression</b> · and everything outside accessibility (<b>performance, SEO, security, consent</b>). Automated tools catch only a portion of WCAG issues; full conformance still needs a manual audit.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommend">
+    <div class="kicker">07 · Recommendation</div>
+    <h2>Pick your scenario</h2>
+    <p class="lead">WAVE earns its slot as the automated-WCAG source. The recommendation is about report depth, cost and reach. Click the closest match:</p>
+    <div class="picker" id="picker">
+      <button class="scn active" data-s="a">URL-in accessibility adapter<small>single GET → JSON report</small></button>
+      <button class="scn" data-s="b">Element-level findings<small>report type 3/4 — XPath/CSS + contrast</small></button>
+      <button class="scn" data-s="c">Budget the credits<small>report depth &amp; volume band</small></button>
+      <button class="scn" data-s="d">Secure / staging pages<small>stand-alone engine license</small></button>
+    </div>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="kicker">08 · Sources</div>
+    <h2>References</h2>
+    <p class="lead">WAVE facts are from WebAIM's API pages (wave.webaim.org/api), gathered 29 Jul 2026. Pricing figures are WebAIM's own published per-credit rates. Check names are quoted verbatim from <code>feasibility-app/data/checks.ts</code> (the source behind checks-catalog.vercel.app).</p>
+    <div class="refs">
+      <div class="ref"><a href="https://wave.webaim.org/api/" target="_blank" rel="noopener">WAVE API — overview &amp; pricing</a><p>Endpoint, API-key registration, 100 free credits, per-credit rates ($0.04/$0.03/$0.025), &le;2 simultaneous requests.</p></div>
+      <div class="ref"><a href="https://wave.webaim.org/api/details" target="_blank" rel="noopener">WAVE API — request details</a><p>Report types 1&ndash;4 and their credit cost, parameters (url, key, reporttype, format, viewportwidth, evaldelay, useragent, username/password), result categories.</p></div>
+      <div class="ref"><a href="https://wave.webaim.org/api/docs" target="_blank" rel="noopener">WAVE API — item documentation</a><p>Per-item detail with WCAG 2.1 guideline mappings (JSON/XML/HTML).</p></div>
+      <div class="ref"><a href="https://wave.webaim.org/" target="_blank" rel="noopener">WAVE — home</a><p>Positioning: a suite of evaluation tools that identify accessibility and WCAG errors.</p></div>
+      <div class="ref"><a href="https://wave.webaim.org/standalone" target="_blank" rel="noopener">WAVE stand-alone API</a><p>License the engine to run on your own server for unlimited / secure / intranet pages.</p></div>
+      <div class="ref"><a href="https://wave.webaim.org/aim/" target="_blank" rel="noopener">Accessibility IMpact (AIM) Report</a><p>Managed large-scale batch: $500 per 20,000 pages, +$100 per additional 20,000.</p></div>
+      <div class="ref"><a href="https://www.w3.org/TR/WCAG21/" target="_blank" rel="noopener">WCAG 2.1 (W3C)</a><p>The success criteria WAVE items map to (A/AA/AAA).</p></div>
+      <div class="ref"><a href="https://webaim.org/" target="_blank" rel="noopener">WebAIM</a><p>The non-profit (Utah State University) behind WAVE.</p></div>
+      <div class="ref"><a href="https://checks-catalog.vercel.app/" target="_blank" rel="noopener">Feasibility checks catalog</a><p>The 217-check catalog this coverage maps against (source: feasibility-app).</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="disc">
+      <strong>How to read this.</strong> This is an independent capability/integration assessment compiled from public sources for planning purposes &mdash; it is not from or endorsed by WebAIM, and it is not legal advice. Automated accessibility testing catches only a portion of WCAG issues; a passing WAVE scan is not a conformance guarantee and does not replace manual/assistive-technology audit. Pricing and features change; verify current rates before committing. The coverage list is deliberately conservative: checks are included only where a deterministic static evaluation makes the verdict 100% certain.
+    </div>
+    WAVE® and WebAIM® are trademarks of Utah State University. Prepared 29 Jul 2026 · for internal planning.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'),
+    thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var dark=root.getAttribute('data-theme')==='dark';
+  root.setAttribute('data-theme', dark?'light':'dark');
+  thTxt.textContent = dark?'Dark':'Light';
+});
+
+// ---- Capability tabs ----
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var k=t.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.getAttribute('data-pane')===k);
+    });
+  });
+});
+
+// ---- Accordions ----
+document.querySelectorAll('.acc>button').forEach(function(b){
+  b.addEventListener('click',function(){ b.parentElement.classList.toggle('open'); });
+});
+
+// ---- Feature / ecosystem data + filter ----
+var INTS=[
+  {n:'Errors',c:'Evaluation',d:'Definite WCAG failures — missing alt, empty links/buttons, missing form labels, missing language'},
+  {n:'Contrast Errors',c:'Evaluation',d:'Text below WCAG AA 4.5:1 — computed contrast ratio returned'},
+  {n:'Alerts',c:'Evaluation',d:'Probable issues — skipped headings, redundant links, small/justified text, missing fieldset'},
+  {n:'Features',c:'Evaluation',d:'Accessibility-improving elements present — alt supplied, labels, ARIA, table headers'},
+  {n:'Structural Elements',c:'Evaluation',d:'Headings (H1–H6), lists, regions, iframes, landmarks inventory'},
+  {n:'ARIA',c:'Evaluation',d:'ARIA roles/attributes present; broken aria-labelledby/describedby references'},
+  {n:'WCAG 2.1 mapping',c:'Evaluation',d:'Every item maps to a WCAG 2.1 success criterion (A/AA/AAA) via /api/docs'},
+  {n:'Post-CSS/JS render',c:'Rendering',d:'Evaluates the computed page after CSS & JavaScript, not raw HTML'},
+  {n:'Viewport width control',c:'Rendering',d:'viewportwidth parameter (default 1200) to assess responsive layouts'},
+  {n:'Evaluation delay',c:'Rendering',d:'evaldelay (ms, default 250) to wait for JS-injected content'},
+  {n:'User-agent override',c:'Rendering',d:'useragent parameter to emulate a specific browser/device string'},
+  {n:'REST API (single GET)',c:'Automation',d:'wave.webaim.org/api/request — one synchronous GET, report in the response'},
+  {n:'API key auth',c:'Automation',d:'key query parameter; register for a key; any public URL works'},
+  {n:'Report types 1–4',c:'Automation',d:'Stats / itemised / XPath+contrast / CSS selectors — depth per call'},
+  {n:'JSON or XML output',c:'Automation',d:'format parameter selects json (default) or xml'},
+  {n:'Synchronous execution',c:'Automation',d:'No job, no webhook, no polling — the GET returns the finished report'},
+  {n:'HTTP-authenticated pages',c:'Automation',d:'username/password parameters to evaluate Basic-auth (staging) pages'},
+  {n:'Stand-alone API license',c:'Deployment',d:'Run the engine on your own server — unlimited, incl. intranet/secure pages'},
+  {n:'AIM batch report',c:'Deployment',d:'Managed large-scale audit — $500 per 20,000 pages'},
+  {n:'Browser extensions',c:'Deployment',d:'Free WAVE Chrome/Firefox extensions for ad-hoc manual evaluation'},
+  {n:'Documentation API',c:'Deployment',d:'/api/docs returns item detail + WCAG mappings (json/xml/html)'}
+
+];
+var grid=document.getElementById('intGrid'), search=document.getElementById('intSearch'), curCat='all';
+function renderInts(){
+  var q=(search.value||'').toLowerCase();
+  var rows=INTS.filter(function(i){
+    var okc = curCat==='all' || i.c===curCat;
+    var okq = !q || i.n.toLowerCase().indexOf(q)>-1 || i.d.toLowerCase().indexOf(q)>-1;
+    return okc && okq;
+  });
+  grid.innerHTML = rows.length ? rows.map(function(i){
+    return '<div class="intitem"><div class="cat">'+i.c+'</div><h5>'+i.n+'</h5><span>'+i.d+'</span></div>';
+  }).join('') : '<div class="empty">No matches.</div>';
+}
+document.querySelectorAll('#integrations .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#integrations .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); curCat=c.getAttribute('data-cat'); renderInts();
+  });
+});
+search.addEventListener('input',renderInts);
+renderInts();
+
+// ---- Coverage data + filter ----
+// check names are verbatim from feasibility-app/data/checks.ts
+var COV=[
+  {ch:'Colour contrast meets 4.5:1 ratio', p:'Accessibility', cap:'Contrast Errors module', gate:[], note:'WAVE computes the contrast ratio of text against its background and returns a Contrast Error for any text below the WCAG AA 4.5:1 threshold; report type 3/4 returns the exact ratio.'},
+  {ch:'All product images have descriptive alt text', p:'Accessibility', cap:'Errors (missing alt)', gate:[], note:'WAVE returns a missing-alternative-text Error for any image with no alt attribute — the deterministic presence verdict this check needs (alt “descriptiveness” is a separate human judgment).'},
+  {ch:'Automated WCAG scan on key pages', p:'Accessibility', cap:'WAVE WCAG engine', gate:[], note:'WAVE is itself an automated WCAG evaluation engine; every returned item maps to a WCAG 2.1 success criterion via the /api/docs endpoint.'},
+  {ch:'Heading outline / hierarchy & multiple-H1', p:'Technical SEO & Redirects', cap:'Structural Elements + Alerts', gate:[], note:'WAVE enumerates every heading (H1–H6) as a Structural Element and raises Alerts for skipped heading levels and a missing/duplicate first-level heading.'}
+
+];
+var covGrid=document.getElementById('covGrid'), covSearch=document.getElementById('covSearch'),
+    covCount=document.getElementById('covCount'), curCov='all';
+function renderCov(){
+  var q=(covSearch.value||'').toLowerCase();
+  var rows=COV.filter(function(i){
+    return !q || i.ch.toLowerCase().indexOf(q)>-1 || i.p.toLowerCase().indexOf(q)>-1 || i.cap.toLowerCase().indexOf(q)>-1;
+  });
+  covCount.innerHTML='Showing <b style="color:var(--ink)">'+rows.length+'</b> of '+COV.length+' checks WAVE can cover';
+  covGrid.innerHTML = rows.length ? rows.map(function(i){
+    var gates=(i.gate||[]).map(function(g){
+      return '<span class="gate">'+g+'</span>';
+    }).join('');
+    return '<div class="covitem"><div class="top"><div><h5>'+i.ch+'</h5>'+
+      '<div class="pil">'+i.p+' · <span class="capname">'+i.cap+'</span></div></div></div>'+
+      '<p>'+i.note+'</p>'+(gates?('<div>'+gates+'</div>'):'')+'</div>';
+  }).join('') : '<div class="empty">No checks match that filter.</div>';
+}
+covSearch.addEventListener('input',renderCov);
+renderCov();
+
+// ---- Additional checks NOT in the catalog (candidate new checks) ----
+var NEWCOV=[
+  {name:'Empty or missing-text links & buttons (no accessible name)', cap:'Errors (empty link/button)', note:'WAVE flags links and buttons with no discernible text or accessible name — a WCAG 2.4.4 / 4.1.2 failure the catalog does not itemise.', ref:'wave.webaim.org — Errors reference'},
+  {name:'Form input missing an associated label', cap:'Errors (missing form label)', note:'WAVE returns a missing-form-label Error for inputs with no associated label — WCAG 1.3.1 / 3.3.2; the catalog has no form-label check.', ref:'wave.webaim.org — Errors reference'},
+  {name:'Broken ARIA reference (aria-labelledby/describedby → missing id)', cap:'ARIA validation', note:'WAVE flags ARIA references pointing at element IDs that do not exist — WCAG 1.3.1 / 4.1.2; no catalog equivalent.', ref:'wave.webaim.org — ARIA reference'},
+  {name:'Data table missing row/column headers', cap:'Structure (table headers)', note:'WAVE flags data tables lacking <th> header cells — WCAG 1.3.1; the catalog has no table-structure check.', ref:'wave.webaim.org — Structure reference'},
+  {name:'Redundant adjacent links / redundant title text', cap:'Alerts (redundant link)', note:'WAVE raises Alerts for adjacent links to the same URL and redundant title attributes — usability issues with no catalog check.', ref:'wave.webaim.org — Alerts reference'},
+  {name:'Very small text / justified text / underlined non-link text', cap:'Alerts (readability)', note:'WAVE raises Alerts for very small font sizes, fully-justified text and underlined non-link text — readability signals absent from the catalog.', ref:'wave.webaim.org — Alerts reference'},
+  {name:'Grouped inputs missing fieldset/legend', cap:'Alerts (fieldset)', note:'WAVE flags radio/checkbox groups without a fieldset/legend — WCAG 1.3.1 / 3.3.2; no catalog equivalent.', ref:'wave.webaim.org — Structure reference'},
+  {name:'ARIA landmark / region inventory', cap:'ARIA + Structural Elements', note:'WAVE inventories ARIA roles and page regions/landmarks per page — a structural signal the catalog does not represent.', ref:'wave.webaim.org — ARIA reference'}
+
+];
+(function(){
+  var g=document.getElementById('newCovGrid'); if(!g) return;
+  g.innerHTML=NEWCOV.map(function(i){
+    return '<div class="covitem"><div class="top"><div><h5>'+i.name+'</h5>'+
+      '<div class="pil"><span class="capname">'+i.cap+'</span></div></div><span class="gate">new</span></div>'+
+      '<p>'+i.note+'</p><div class="pil" style="margin-top:8px">↳ <span class="capname">'+i.ref+'</span></div></div>';
+  }).join('');
+})();
+
+// ---- Scenario recommender ----
+var RECS={
+  a:{label:'Recommended path',h:'URL-in accessibility adapter',
+     p:'WAVE is a textbook sync provider: one GET per audited URL returns the full WCAG report. Map its error/contrast/structure categories to the colour-contrast, alt-text, WCAG-scan and heading catalog checks, plus the net-new WCAG failure taxonomy.',
+     s:['Register for an API key; store it in the adapter config and gate isConfigured() on the key + remaining credit balance.','buildRequest() issues GET wave.webaim.org/api/request?key=&url=&reporttype=2; mapResponse() reads categories.error / contrast / structure / aria.','Cache by URL and degrade to not-applicable on error or exhausted credits; keep to ≤2 simultaneous requests.']},
+  b:{label:'Recommended path',h:'Element-level findings (report type 3/4)',
+     p:'When Snurra needs to point users at the exact failing element and the measured contrast ratio, request the deeper report tiers.',
+     s:['Call with reporttype=3 (XPath + contrast data) or 4 (CSS selectors) — 3 credits instead of 1.','Surface the XPath/CSS location and contrast ratio per finding in the audit UI.','Reserve deep reports for pages that need remediation detail; use type 1/2 for pass/fail sweeps.']},
+  c:{label:'Recommended path',h:'Budget the credits',
+     p:'Every scan spends 1–3 credits, so plan report depth and volume band deliberately.',
+     s:['Use report type 1 (1 credit) for quick pass/fail; type 2 (2) for issue breakdowns; type 3/4 (3) only when locations are needed.','Buy credits in the 10,000+ band ($0.025/credit) once volume is steady.','Schedule accessibility scans off the per-request hot path and reuse cached results between audits.']},
+  d:{label:'Recommended path',h:'Secure / staging pages via the stand-alone engine',
+     p:'The hosted API can only reach public URLs. For intranet, authenticated or pre-launch pages, license the stand-alone engine.',
+     s:['For public staging behind Basic auth, pass username/password to the hosted API.','For non-public/intranet pages or high volume, license the stand-alone WAVE engine to run on your own server.','Keep the same adapter contract — only the base URL and auth change.']}
+
+};
+function showRec(k){
+  var r=RECS[k];
+  document.getElementById('rec').innerHTML =
+    '<div class="rlabel">'+r.label+'</div><h3>'+r.h+'</h3><p>'+r.p+'</p><ul class="steps"><li>'+r.s.join('</li><li>')+'</li></ul>';
+}
+document.querySelectorAll('.scn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.scn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active'); showRec(b.getAttribute('data-s'));
+  });
+});
+showRec('a');
+</script>
+</body>
+</html>
