@@ -13,6 +13,7 @@ const ANALYSES = [
   { file: 'percy-analysis.html', name: 'Percy', meta: '9 catalog · +4 net-new' },
   { file: 'immuniweb-analysis.html', name: 'ImmuniWeb', meta: '6 catalog · +10 net-new' },
   { file: 'cookiebot-analysis.html', name: 'Cookiebot (Usercentrics)', meta: '2 catalog · +7 net-new' },
+  { file: 'wp-umbrella-analysis.html', name: 'WP Umbrella', meta: '6 catalog · +8 net-new' },
 ];
 
 export default function ToolsAnalysisPage() {

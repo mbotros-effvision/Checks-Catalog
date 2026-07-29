@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WP Umbrella — Capabilities &amp; Embedding Analysis</title>
+<style>
+  :root{
+    --bg:#fbfaf6; --bg2:#f5f2ea; --panel:#ffffff; --panel2:#f7f5ef;
+    --line:#e9e5db; --line2:#ddd8cc;
+    --ink:#1c1a17; --mut:#6f6a61; --mut2:#9a948a;
+    --brand:#0f766e; --brand2:#0f766e; --accent:#0f766e;
+    --warn:#b45309; --bad:#b91c1c; --good:#0f766e;
+    --chip:#f2efe8; --shadow:0 1px 2px rgba(28,26,23,.04),0 8px 24px -12px rgba(28,26,23,.12);
+    --radius:14px;
+  }
+  html[data-theme="dark"]{
+    --bg:#131316; --bg2:#17171b; --panel:#1b1b1f; --panel2:#232328;
+    --line:#2c2c31; --line2:#3a3a41; --ink:#eceae4; --mut:#a39d93; --mut2:#6f6a62;
+    --brand:#2dd4bf; --brand2:#2dd4bf; --accent:#2dd4bf; --good:#2dd4bf;
+    --warn:#fbbf24; --bad:#f87171;
+    --chip:#232328; --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1100px 520px at 88% -8%,#eef6f4,transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,#f6f1e9,transparent 55%),
+               var(--bg);
+    background-attachment:fixed;
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  html[data-theme="dark"] body{
+    background:radial-gradient(1100px 520px at 88% -8%,rgba(45,212,191,.07),transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,rgba(180,140,60,.06),transparent 55%),
+               var(--bg);
+  }
+  a{color:var(--brand2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 22px}
+
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(15,118,110,.5)}
+  .logo .mark svg{width:18px;height:18px}
+  nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
+  nav.links a:hover{background:var(--chip); color:var(--ink); text-decoration:none}
+  .tbtn{border:1px solid var(--line2); background:var(--chip); color:var(--ink); border-radius:9px;
+    padding:7px 10px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; gap:6px; align-items:center}
+  .tbtn:hover{border-color:var(--brand)}
+
+  .hero{padding:46px 0 26px}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:var(--chip);
+    border:1px solid var(--line2); padding:6px 12px; border-radius:999px}
+  h1{font-size:40px; line-height:1.12; margin:16px 0 10px; letter-spacing:-.5px}
+  h1 .grad{background:linear-gradient(120deg,var(--brand2),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--mut); font-size:17px; max-width:810px}
+  .meta{margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; color:var(--mut2); font-size:13px}
+  .meta b{color:var(--mut)}
+
+  .tldr{margin-top:26px; border:1px solid var(--line2); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:var(--shadow); overflow:hidden}
+  .tldr .hd{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line);
+    font-weight:800; letter-spacing:.3px}
+  .tldr .hd .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,170,.18)}
+  .tldr .bd{padding:18px 20px; color:var(--mut); font-size:15.5px}
+  .tldr .bd strong{color:var(--ink)}
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .vcard{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .vcard h4{margin:0 0 4px; font-size:13px; color:var(--mut2); text-transform:uppercase; letter-spacing:.08em}
+  .vcard p{margin:0; font-size:14px; color:var(--ink)}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; margin-top:8px}
+  .pill.good{background:rgba(34,211,170,.14); color:var(--good); border:1px solid rgba(34,211,170,.35)}
+  .pill.warn{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.35)}
+  .pill.bad{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.35)}
+
+  section{padding:34px 0; border-top:1px solid var(--line)}
+  .kicker{font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--brand2)}
+  h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.3px}
+  .lead{color:var(--mut); max-width:880px; margin:0 0 20px}
+
+  .tabs{display:flex; gap:8px; margin:6px 0 18px; flex-wrap:wrap}
+  .tab{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:9px 16px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:14px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--accent)); color:#04122a; border-color:transparent}
+  .tabpane{display:none; animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .grid{display:grid; gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:16.5px; display:flex; align-items:center; gap:9px}
+  .card .ic{width:30px;height:30px;border-radius:9px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .card .ic svg{width:17px;height:17px;stroke:var(--brand2)}
+  .card p{margin:0; color:var(--mut); font-size:14px}
+  .tag{font-size:11px; font-weight:700; color:var(--mut2); background:var(--chip); border:1px solid var(--line2);
+    padding:2px 8px; border-radius:6px; margin-right:6px; display:inline-block; margin-top:8px}
+
+  .fit{overflow:hidden; border:1px solid var(--line); border-radius:14px}
+  .fitrow{display:grid; grid-template-columns:1.4fr 2.2fr .9fr; gap:0; border-bottom:1px solid var(--line)}
+  .fitrow:last-child{border-bottom:0}
+  .fitrow.head{background:var(--chip); font-weight:800; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut2)}
+  .fitrow>div{padding:14px 16px}
+  .fitrow .name{font-weight:700; color:var(--ink)}
+  .fitrow .name small{display:block; font-weight:500; color:var(--mut2); margin-top:3px}
+  .fitrow .desc{color:var(--mut); font-size:14px; border-left:1px solid var(--line); border-right:1px solid var(--line)}
+  .fitrow .verd{display:flex; align-items:center; justify-content:center}
+  .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
+  .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .badge.ok{background:rgba(15,118,110,.16); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
+
+  .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
+  .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
+  .callout.info{background:rgba(15,118,110,.08); border-color:rgba(15,118,110,.4)}
+  .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
+  .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
+  .callout.warn .cic{background:rgba(255,176,32,.16)}
+  .callout.info .cic{background:rgba(15,118,110,.16)}
+  .callout.bad .cic{background:rgba(255,93,108,.16)}
+  .callout h4{margin:0 0 5px; font-size:15.5px}
+  .callout p{margin:0; color:var(--mut); font-size:14.5px}
+  .callout.warn h4{color:var(--warn)}
+  .callout.bad h4{color:var(--bad)}
+  .callout .cic svg{width:19px;height:19px}
+
+  .picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
+  .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
+  .scn.active{border-color:var(--brand); background:rgba(15,118,110,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(15,118,110,.12)}
+  .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
+  .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
+  .rec h3{margin:6px 0 6px; font-size:18px}
+  .rec p{margin:0 0 8px; color:var(--mut); font-size:14.5px}
+  .rec .steps{margin:8px 0 0; padding-left:18px; color:var(--mut); font-size:14px}
+  .rec .steps li{margin:3px 0}
+
+  .filterbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--chip);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 12px}
+  .search input{border:0; background:transparent; color:var(--ink); font-size:14px; width:100%; outline:none}
+  .chip{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:7px 12px; border-radius:999px;
+    cursor:pointer; font-size:12.5px; font-weight:700}
+  .chip.active{background:var(--brand); color:#04122a; border-color:transparent}
+  .intgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .intitem{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px}
+  .intitem h5{margin:0 0 3px; font-size:14px}
+  .intitem span{font-size:12px; color:var(--mut2)}
+  .intitem .cat{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--brand2)}
+  .empty{color:var(--mut2); font-size:14px; padding:16px; text-align:center; grid-column:1/-1}
+
+  .covgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .covitem{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px; position:relative}
+  .covitem .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .covitem h5{margin:0; font-size:14.5px; color:var(--ink); font-weight:700; line-height:1.3}
+  .covitem .pil{font-size:10px; color:var(--mut2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+  .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
+  .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
+  .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .ttag.redundant{background:rgba(15,118,110,.14); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .ttag.partial{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
+    border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
+  .capname{color:var(--accent); font-weight:700}
+  .covcount{font-size:12.5px; color:var(--mut2); margin:0 0 10px}
+
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:10px; background:var(--panel)}
+  .acc>button{width:100%; text-align:left; background:transparent; border:0; color:var(--ink); padding:15px 18px;
+    font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .acc>button .ar{transition:transform .2s; color:var(--mut2)}
+  .acc.open>button .ar{transform:rotate(90deg)}
+  .acc .panel{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc.open .panel{max-height:1600px}
+  .acc .panel .inner{padding:0 18px 18px; color:var(--mut); font-size:14px}
+  code,.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px}
+  .codeblock{background:#0a1024; border:1px solid var(--line2); border-radius:10px; padding:13px 15px;
+    overflow:auto; color:#cfe0ff; margin:10px 0}
+  html[data-theme="light"] .codeblock{background:#0d1530; color:#dbe6ff}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:8px 0}
+  .kv code{color:var(--accent)}
+  .kv span{color:var(--mut)}
+
+  table.price{width:100%; border-collapse:collapse; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.price th,table.price td{padding:13px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top}
+  table.price th{background:var(--chip); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut2)}
+  table.price td.prod{font-weight:700; color:var(--ink)}
+  table.price td.prod small{display:block; font-weight:500; color:var(--mut2); margin-top:2px}
+  .money{font-weight:800; color:var(--accent)}
+  .quote{color:var(--warn); font-weight:700}
+  .freeword{color:var(--good); font-weight:800}
+
+  .refs{columns:2; column-gap:26px}
+  .refs .ref{break-inside:avoid; margin-bottom:12px; padding-left:14px; border-left:2px solid var(--line2)}
+  .refs .ref a{font-weight:600; font-size:13.5px}
+  .refs .ref p{margin:2px 0 0; color:var(--mut2); font-size:12px}
+
+  footer{padding:30px 0 60px; color:var(--mut2); font-size:12.5px; border-top:1px solid var(--line)}
+  .disc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px}
+
+  @media(max-width:860px){
+    .g2,.g3,.verdict,.intgrid,.covgrid{grid-template-columns:1fr}
+    .fitrow{grid-template-columns:1fr}
+    .fitrow .desc{border-left:0;border-right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .refs{columns:1}
+    h1{font-size:31px}
+    nav.links{display:none}
+  }
+  @media print{
+    header.top,.tbtn,.picker,.filterbar{display:none!important}
+    .tabpane{display:block!important} .acc .panel{max-height:none!important}
+    body{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="#04122a" stroke-width="1.8"/><path d="M16 16l4.5 4.5" stroke="#04122a" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="11" r="2.4" fill="#04122a"/></svg></span>
+      WP Umbrella <span style="color:var(--mut2);font-weight:600">· Embedding Analysis</span>
+    </div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#embed">Embedding</a>
+      <a href="#api">API</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#coverage">Checks covered</a>
+      <a href="#recommend">Recommendation</a>
+      <a href="#refs">Sources</a>
+    </nav>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <span class="eyebrow">● Product &amp; Integration Assessment</span>
+    <h1>WP Umbrella, assessed for <span class="grad">embedding into Snurra</span></h1>
+    <!-- snurraFit pill: colour + label + note per the tool's tier.
+         api-native  #0f766e "API-native"  · api-with-setup #b45309 "API + setup" · no-api #b91c1c "No API" -->
+    <div style="margin:12px 0 4px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid #b45309;color:#b45309;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;white-space:nowrap"><span style="width:7px;height:7px;border-radius:50%;background:currentColor"></span>Fits into Snurra: API + setup</span>
+      <span style="font-size:12.5px;color:var(--mut,#6f6a61)">Public REST API (Bearer token) but it reads only your own <b>onboarded WordPress sites</b> — each needs the WP&nbsp;Umbrella plugin installed + connected; not an arbitrary-URL scanner.</span>
+    </div>
+    <p class="sub">WP&nbsp;Umbrella is a <b>WordPress maintenance &amp; monitoring platform</b> for agencies running fleets of WordPress sites. You install its <b>free plugin</b> on each site and it monitors <b>uptime, SSL &amp; domain status, response time, PHP errors</b>, tracks <b>core/plugin/theme updates</b> and <b>known vulnerabilities</b> (Patchstack), runs <b>backups</b>, scans for <b>broken links &amp; images</b>, and produces white‑label <b>maintenance reports</b>. It exposes a <b>Bearer‑token public REST API</b> that reads back your projects' maintenance data — but only for the WordPress sites you own and have onboarded. This page maps its capabilities, how it could slot into Snurra's worker, what it costs, and — held to a strict 100%‑certain bar — precisely which feasibility‑catalog checks it can cover.</p>
+    <div class="meta">
+      <span><b>Prepared:</b> 29 Jul 2026</span>
+      <span><b>Use case:</b> WordPress-fleet uptime / SSL / maintenance monitoring for the Snurra Site Audit</span>
+      <span><b>Catalog:</b> feasibility‑app · 217 checks</span>
+    </div>
+
+    <div class="tldr">
+      <div class="hd"><span class="dot"></span> Bottom line up front</div>
+      <div class="bd">
+        WP&nbsp;Umbrella is a <strong>WordPress-fleet maintenance monitor</strong>, not a URL-in site scanner. Against this catalog it maps cleanly onto just <strong>6 checks</strong> — the <strong>uptime / SSL-expiry / domain-expiry / broken-link</strong> family it monitors continuously — but its real value is a large <strong>net-new WordPress-maintenance surface the catalog doesn't yet cover</strong>: grouped <strong>PHP error monitoring</strong>, outdated core/plugin/theme detection, <strong>known-vulnerability</strong> alerts (Patchstack), server <strong>response-time</strong> trends, backup integrity, malware scanning and pre/post-update visual regression. It has a <strong>Bearer-token public REST API</strong> (<code>public-api.wp-umbrella.com</code>) — but it reads back <strong>only the WordPress sites you own and have onboarded</strong> (its plugin installed + API key connected). The catch for Snurra: it's an <strong>owned-fleet, agent-on-site</strong> model, not "POST a URL, get an audit". It does <strong>not</strong> do Core Web Vitals / Lighthouse scoring, SEO, or arbitrary-URL scanning.
+        <div class="verdict">
+          <div class="vcard"><h4>Technical fit</h4><p>Public REST API exists (Bearer), but it reads only your <b>onboarded WordPress sites</b> — each needs the plugin installed. Owned-fleet, not URL-in.</p><span class="pill warn">API + setup</span></div>
+          <div class="vcard"><h4>What it covers</h4><p><b>6 catalog checks</b> (uptime, SSL/domain expiry, broken links) <b>+ ~8 net-new</b> WordPress-maintenance checks the catalog lacks.</p><span class="pill good">WP maintenance</span></div>
+          <div class="vcard"><h4>Cost</h4><p><b>€1.99 / site / month</b> (single plan, unlimited sites); add-ons for security (€2) &amp; hourly backups (€2.49). 14-day free trial, no permanent free tier.</p><span class="pill good">Per-site flat</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="kicker">01 · What WP Umbrella actually does</div>
+    <h2>Capabilities</h2>
+    <p class="lead">Two layers matter for embedding: what the <b>plugin monitors</b> on each connected WordPress site (uptime, SSL, errors, updates, backups, links) and its <b>automation surface</b> (the Bearer-token public REST API, webhooks and native integrations a backend drives it through). Toggle between them:</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="scan">What it monitors</button>
+      <button class="tab" data-tab="auto">Automation &amp; API surface</button>
+    </div>
+
+    <div class="tabpane active" data-pane="scan">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Uptime, SSL &amp; domain monitoring</h3><p>Continuously checks each site's <b>uptime</b>, <b>SSL</b> and <b>domain status</b>, at a configurable <b>2–30 min interval</b>, and alerts via email/Slack on downtime or SSL/domain expiry. Uptime history is tracked over time.</p><span class="tag">Uptime</span><span class="tag">SSL / domain expiry</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>Performance (response time)</h3><p>Tracks <b>server response time</b> and HTTP errors over time (desktop &amp; mobile), filterable by date. It is a <b>response-time trend monitor</b> — <em>not</em> a Lighthouse / PageSpeed / Core-Web-Vitals score.</p><span class="tag">Response time</span><span class="tag">Trend</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></span>PHP error monitoring</h3><p>Automatically captures <b>PHP errors</b> across the fleet, <b>grouped</b> with stack traces — error type, file, line and message — so you see recurring fatals/warnings without enabling WP debug on the live site.</p><span class="tag">PHP errors</span><span class="tag">Stack traces</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 12a8 8 0 018-8M20 12a8 8 0 01-8 8"/><path d="M12 8v4l3 2"/></svg></span>Updates (Safe Update)</h3><p>Tracks and applies <b>WordPress core, plugin &amp; theme updates</b> — bulk or scheduled — with pre-update backups, update validation and rollback visibility; auto cache-clear &amp; DB upgrades for WooCommerce/Elementor.</p><span class="tag">Core/plugin/theme</span><span class="tag">Rollback</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></span>Vulnerability &amp; malware</h3><p>Monitors <b>known vulnerabilities</b> in installed components (Patchstack data) on every plan; an optional <b>Site Protect add-on</b> adds a firewall + virtual patching, <b>daily malware scanning</b>, IP blocklist and an activity log.</p><span class="tag">Patchstack CVEs</span><span class="tag">Malware (add-on)</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M4 10h16"/></svg></span>Backups</h3><p><b>Encrypted, GDPR-compliant, scheduled backups</b> (down to hourly with the add-on) with <b>one-click restore</b> of files and database. Backup completion is tracked per site.</p><span class="tag">Encrypted</span><span class="tag">One-click restore</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="8" cy="9" r="5"/><path d="M13 14l5 5M11 11l7 7"/></svg></span>Broken links &amp; images</h3><p>Scheduled scans for <b>broken links</b> and <b>broken images</b> across each site, surfaced in a centralized issue list per project — the closest thing to a site-crawl verdict WP Umbrella produces.</p><span class="tag">Broken links</span><span class="tag">Broken images</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8"/></svg></span>Visual regression (on updates)</h3><p>Takes before/after <b>visual snapshots around updates</b> so a plugin/theme/core update that breaks a page's rendering is caught. Update-scoped — not a general per-run visual baseline.</p><span class="tag">Pre/post-update</span><span class="tag">Visual diff</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M9 12h7M9 16h7"/></svg></span>Maintenance reports</h3><p>Automated <b>white-label PDF reports</b> documenting updates applied, backups taken, uptime and monitoring over a period — the agency-facing deliverable, scheduled per client.</p><span class="tag">White-label PDF</span><span class="tag">Scheduled</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M12 3l9 16H3l9-16z" transform="rotate(180 12 12)"/><path d="M12 8v5M12 16h.01"/></svg></span>
+        <div><h4>The defining shape (for embedding)</h4><p>WP&nbsp;Umbrella's verdicts are <b>deterministic maintenance signals</b> for a WordPress site you control: it is up or down, the SSL/domain expires on date X, this PHP error fired N times, these components are outdated/vulnerable, this link 404s. That's genuinely useful — but every signal comes from a <b>plugin installed on the site</b> plus its WordPress REST API, so it only works on <b>owned, onboarded sites</b>, never an arbitrary client URL. Note its "performance" is <b>server response time</b>, not a Core-Web-Vitals / Lighthouse score.</p></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="auto">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></span>Public REST API</h3><p>Base <code>https://public-api.wp-umbrella.com</code>. Read your <b>maintenance data programmatically</b> — resources seen in the official Postman collection: <b>Me</b>, <b>Projects</b> (sites), <b>Vulnerabilities</b>. It reads out your fleet's data; it is not a scan-trigger API.</p><span class="tag">JSON</span><span class="tag">read-out</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Auth — Bearer token</h3><p>Generate an <code>accessToken</code> on your <b>Profile page</b> ("Generate my token") and send it as a Bearer header. Requests are scoped by <code>projectId</code> for a given site.</p><span class="tag">Bearer</span><span class="tag">accessToken</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 2v4M16 2v4"/></svg></span>Plugin + WP REST API</h3><p>Each site is onboarded by installing the <b>free WP&nbsp;Umbrella plugin</b> and pasting an API key; the platform talks to the site over its <b>WordPress REST API</b>. Sites that block the WP REST API (Wordfence/Sucuri, HTTP-Basic-Auth) can fail to connect.</p><span class="tag">Plugin</span><span class="tag">Owned sites</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 12a8 8 0 018-8M20 12a8 8 0 01-8 8"/><path d="M12 8v4l3 2"/></svg></span>Webhooks &amp; scheduling</h3><p><b>Webhooks</b> are offered for advanced workflows/notifications, alongside scheduling for backups, updates, link checks and reports. Monitoring runs on the platform's own <b>2–30 min</b> cadence.</p><span class="tag">Webhooks</span><span class="tag">Scheduled</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>Limits</h3><p><b>No site/project cap</b> ("unlimited sites, no hidden limits"). API <b>rate limits, concurrency and usage metering are not published</b> in the accessible docs — treat as UNVERIFIED and back off conservatively.</p><span class="tag">Unlimited sites</span><span class="tag">Rate limit ?</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>Native integrations</h3><p><b>Slack</b> notifications, <b>Google Analytics</b>, and <b>Patchstack</b> (vulnerability data). The full developer reference lives at <code>developer.wp-umbrella.com</code> — <b>unreachable at time of writing</b> (expired TLS cert).</p><span class="tag">Slack · GA · Patchstack</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout warn">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 9v4M12 17h.01"/></svg></span>
+        <div><h4>How Snurra could drive it — and the catch</h4><p>There is a real HTTP adapter here: <code>isConfigured()</code> gates on the <b>Bearer <code>accessToken</code></b>, <code>buildRequest()</code> reads <code>Projects</code> / <code>Vulnerabilities</code> for a <code>projectId</code>, <code>mapResponse()</code> maps the maintenance data. <b>But</b> it is <b>not URL-in</b>: the site must already be a WP&nbsp;Umbrella project with the plugin installed, so this only works for a <b>WordPress fleet Snurra (or its client) owns and onboards</b> — degrade to <code>not-applicable</code> for any site not in the account. The exact API JSON shapes are <b>unverified</b> (developer docs unreachable) — confirm against the live Postman collection before building.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section id="embed">
+    <div class="kicker">02 · Applicability — how it slots into Snurra</div>
+    <h2>Embedding paths, ranked</h2>
+    <p class="lead">WP&nbsp;Umbrella only fits Snurra's <code>ProviderAdapter</code> pattern <b>partially</b>: its data API is a clean Bearer-token GET, like PSI — but it reads back only <b>WordPress sites onboarded into a WP&nbsp;Umbrella account</b> (plugin installed + connected). It cannot take an arbitrary client URL and return an audit. So the ranking is about the one realistic path — an owned-fleet integration — and where it adds net-new maintenance signal.</p>
+
+    <div class="fit">
+      <div class="fitrow head"><div>Path</div><div>What it's good for</div><div>Fit</div></div>
+      <div class="fitrow">
+        <div class="name">Owned-fleet maintenance adapter <small>(read Projects / Vulnerabilities for onboarded WP sites)</small></div>
+        <div class="desc">For a WordPress fleet Snurra (or the client) already manages in WP&nbsp;Umbrella, a Bearer-token adapter reads back <b>uptime, SSL/domain expiry, PHP errors, outdated components, known vulnerabilities and broken links</b> per site — a rich net-new maintenance surface with no arbitrary-URL requirement.</div>
+        <div class="verd"><span class="badge best">Best fit ✓</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Uptime / SSL-expiry / domain-expiry monitoring feed <small>(the catalog-overlapping slice)</small></div>
+        <div class="desc">Surface the continuous uptime history, SSL-expiry and domain-expiry monitoring into the catalog's SSL/Domain-Health checks — but only for sites in the account, and remember its uptime interval floor is <b>2 min</b>, not 1.</div>
+        <div class="verd"><span class="badge ok">Good</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Point it at an arbitrary client URL <small>(no install)</small></div>
+        <div class="desc">Impossible by design — every signal comes from the plugin + the site's WordPress REST API. A site you don't control and can't install the plugin on returns nothing.</div>
+        <div class="verd"><span class="badge no">Can't</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Use it as a Core-Web-Vitals / SEO source</div>
+        <div class="desc">Its "performance" is <b>server response time</b>, and it has no SEO/Lighthouse/PageSpeed product. Use PageSpeed Insights for CWV and the Site Audit for SEO instead.</div>
+        <div class="verd"><span class="badge no">Don't</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="callout warn">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 9v4M12 17h.01"/></svg></span>
+      <div>
+        <h4>Integration shape (owned-fleet, not URL-in)</h4>
+        <p>Mechanically it's a sync Bearer GET — <code>isConfigured()</code> gates on the <code>accessToken</code>, <code>mapResponse()</code> walks the <code>Projects</code> / <code>Vulnerabilities</code> data for a <code>projectId</code>. The constraint is the same as Cookiebot's: the target must already be <b>onboarded</b> (WP&nbsp;Umbrella plugin installed on a WordPress site you control), so it degrades to <code>not-applicable</code> for any site not in the account, and can't be pointed at a prospect's URL. Exact JSON field shapes are <b>unverified</b> (the developer docs site was unreachable) — confirm against the live Postman collection before building.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API / TECHNICAL -->
+  <section id="api">
+    <div class="kicker">03 · Technical detail — API, auth, limits &amp; the plugin model</div>
+    <h2>What integrating actually looks like</h2>
+    <p class="lead">Enough to scope an integration spike. Expand for detail — and note several figures are unverified because the developer docs site was unreachable:</p>
+
+    <div class="acc open">
+      <button>The public REST API — auth &amp; resources <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        Base <code>https://public-api.wp-umbrella.com</code>, JSON, <b>Bearer-token</b> auth. Generate the <code>accessToken</code> on your Profile page. It is a <b>read-out</b> of your fleet's maintenance data, scoped by <code>projectId</code>.
+        <div class="codeblock mono">
+# generate accessToken on the Profile page → "Generate my token"<br>
+# then read your projects (sites) and their vulnerabilities<br>
+curl https://public-api.wp-umbrella.com/projects \<br>
+&nbsp;&nbsp;-H "Authorization: Bearer $WPU_TOKEN"<br><br>
+curl https://public-api.wp-umbrella.com/projects/&lt;projectId&gt;/vulnerabilities \<br>
+&nbsp;&nbsp;-H "Authorization: Bearer $WPU_TOKEN"<br>
+# ↑ endpoint paths &amp; JSON shapes are indicative — the official<br>
+#   Postman collection lists resources Me / Projects / Vulnerabilities;<br>
+#   exact fields UNVERIFIED (developer.wp-umbrella.com unreachable, expired TLS)
+        </div>
+        Resources confirmed from the official Postman collection: <code>Me</code>, <code>Projects</code> (your onboarded sites), <code>Vulnerabilities</code>. The API's stated purpose is to "fetch maintenance data programmatically" for internal dashboards and notifications — <b>not</b> to trigger scans of arbitrary URLs. The full endpoint catalog and request/response JSON shapes live in the developer site / Postman docs and were <b>not verifiable</b> at time of writing.
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Limits, rate limiting &amp; freshness <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Rate limit</code><span><b>Not published</b> in accessible docs — UNVERIFIED. Back off conservatively and cache.</span>
+          <code>Sites / projects</code><span><b>No cap</b> — "unlimited sites, no hidden limits". Billing scales linearly per site, not by a plan tier.</span>
+          <code>Monitoring freshness</code><span>Uptime/monitoring runs on WP&nbsp;Umbrella's own cadence, configurable <b>2–30 min</b>; the API reads the last stored state (it doesn't trigger a fresh check).</span>
+          <code>Concurrency / metering</code><span>No documented concurrency or usage-metering caps — UNVERIFIED.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>The onboarding model — plugin + WordPress REST API <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Install</code><span>Each site is added by installing the <b>free WP&nbsp;Umbrella plugin</b> and pasting an API key generated in the dashboard — an <b>owned-site / agent-on-site</b> model.</span>
+          <code>Transport</code><span>The platform communicates with each site over the site's <b>WordPress REST API</b>. Uptime pings the URL externally, but the site must still be onboarded first.</span>
+          <code>Failure modes</code><span>Sites behind <b>HTTP Basic Auth</b> or with security plugins (Wordfence / Sucuri / iThemes) that <b>block the WP REST API</b> can fail to connect.</span>
+          <code>Scope</code><span>WordPress only. Non-WordPress sites are out of scope entirely.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Automation — webhooks, scheduling &amp; integrations <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Webhooks</code><span>Offered for advanced workflows / notifications (exact payloads UNVERIFIED).</span>
+          <code>Scheduling</code><span>Backups, updates, broken-link checks and white-label reports can all be scheduled per site.</span>
+          <code>Slack / GA</code><span>Native Slack notifications and a Google Analytics integration.</span>
+          <code>Patchstack</code><span>Vulnerability &amp; (add-on) virtual-patching data comes from Patchstack.</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <section id="integrations">
+    <div class="kicker">04 · Feature &amp; ecosystem map</div>
+    <h2>What it scans &amp; plugs into</h2>
+    <p class="lead">A quick map of the platform's surface — the monitoring engines, the maintenance features, the automation hooks and ecosystem integrations. Filter it:</p>
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="intSearch" type="text" placeholder="Search features & integrations…">
+      </div>
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="Monitoring">Monitoring</button>
+      <button class="chip" data-cat="Maintenance">Maintenance</button>
+      <button class="chip" data-cat="Automation">Automation</button>
+      <button class="chip" data-cat="Integration">Integration</button>
+    </div>
+    <div class="intgrid" id="intGrid"></div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="kicker">05 · Pricing</div>
+    <h2>What it costs</h2>
+    <p class="lead">Pricing is refreshingly simple: a <b>single plan billed per WordPress site per month</b>, all core features included, scaling linearly with no tiers or seats. Two optional per-site add-ons. Figures below are from WP&nbsp;Umbrella's own pricing page (in EUR; a rough USD is shown where the page does).</p>
+    <table class="price">
+      <thead><tr><th>Plan / lever</th><th>Price</th><th>Model &amp; notes</th></tr></thead>
+      <tbody>
+        <tr><td class="prod">Base plan<small>per site</small></td><td><span class="money">€1.99</span>/site/mo <small>(≈ $2.19)</small></td><td>Single plan — uptime/SSL/domain monitoring, performance, PHP errors, updates, backups, vulnerability monitoring, broken-link checks, visual regression, reports. <b>Unlimited sites</b>, billed per connected site.</td></tr>
+        <tr><td class="prod">Security add-on<small>Site Protect</small></td><td><span class="money">€2</span>/site/mo</td><td>Adds firewall + <b>virtual patching (Patchstack)</b>, daily malware scanning, IP blocklist and activity log. Optional, per site.</td></tr>
+        <tr><td class="prod">Hourly backups add-on<small>optional</small></td><td><span class="money">€2.49</span>/site/mo</td><td>Increases backup frequency to <b>hourly</b>. Optional, per site.</td></tr>
+        <tr><td class="prod">Free trial<small>entry</small></td><td><span class="freeword">14 days</span></td><td>Full features, <b>no credit card required</b>. There is <b>no permanent free tier</b>.</td></tr>
+        <tr><td class="prod">Metering<small>how it's billed</small></td><td><span class="money">Per site</span></td><td>The one cost driver is the <b>number of connected sites</b> (+ optional per-site add-ons). ~10% discount for annual prepay; monthly billing pro-rated.</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--mut2);font-size:12.5px;margin-top:10px">All figures are from WP&nbsp;Umbrella's own <b>pricing page</b> (gathered 29 Jul 2026); the €1.99 base is authoritative and third-party sources quoting a flat "$2" are approximate FX conversions. There is no usage/API-call metering exposed — cost tracks the site count, not scan volume.</p>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="coverage">
+    <div class="kicker">06 · Which catalog checks it can cover</div>
+    <h2>Coverage — held to a 100%‑certain bar</h2>
+    <p class="lead">A check is listed <b>only if</b> WP&nbsp;Umbrella can produce its verdict <b>deterministically</b> for an onboarded WordPress site — an up/down state, an SSL/domain expiry date, a broken-link result — <b>no human, AI-text or visual judgment</b>. Because WP&nbsp;Umbrella is a WordPress-fleet <em>maintenance</em> tool rather than a URL-in site scanner, catalog overlap is deliberately small; its real value is the net-new maintenance surface listed below. Every listed check also assumes the site is <b>onboarded</b> (plugin installed) — it can't run against an arbitrary URL.</p>
+
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="covSearch" type="text" placeholder="Search covered checks…">
+      </div>
+    </div>
+    <p class="covcount" id="covCount"></p>
+    <div class="covgrid" id="covGrid"></div>
+
+    <div class="newcov" style="margin-top:32px">
+      <h3 style="font-size:19px;margin:0 0 6px">Additional checks it can cover — <span style="color:var(--mut2);font-weight:600">not in the catalog</span></h3>
+      <p class="lead" style="margin-top:0">Deterministic checks WP&nbsp;Umbrella covers that have <b>no matching entry</b> in <code>checks.ts</code> — candidate additions to the catalog. Each is referenced.</p>
+      <div class="covgrid" id="newCovGrid"></div>
+    </div>
+
+    <div style="margin-top:18px" class="callout bad">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>
+      <div>
+        <h4>What WP Umbrella does NOT cover (for Snurra)</h4>
+        <p>Excluded, because WP&nbsp;Umbrella can't deliver these verdicts (or only for owned WordPress sites): <b>arbitrary-URL scanning</b> (everything requires the plugin on a site you control) · <b>non-WordPress sites</b> (out of scope entirely) · <b>Core Web Vitals / Lighthouse / PageSpeed scoring</b> (its "performance" is server response time, not a CWV score) · <b>SEO</b> (titles, meta, structured data, canonicals — no SEO product) · <b>analytics / tag integrity &amp; consent</b> (GA/GTM firing, pre-consent tracking, CMP validation) · <b>accessibility / WCAG</b> · <b>content-meaning &amp; compliance wording</b> · and <b>geo content correctness</b>. Its 1-check-per-minute uptime floor is <b>2 min</b>, so it can't satisfy checks that specify a 1-min interval.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommend">
+    <div class="kicker">07 · Recommendation</div>
+    <h2>Pick your scenario</h2>
+    <p class="lead">WP&nbsp;Umbrella only earns a slot where Snurra (or its client) already runs a WordPress fleet in the tool — the recommendation is about that owned-fleet path. Click the closest match:</p>
+    <div class="picker" id="picker">
+      <button class="scn active" data-s="a">Owned-fleet maintenance adapter<small>read Projects / Vulnerabilities via Bearer token</small></button>
+      <button class="scn" data-s="b">Uptime / SSL / domain feed<small>the catalog-overlapping slice</small></button>
+      <button class="scn" data-s="c">Net-new WordPress signal<small>PHP errors, updates, CVEs, backups</small></button>
+      <button class="scn" data-s="d">Don't use it as a URL-in scanner<small>owned sites only; plugin required</small></button>
+    </div>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="kicker">08 · Sources</div>
+    <h2>References</h2>
+    <p class="lead">WP&nbsp;Umbrella facts are from wp-umbrella.com, its support center (support.wp-umbrella.com) and pricing page, plus an independent review, gathered 29 Jul 2026. Several API details are flagged <b>UNVERIFIED</b> because the developer docs site (developer.wp-umbrella.com) was unreachable (expired TLS certificate) at time of writing. Check names are quoted verbatim from <code>feasibility-app/data/checks.ts</code> (the source behind checks‑catalog.vercel.app).</p>
+    <div class="refs">
+      <div class="ref"><a href="https://wp-umbrella.com/" target="_blank" rel="noopener">WP Umbrella — home</a><p>Positioning: WordPress maintenance/monitoring/management; backups, visual regression, GDPR-compliant.</p></div>
+      <div class="ref"><a href="https://wp-umbrella.com/features/" target="_blank" rel="noopener">Features</a><p>Uptime/SSL/domain monitoring, performance (response time), PHP errors, updates, backups, broken links, reports.</p></div>
+      <div class="ref"><a href="https://wp-umbrella.com/features/integrations/" target="_blank" rel="noopener">Integrations</a><p>Public API purpose, webhooks, Slack, Google Analytics, Patchstack; developer.wp-umbrella.com reference.</p></div>
+      <div class="ref"><a href="https://support.wp-umbrella.com/en/articles/3-how-to-use-the-wp-umbrella-public-api" target="_blank" rel="noopener">Public API (support)</a><p>Base public-api.wp-umbrella.com, Bearer accessToken from Profile, Postman resources Me / Projects / Vulnerabilities.</p></div>
+      <div class="ref"><a href="https://support.wp-umbrella.com/en/articles/1-how-to-add-a-website-to-wp-umbrella" target="_blank" rel="noopener">Add a website (support)</a><p>Plugin + API-key onboarding via the site’s WordPress REST API; the owned-site model.</p></div>
+      <div class="ref"><a href="https://wp-umbrella.com/pricing/" target="_blank" rel="noopener">Pricing</a><p>€1.99/site/mo base; Site Protect €2; hourly backups €2.49; 14-day trial, no card; unlimited sites.</p></div>
+      <div class="ref"><a href="https://wp-umbrella.com/blog/site-protect-pricing/" target="_blank" rel="noopener">Site Protect pricing (blog)</a><p>Security add-on — firewall + virtual patching (Patchstack), daily malware scan, IP blocklist.</p></div>
+      <div class="ref"><a href="https://wpmarmite.com/en/wp-umbrella/" target="_blank" rel="noopener">WPMarmite review (independent)</a><p>Confirms 2–30 min monitoring interval, plugin model, PHP-error grouping. Third-party.</p></div>
+      <div class="ref"><a href="https://developer.wp-umbrella.com/" target="_blank" rel="noopener">Developer docs (unreachable)</a><p>Vendor’s full API reference — <b>could not be fetched (expired TLS cert, 29 Jul 2026)</b>; exact JSON shapes UNVERIFIED.</p></div>
+      <div class="ref"><a href="https://checks-catalog.vercel.app/" target="_blank" rel="noopener">Feasibility checks catalog</a><p>The 217‑check catalog this coverage maps against (source: feasibility‑app).</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="disc">
+      <strong>How to read this.</strong> This is an independent capability/integration assessment compiled from public sources for planning purposes — it is not from or endorsed by WP&nbsp;Umbrella, and it is not legal advice. Pricing and features change; API details flagged UNVERIFIED could not be confirmed because the vendor’s developer docs site was unreachable at time of writing — confirm against the live Postman collection before building. The coverage list is deliberately conservative: checks are included only where a deterministic maintenance signal on an onboarded WordPress site makes the verdict 100% certain.
+    </div>
+    WP Umbrella™ is a trademark of its respective owner. Prepared 29 Jul 2026 · for internal planning.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'),
+    thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var dark=root.getAttribute('data-theme')==='dark';
+  root.setAttribute('data-theme', dark?'light':'dark');
+  thTxt.textContent = dark?'Dark':'Light';
+});
+
+// ---- Capability tabs ----
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var k=t.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.getAttribute('data-pane')===k);
+    });
+  });
+});
+
+// ---- Accordions ----
+document.querySelectorAll('.acc>button').forEach(function(b){
+  b.addEventListener('click',function(){ b.parentElement.classList.toggle('open'); });
+});
+
+// ---- Feature / ecosystem data + filter ----
+var INTS=[
+  {n:'Uptime monitoring',c:'Monitoring',d:'Continuous up/down checks at a 2–30 min interval; uptime history + alerts'},
+  {n:'SSL monitoring',c:'Monitoring',d:'Watches SSL status/expiry and alerts before the certificate lapses'},
+  {n:'Domain monitoring',c:'Monitoring',d:'Tracks domain status/expiry across the fleet'},
+  {n:'Performance monitoring',c:'Monitoring',d:'Server response-time + HTTP-error trends, desktop & mobile, over time'},
+  {n:'PHP error monitoring',c:'Monitoring',d:'Grouped PHP errors with stack traces (type, file, line, message)'},
+  {n:'Vulnerability monitoring',c:'Monitoring',d:'Flags known-CVE plugins/themes via Patchstack data (all plans)'},
+  {n:'Broken link & image checks',c:'Monitoring',d:'Scheduled broken-link and broken-image scans, centralized issue list'},
+  {n:'WordPress updates (Safe Update)',c:'Maintenance',d:'Core/plugin/theme updates — bulk/scheduled, validation + rollback'},
+  {n:'Backups',c:'Maintenance',d:'Encrypted, scheduled backups (to hourly add-on); one-click file/DB restore'},
+  {n:'Visual regression on updates',c:'Maintenance',d:'Before/after visual snapshots around updates to catch breakage'},
+  {n:'Malware scanning (add-on)',c:'Maintenance',d:'Daily malware scan + firewall/virtual patching via Site Protect'},
+  {n:'Maintenance reports',c:'Maintenance',d:'Automated white-label PDF reports of updates/backups/uptime'},
+  {n:'Public REST API',c:'Automation',d:'public-api.wp-umbrella.com — Bearer token; read Projects / Vulnerabilities'},
+  {n:'Webhooks',c:'Automation',d:'Offered for advanced workflows/notifications (payloads unverified)'},
+  {n:'Scheduling',c:'Automation',d:'Schedule backups, updates, link checks and client reports'},
+  {n:'WordPress plugin',c:'Automation',d:'Free on-site agent — connects each site via its WordPress REST API'},
+  {n:'Slack',c:'Integration',d:'Native downtime/error/alert notifications to Slack'},
+  {n:'Google Analytics',c:'Integration',d:'GA integration surfaced in the dashboard/reports'},
+  {n:'Patchstack',c:'Integration',d:'Vulnerability + virtual-patching data source'}
+];
+var grid=document.getElementById('intGrid'), search=document.getElementById('intSearch'), curCat='all';
+function renderInts(){
+  var q=(search.value||'').toLowerCase();
+  var rows=INTS.filter(function(i){
+    var okc = curCat==='all' || i.c===curCat;
+    var okq = !q || i.n.toLowerCase().indexOf(q)>-1 || i.d.toLowerCase().indexOf(q)>-1;
+    return okc && okq;
+  });
+  grid.innerHTML = rows.length ? rows.map(function(i){
+    return '<div class="intitem"><div class="cat">'+i.c+'</div><h5>'+i.n+'</h5><span>'+i.d+'</span></div>';
+  }).join('') : '<div class="empty">No matches.</div>';
+}
+document.querySelectorAll('#integrations .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#integrations .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); curCat=c.getAttribute('data-cat'); renderInts();
+  });
+});
+search.addEventListener('input',renderInts);
+renderInts();
+
+// ---- Coverage data + filter ----
+// check names are verbatim from feasibility-app/data/checks.ts
+var COV=[
+  {ch:'Uptime history tracked — 7 and 30 day percentage', p:'SSL & Domain Health', cap:'Uptime monitoring', gate:['onboarded'], note:'WP Umbrella monitors each onboarded site’s uptime continuously (2–30 min interval) and tracks the uptime history over time — the exact signal this check asks for.'},
+  {ch:'Domain not expiring within 60 days', p:'SSL & Domain Health', cap:'Domain monitoring', gate:['onboarded'], note:'Domain status/expiry is one of the things WP Umbrella monitors per site and alerts on before it lapses.'},
+  {ch:'SSL certificate not expiring within 30 days', p:'SSL & Domain Health', cap:'SSL monitoring', gate:['onboarded'], note:'WP Umbrella monitors each site’s SSL certificate and alerts ahead of expiry — a deterministic expiry-date verdict.'},
+  {ch:'SSL certificate not expiring within 30 days', p:'Security', cap:'SSL monitoring', gate:['onboarded'], note:'Same SSL-expiry monitoring, mapped to the Security pillar’s duplicate of this check.'},
+  {ch:'Broken links & 404 scan', p:'Technical SEO & Redirects', cap:'Broken-link checks', gate:['onboarded'], note:'Scheduled broken-link scans surface links returning 404 across the site, in a centralized issue list.'},
+  {ch:'No broken internal links (404 errors)', p:'Navigation', cap:'Broken-link checks', gate:['onboarded'], note:'The same broken-link scan flags internal links that 404.'}
+];
+var covGrid=document.getElementById('covGrid'), covSearch=document.getElementById('covSearch'),
+    covCount=document.getElementById('covCount'), curCov='all';
+function renderCov(){
+  var q=(covSearch.value||'').toLowerCase();
+  var rows=COV.filter(function(i){
+    return !q || i.ch.toLowerCase().indexOf(q)>-1 || i.p.toLowerCase().indexOf(q)>-1 || i.cap.toLowerCase().indexOf(q)>-1;
+  });
+  covCount.innerHTML='Showing <b style="color:var(--ink)">'+rows.length+'</b> of '+COV.length+' checks WP Umbrella can cover';
+  covGrid.innerHTML = rows.length ? rows.map(function(i){
+    var gates=(i.gate||[]).map(function(g){
+      return '<span class="gate">'+g+'</span>';
+    }).join('');
+    return '<div class="covitem"><div class="top"><div><h5>'+i.ch+'</h5>'+
+      '<div class="pil">'+i.p+' · <span class="capname">'+i.cap+'</span></div></div></div>'+
+      '<p>'+i.note+'</p>'+(gates?('<div>'+gates+'</div>'):'')+'</div>';
+  }).join('') : '<div class="empty">No checks match that filter.</div>';
+}
+covSearch.addEventListener('input',renderCov);
+renderCov();
+
+// ---- Additional checks NOT in the catalog (candidate new checks) ----
+var NEWCOV=[
+  {name:'PHP error monitoring (grouped, with stack traces)', cap:'PHP error monitoring', note:'Captures live PHP errors across the fleet — type, file, line, message — grouped by frequency. The catalog has a JavaScript console-error check but no server-side PHP-error equivalent.', ref:'wp-umbrella.com/features — PHP error monitoring'},
+  {name:'Outdated WordPress core / plugin / theme detection', cap:'Update tracking', note:'Tracks available core/plugin/theme updates per site across the fleet. No catalog check covers software-version currency.', ref:'wp-umbrella.com/features — Updates'},
+  {name:'Known-vulnerability (CVE) detection in installed WordPress components', cap:'Vulnerability monitoring (Patchstack)', note:'Flags plugins/themes with published vulnerabilities via Patchstack data. The catalog’s malicious-script check is client-side Safe-Browsing; this is WordPress-component CVEs.', ref:'wp-umbrella.com/features/integrations — Patchstack'},
+  {name:'Server response-time trend monitoring (desktop & mobile)', cap:'Performance monitoring', note:'Tracks server response time and HTTP errors over time. The catalog’s performance checks are Core Web Vitals (Lighthouse/PSI), not server response-time trends.', ref:'wp-umbrella.com/features — Performance'},
+  {name:'Backup completion & restorability verification', cap:'Backups', note:'Confirms scheduled encrypted backups completed and are restorable (file + DB). No catalog check covers backup status.', ref:'wp-umbrella.com/features — Backups'},
+  {name:'Server-side malware scan (site file scanning)', cap:'Site Protect malware scan (add-on)', note:'Daily malware scanning of site files plus firewall/virtual patching. Distinct from the catalog’s client-side malicious-script check.', ref:'wp-umbrella.com/pricing — Site Protect'},
+  {name:'Broken image detection', cap:'Broken-image checks', note:'Scheduled scans flag broken images per site. The catalog covers broken links but has no broken-image check.', ref:'wp-umbrella.com/features — Broken links & images'},
+  {name:'Pre/post-update visual regression diff', cap:'Visual regression on updates', note:'Takes before/after visual snapshots around plugin/theme/core updates to catch rendering breakage. Update-scoped; no catalog equivalent tied to updates.', ref:'wp-umbrella.com — Visual regression testing'}
+];
+(function(){
+  var g=document.getElementById('newCovGrid'); if(!g) return;
+  g.innerHTML=NEWCOV.map(function(i){
+    return '<div class="covitem"><div class="top"><div><h5>'+i.name+'</h5>'+
+      '<div class="pil"><span class="capname">'+i.cap+'</span></div></div><span class="gate">new</span></div>'+
+      '<p>'+i.note+'</p><div class="pil" style="margin-top:8px">↳ <span class="capname">'+i.ref+'</span></div></div>';
+  }).join('');
+})();
+
+// ---- Scenario recommender ----
+var RECS={
+  a:{label:'Recommended path',h:'Owned-fleet maintenance adapter',
+     p:'The one strong path: for a WordPress fleet Snurra or its client already manages in WP Umbrella, read back the maintenance data via the Bearer-token public API and map it into check inputs.',
+     s:['Onboard the sites in WP Umbrella (plugin installed + API key) and generate an accessToken on the Profile page.','Build a sync Bearer adapter: read Projects and per-project Vulnerabilities; gate isConfigured() on the token.','Map uptime, SSL/domain expiry, PHP errors, outdated components, CVEs and broken links into neutral inputs; degrade to not-applicable for any site not in the account. Confirm JSON shapes against the live Postman collection first.']},
+  b:{label:'Consider',h:'Uptime / SSL-expiry / domain-expiry feed',
+     p:'Surface the continuous uptime history + SSL/domain expiry into the catalog’s SSL & Domain-Health checks — but only for onboarded sites, and remember the uptime interval floor is 2 min, not 1.',
+     s:['Read the monitoring state per project from the API (it returns the last stored check, not a fresh probe).','Map uptime-percentage, SSL-not-expiring-30d and domain-not-expiring-60d to the matching catalog checks.','For a strict 1-minute uptime SLA, use a dedicated monitor instead — WP Umbrella can’t go below 2 min.']},
+  c:{label:'Where the real value is',h:'Net-new WordPress-maintenance signal',
+     p:'Most of WP Umbrella’s value is checks the catalog doesn’t have yet — PHP errors, outdated/vulnerable components, backup status, response-time trends, malware and update visual regression.',
+     s:['Treat these as candidate new catalog checks scoped to WordPress sites.','Pull grouped PHP errors and Patchstack vulnerabilities per project.','Only meaningful for owned WordPress sites — do not offer these for arbitrary client URLs.']},
+  d:{label:'Avoid',h:'Don’t treat it as a URL-in scanner',
+     p:'Every signal comes from the plugin on a site you control. WP Umbrella cannot audit an arbitrary prospect URL, and it is WordPress-only.',
+     s:['Never route a non-onboarded or non-WordPress URL to this adapter.','Use PageSpeed Insights for Core Web Vitals and the Site Audit for SEO — WP Umbrella covers neither.','Keep it clearly labelled as an owned-fleet integration in the worker config.']}
+};
+function showRec(k){
+  var r=RECS[k];
+  document.getElementById('rec').innerHTML =
+    '<div class="rlabel">'+r.label+'</div><h3>'+r.h+'</h3><p>'+r.p+'</p><ul class="steps"><li>'+r.s.join('</li><li>')+'</li></ul>';
+}
+document.querySelectorAll('.scn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.scn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active'); showRec(b.getAttribute('data-s'));
+  });
+});
+showRec('a');
+</script>
+</body>
+</html>
