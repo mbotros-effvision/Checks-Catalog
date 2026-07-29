@@ -1,4 +1,4 @@
-import { ToolsSummaryFrame } from '@/components/ToolsSummaryFrame';
+import { ToolsSummary } from '@/components/ToolsSummary';
 
 export const metadata = { title: 'Tools Analysis — Pillar Feasibility' };
 
@@ -26,8 +26,8 @@ export default function ToolsAnalysisPage() {
       <div className="view-head">
         <h1 className="view-title">Tools Analysis</h1>
         <p className="view-sub">
-          Capability &amp; embedding analysis of eight vendor tools evaluated for the Snurra Site Audit — the
-          comparison summary is embedded below, with a full analysis page for each tool.
+          Capability &amp; embedding analysis of the vendor tools evaluated for the Snurra Site Audit — the comparison
+          summary is below, with a full analysis page for each tool.
         </p>
       </div>
 
@@ -65,14 +65,7 @@ export default function ToolsAnalysisPage() {
         ))}
       </div>
 
-      <div style={{ marginBottom: 10, fontSize: 12, color: 'var(--muted)' }}>
-        <a href="/tools/tools-coverage-summary.html" target="_blank" rel="noopener" style={{ color: 'var(--accent)', fontWeight: 600 }}>
-          Open full summary ↗
-        </a>
-        <span> — or explore it inline:</span>
-      </div>
-
-      <ToolsSummaryFrame />
+      <ToolsSummary />
     </div>
   );
 }

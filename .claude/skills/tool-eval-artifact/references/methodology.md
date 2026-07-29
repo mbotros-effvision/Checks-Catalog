@@ -211,22 +211,26 @@ Copy `assets/template.html` and adapt. Keep this section skeleton (kickers `01`�
 
 ## 6.5 Keeping the coverage summary in sync (always)
 
-`D:\Projects\Effvision\tools-coverage-summary.html` is a live index of every tool's coverage — an expandable
-row per tool with counts, cost, integration and limitations, plus the full check lists. **It must be updated
-on every add or edit of an analysis**, so it never drifts from the artifacts.
+The coverage summary is **native** to the feasibility app: `feasibility-app/components/ToolsSummary.tsx`
+renders the `TOOLS[]` array in `feasibility-app/app/tools-analysis/toolsData.ts` as an expandable row per
+tool (counts, cost, integration, limitations, full check lists) in the app's own light/dark theme — no
+iframe, no standalone HTML. `toolsData.ts` is the single source of truth and **must be updated on every add
+or edit of an analysis**, so it never drifts from the artifacts.
 
-- The data lives in a single `TOOLS[]` array inside the summary's `<script>`. Each entry:
-  `{name, file, snurraFit, fitNote, ident, costShort, cost, integ:{Input,API,"Adapter fit"}, lims:[…],
+- The data is a single typed `TOOLS: Tool[]` array in `toolsData.ts`. Each entry:
+  `{name, file, snurraFit, fitNote, ident, costShort, cost, integ:{Input,API,'Adapter fit'}, lims:[…],
   cov:[…verbatim…], newcov:[…verbatim…]}`. `snurraFit` is one of `api-native | api-with-setup | no-api`
-  and `fitNote` is the same one-liner as the artifact's hero pill (§2.3) — the summary renders these as the
-  coloured fit pill + "Fits into Snurra:" line on each row (a `FIT` map + legend already exist in the
-  summary; just set the two fields). The totals strip (distinct-union / 217, tool→check sum, net-new sum) is
-  computed from `TOOLS[]` at render — you never hand-edit the totals.
+  and `fitNote` is the same one-liner as the artifact's hero pill (§2.3) — the component renders these as the
+  coloured fit pill + "Fits into Snurra:" line on each row (a `FIT` map + legend already exist in
+  `toolsData.ts` / `ToolsSummary.tsx`; just set the two fields). The totals strip (distinct-union / 217,
+  tool→check sum, net-new sum) is computed from `TOOLS[]` at render — you never hand-edit the totals.
 - **`cov`/`newcov` must be verbatim-identical to the artifact's `COV[]`/`NEWCOV[]`.** Generate the entry with
-  `scripts/summary_entry.js <tool-slug>-analysis.html` (it extracts them exactly and prints the counts), fill
-  the prose fields, then **add** (new tool) or **replace** (edited tool) that entry in `TOOLS[]`.
-- The summary is already styled to the catalog UI and, when embedded in the feasibility app's Tools Analysis
-  tab, follows the host light/dark theme via a `postMessage` hook — do not restyle it.
+  `scripts/summary_entry.js <tool-slug>-analysis.html` (it extracts them exactly, prints the counts, and emits
+  a paste-ready TypeScript object), fill the prose fields, then **add** (new tool) or **replace** (edited
+  tool) that entry in `TOOLS[]` in `toolsData.ts`.
+- Do not restyle the summary — `ToolsSummary.tsx` uses the app's design tokens (`.tsum-*` classes in
+  `app/globals.css`) and follows the host light/dark theme automatically; you only touch data in
+  `toolsData.ts`. The old standalone `tools-coverage-summary.html` has been **retired** — do not recreate it.
 
 ## 7. Gotchas
 

@@ -104,18 +104,22 @@ that palette; never reintroduce a different theme (e.g. the old blue/purple one)
   third-party/unverified flag. An unsourced claim is a defect — find it and fix it before you finish.
 
 ### 5. Update the coverage summary (ALWAYS — on every add or edit)
-The repo-root **`tools-coverage-summary.html`** is a live index of every tool's coverage; it must never drift
-from the analyses. Whenever you **create a new analysis _or_ edit an existing one** (coverage, cost,
-integration, limitations — anything), update this file in the same pass:
+The native summary is a React component — **`feasibility-app/components/ToolsSummary.tsx`** renders the
+`TOOLS[]` array in **`feasibility-app/app/tools-analysis/toolsData.ts`** (in the app's own theme, no iframe).
+This array is the single source of truth for the summary and it must never drift from the analyses. Whenever
+you **create a new analysis _or_ edit an existing one** (coverage, cost, integration, limitations — anything),
+update `toolsData.ts` in the same pass:
 - Run `node <this-skill>/scripts/summary_entry.js <tool-slug>-analysis.html` — it prints a ready-to-paste
-  `TOOLS[]` entry with the tool's `cov`/`newcov` arrays extracted **verbatim** (and the correct counts), so
-  the summary never disagrees with the artifact.
+  **TypeScript** `TOOLS[]` entry with the tool's `cov`/`newcov` arrays extracted **verbatim** (and the
+  correct counts), so the summary never disagrees with the artifact.
 - Fill the prose fields (`snurraFit`, `fitNote`, `ident`, `costShort`, `cost`, `integ`, `lims`) from the
   analysis — `snurraFit` = `api-native | api-with-setup | no-api` and `fitNote` = the hero pill's one-liner
-  (methodology §2.3) — then paste the object into the `TOOLS[]` array in `tools-coverage-summary.html` —
+  (methodology §2.3) — then paste the object into the `TOOLS` array in `app/tools-analysis/toolsData.ts` —
   **add** it for a new tool, or **replace** that tool's existing entry when editing. The totals
-  (distinct-union / 217, tool→check sum, net-new sum) recompute automatically from `TOOLS[]`.
-- Do not restyle the summary — it already matches the catalog UI and, when embedded, follows the host theme.
+  (distinct-union / 217, tool→check sum, net-new sum) recompute automatically at render.
+- Do not restyle the summary — `ToolsSummary.tsx` uses the app's design tokens and follows the host
+  light/dark theme; you only touch the data in `toolsData.ts`.
+- (The old standalone `tools-coverage-summary.html` has been **retired** — do not recreate it.)
 
 ### 6. Record it
 Add or update the artifact's one-line entry in the memory file `feasibility-tool-eval-artifacts.md`
