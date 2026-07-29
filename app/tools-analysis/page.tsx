@@ -17,6 +17,7 @@ const ANALYSES = [
   { file: 'pentest-tools-analysis.html', name: 'Pentest-Tools.com', meta: '7 catalog · +10 net-new' },
   { file: 'wave-analysis.html', name: 'WAVE (WebAIM)', meta: '4 catalog · +8 net-new' },
   { file: 'urlscan-analysis.html', name: 'urlscan.io', meta: '4 catalog · +8 net-new' },
+  { file: 'mxtoolbox-analysis.html', name: 'MXToolbox', meta: '1 catalog · +10 net-new' },
 ];
 
 export default function ToolsAnalysisPage() {

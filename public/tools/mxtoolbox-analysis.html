@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MXToolbox — Capabilities &amp; Embedding Analysis</title>
+<style>
+  :root{
+    --bg:#fbfaf6; --bg2:#f5f2ea; --panel:#ffffff; --panel2:#f7f5ef;
+    --line:#e9e5db; --line2:#ddd8cc;
+    --ink:#1c1a17; --mut:#6f6a61; --mut2:#9a948a;
+    --brand:#0f766e; --brand2:#0f766e; --accent:#0f766e;
+    --warn:#b45309; --bad:#b91c1c; --good:#0f766e;
+    --chip:#f2efe8; --shadow:0 1px 2px rgba(28,26,23,.04),0 8px 24px -12px rgba(28,26,23,.12);
+    --radius:14px;
+  }
+  html[data-theme="dark"]{
+    --bg:#131316; --bg2:#17171b; --panel:#1b1b1f; --panel2:#232328;
+    --line:#2c2c31; --line2:#3a3a41; --ink:#eceae4; --mut:#a39d93; --mut2:#6f6a62;
+    --brand:#2dd4bf; --brand2:#2dd4bf; --accent:#2dd4bf; --good:#2dd4bf;
+    --warn:#fbbf24; --bad:#f87171;
+    --chip:#232328; --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1100px 520px at 88% -8%,#eef6f4,transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,#f6f1e9,transparent 55%),
+               var(--bg);
+    background-attachment:fixed;
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  html[data-theme="dark"] body{
+    background:radial-gradient(1100px 520px at 88% -8%,rgba(45,212,191,.07),transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,rgba(180,140,60,.06),transparent 55%),
+               var(--bg);
+  }
+  a{color:var(--brand2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 22px}
+
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(15,118,110,.5)}
+  .logo .mark svg{width:18px;height:18px}
+  nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
+  nav.links a:hover{background:var(--chip); color:var(--ink); text-decoration:none}
+  .tbtn{border:1px solid var(--line2); background:var(--chip); color:var(--ink); border-radius:9px;
+    padding:7px 10px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; gap:6px; align-items:center}
+  .tbtn:hover{border-color:var(--brand)}
+
+  .hero{padding:46px 0 26px}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:var(--chip);
+    border:1px solid var(--line2); padding:6px 12px; border-radius:999px}
+  h1{font-size:40px; line-height:1.12; margin:16px 0 10px; letter-spacing:-.5px}
+  h1 .grad{background:linear-gradient(120deg,var(--brand2),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--mut); font-size:17px; max-width:810px}
+  .meta{margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; color:var(--mut2); font-size:13px}
+  .meta b{color:var(--mut)}
+
+  .tldr{margin-top:26px; border:1px solid var(--line2); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:var(--shadow); overflow:hidden}
+  .tldr .hd{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line);
+    font-weight:800; letter-spacing:.3px}
+  .tldr .hd .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,170,.18)}
+  .tldr .bd{padding:18px 20px; color:var(--mut); font-size:15.5px}
+  .tldr .bd strong{color:var(--ink)}
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .vcard{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .vcard h4{margin:0 0 4px; font-size:13px; color:var(--mut2); text-transform:uppercase; letter-spacing:.08em}
+  .vcard p{margin:0; font-size:14px; color:var(--ink)}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; margin-top:8px}
+  .pill.good{background:rgba(34,211,170,.14); color:var(--good); border:1px solid rgba(34,211,170,.35)}
+  .pill.warn{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.35)}
+  .pill.bad{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.35)}
+
+  section{padding:34px 0; border-top:1px solid var(--line)}
+  .kicker{font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--brand2)}
+  h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.3px}
+  .lead{color:var(--mut); max-width:880px; margin:0 0 20px}
+
+  .tabs{display:flex; gap:8px; margin:6px 0 18px; flex-wrap:wrap}
+  .tab{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:9px 16px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:14px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--accent)); color:#04122a; border-color:transparent}
+  .tabpane{display:none; animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .grid{display:grid; gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:16.5px; display:flex; align-items:center; gap:9px}
+  .card .ic{width:30px;height:30px;border-radius:9px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .card .ic svg{width:17px;height:17px;stroke:var(--brand2)}
+  .card p{margin:0; color:var(--mut); font-size:14px}
+  .tag{font-size:11px; font-weight:700; color:var(--mut2); background:var(--chip); border:1px solid var(--line2);
+    padding:2px 8px; border-radius:6px; margin-right:6px; display:inline-block; margin-top:8px}
+
+  .fit{overflow:hidden; border:1px solid var(--line); border-radius:14px}
+  .fitrow{display:grid; grid-template-columns:1.4fr 2.2fr .9fr; gap:0; border-bottom:1px solid var(--line)}
+  .fitrow:last-child{border-bottom:0}
+  .fitrow.head{background:var(--chip); font-weight:800; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut2)}
+  .fitrow>div{padding:14px 16px}
+  .fitrow .name{font-weight:700; color:var(--ink)}
+  .fitrow .name small{display:block; font-weight:500; color:var(--mut2); margin-top:3px}
+  .fitrow .desc{color:var(--mut); font-size:14px; border-left:1px solid var(--line); border-right:1px solid var(--line)}
+  .fitrow .verd{display:flex; align-items:center; justify-content:center}
+  .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
+  .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .badge.ok{background:rgba(15,118,110,.16); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
+
+  .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
+  .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
+  .callout.info{background:rgba(15,118,110,.08); border-color:rgba(15,118,110,.4)}
+  .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
+  .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
+  .callout.warn .cic{background:rgba(255,176,32,.16)}
+  .callout.info .cic{background:rgba(15,118,110,.16)}
+  .callout.bad .cic{background:rgba(255,93,108,.16)}
+  .callout h4{margin:0 0 5px; font-size:15.5px}
+  .callout p{margin:0; color:var(--mut); font-size:14.5px}
+  .callout.warn h4{color:var(--warn)}
+  .callout.bad h4{color:var(--bad)}
+  .callout .cic svg{width:19px;height:19px}
+
+  .picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
+  .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
+  .scn.active{border-color:var(--brand); background:rgba(15,118,110,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(15,118,110,.12)}
+  .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
+  .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
+  .rec h3{margin:6px 0 6px; font-size:18px}
+  .rec p{margin:0 0 8px; color:var(--mut); font-size:14.5px}
+  .rec .steps{margin:8px 0 0; padding-left:18px; color:var(--mut); font-size:14px}
+  .rec .steps li{margin:3px 0}
+
+  .filterbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--chip);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 12px}
+  .search input{border:0; background:transparent; color:var(--ink); font-size:14px; width:100%; outline:none}
+  .chip{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:7px 12px; border-radius:999px;
+    cursor:pointer; font-size:12.5px; font-weight:700}
+  .chip.active{background:var(--brand); color:#04122a; border-color:transparent}
+  .intgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .intitem{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px}
+  .intitem h5{margin:0 0 3px; font-size:14px}
+  .intitem span{font-size:12px; color:var(--mut2)}
+  .intitem .cat{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--brand2)}
+  .empty{color:var(--mut2); font-size:14px; padding:16px; text-align:center; grid-column:1/-1}
+
+  .covgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .covitem{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px; position:relative}
+  .covitem .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .covitem h5{margin:0; font-size:14.5px; color:var(--ink); font-weight:700; line-height:1.3}
+  .covitem .pil{font-size:10px; color:var(--mut2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+  .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
+  .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
+  .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .ttag.redundant{background:rgba(15,118,110,.14); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .ttag.partial{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
+    border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
+  .capname{color:var(--accent); font-weight:700}
+  .covcount{font-size:12.5px; color:var(--mut2); margin:0 0 10px}
+
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:10px; background:var(--panel)}
+  .acc>button{width:100%; text-align:left; background:transparent; border:0; color:var(--ink); padding:15px 18px;
+    font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .acc>button .ar{transition:transform .2s; color:var(--mut2)}
+  .acc.open>button .ar{transform:rotate(90deg)}
+  .acc .panel{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc.open .panel{max-height:1600px}
+  .acc .panel .inner{padding:0 18px 18px; color:var(--mut); font-size:14px}
+  code,.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px}
+  .codeblock{background:#0a1024; border:1px solid var(--line2); border-radius:10px; padding:13px 15px;
+    overflow:auto; color:#cfe0ff; margin:10px 0}
+  html[data-theme="light"] .codeblock{background:#0d1530; color:#dbe6ff}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:8px 0}
+  .kv code{color:var(--accent)}
+  .kv span{color:var(--mut)}
+
+  table.price{width:100%; border-collapse:collapse; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.price th,table.price td{padding:13px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top}
+  table.price th{background:var(--chip); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut2)}
+  table.price td.prod{font-weight:700; color:var(--ink)}
+  table.price td.prod small{display:block; font-weight:500; color:var(--mut2); margin-top:2px}
+  .money{font-weight:800; color:var(--accent)}
+  .quote{color:var(--warn); font-weight:700}
+  .freeword{color:var(--good); font-weight:800}
+
+  .refs{columns:2; column-gap:26px}
+  .refs .ref{break-inside:avoid; margin-bottom:12px; padding-left:14px; border-left:2px solid var(--line2)}
+  .refs .ref a{font-weight:600; font-size:13.5px}
+  .refs .ref p{margin:2px 0 0; color:var(--mut2); font-size:12px}
+
+  footer{padding:30px 0 60px; color:var(--mut2); font-size:12.5px; border-top:1px solid var(--line)}
+  .disc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px}
+
+  @media(max-width:860px){
+    .g2,.g3,.verdict,.intgrid,.covgrid{grid-template-columns:1fr}
+    .fitrow{grid-template-columns:1fr}
+    .fitrow .desc{border-left:0;border-right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .refs{columns:1}
+    h1{font-size:31px}
+    nav.links{display:none}
+  }
+  @media print{
+    header.top,.tbtn,.picker,.filterbar{display:none!important}
+    .tabpane{display:block!important} .acc .panel{max-height:none!important}
+    body{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="#04122a" stroke-width="1.8"/><path d="M16 16l4.5 4.5" stroke="#04122a" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="11" r="2.4" fill="#04122a"/></svg></span>
+      MXToolbox <span style="color:var(--mut2);font-weight:600">· Embedding Analysis</span>
+    </div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#embed">Embedding</a>
+      <a href="#api">API</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#coverage">Checks covered</a>
+      <a href="#recommend">Recommendation</a>
+      <a href="#refs">Sources</a>
+    </nav>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <span class="eyebrow">● Product &amp; Integration Assessment</span>
+    <h1>MXToolbox, assessed for <span class="grad">embedding into Snurra</span></h1>
+    <!-- snurraFit pill: api-native #0f766e "API-native" -->
+    <div style="margin:12px 0 4px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid #0f766e;color:#0f766e;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;white-space:nowrap"><span style="width:7px;height:7px;border-radius:50%;background:currentColor"></span>Fits into Snurra: API-native</span>
+      <span style="font-size:12.5px;color:var(--mut,#6f6a61)">Domain-in <b>synchronous</b> REST API (<code>GET /api/v1/Lookup/{Command}/?argument=…</code> with an <code>Authorization: &lt;uuid&gt;</code> header &rarr; JSON with <code>Passed/Failed/Warnings/Timeouts</code>) &mdash; the simplest ProviderAdapter shape: one call per check, no polling. The <b>catch</b>: the free API allows <b>DNS lookups only</b> (Network requests = 0), so blacklist / SMTP / HTTPS checks and any real volume need a <b>paid plan whose API quotas are not publicly published</b>.</span>
+    </div>
+    <p class="sub">MXToolbox is a <b>DNS, email-deliverability and blacklist diagnostics</b> service &mdash; the same engine as its web &ldquo;SuperTool.&rdquo; You give it a <b>domain, host or IP</b> and a <b>command</b> (mx, spf, dkim, dmarc, blacklist, dns, smtp, ptr, bimi, mta-sts, tlsrpt, &hellip;) and it returns a deterministic verdict as <b>Passed / Failed / Warnings / Timeouts</b> arrays. It is a genuine <b>synchronous URL-in JSON API</b> (one GET, full result in the body), so it embeds behind the simplest possible HTTP adapter &mdash; one call per check, no job to poll. Its strength is <b>email/DNS infrastructure posture</b>, a domain-level layer the catalog barely touches. This page maps its capabilities, how it slots into Snurra's worker, what it costs, the free-tier DNS-only constraint, and &mdash; held to a strict 100%-certain bar &mdash; precisely which feasibility-catalog checks it can cover.</p>
+    <div class="meta">
+      <span><b>Prepared:</b> 29 Jul 2026</span>
+      <span><b>Use case:</b> Email deliverability, DNS health &amp; blacklist posture for the Snurra Site Audit</span>
+      <span><b>Catalog:</b> feasibility-app · 217 checks</span>
+    </div>
+
+    <div class="tldr">
+      <div class="hd"><span class="dot"></span> Bottom line up front</div>
+      <div class="bd">
+        MXToolbox takes a <strong>domain / host / IP + command</strong> and returns a <strong>deterministic Passed/Failed verdict</strong> for one email-or-DNS diagnostic per call. Held to a 100%-certain bar it maps to just <strong>1 catalog check</strong> (DNS resolving correctly), because Snurra's catalog is a <strong>website</strong> audit and MXToolbox audits the <strong>domain's email/DNS infrastructure</strong> &mdash; a different layer. Its real value is <strong>net-new</strong>: email-blacklist (RBL) listing, SPF / DKIM / DMARC validity, MX reachability, SMTP health, BIMI, MTA-STS, TLS-RPT and reverse-DNS/PTR &mdash; none itemised in the catalog. It is a <strong>synchronous URL-in REST API</strong> (<code>GET /api/v1/Lookup/{command}</code> with an <code>Authorization: &lt;uuid&gt;</code> header), the simplest adapter of any tool evaluated. The <strong>catch</strong>: the free API tier is <strong>DNS-only</strong> (0 network requests), so blacklist / SMTP checks and any volume require a <strong>paid plan</strong>, and MXToolbox does <strong>not</strong> publish paid API quotas.
+        <div class="verdict">
+          <div class="vcard"><h4>Technical fit</h4><p><b>Sync single-GET REST</b> &mdash; one call per check, full JSON in the body, no polling. The simplest <code>ProviderAdapter</code> shape of any tool here.</p><span class="pill good">API-native (sync)</span></div>
+          <div class="vcard"><h4>What it covers</h4><p><b>1 catalog check</b> (DNS resolving) &mdash; plus 10 net-new email/DNS-health checks (blacklist, SPF, DKIM, DMARC, MX, SMTP, BIMI, MTA-STS, TLS-RPT, PTR).</p><span class="pill good">Email / DNS health</span></div>
+          <div class="vcard"><h4>Cost / licensing</h4><p>Free API is <b>DNS-only</b> (0 network requests). Blacklist / SMTP checks &amp; real volume need a <b>paid plan</b> &mdash; and paid API quotas are <b>not published</b>.</p><span class="pill warn">Paid plan for blacklist/volume</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="kicker">01 · What MXToolbox actually does</div>
+    <h2>Capabilities</h2>
+    <p class="lead">Two layers matter for embedding: the <b>diagnostics it runs</b> (the email-authentication, DNS-health and blacklist verdicts it produces from a domain/host/IP) and its <b>automation surface</b> (the synchronous lookup REST API a backend drives it through). Toggle between them:</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="scan">The diagnostics it runs</button>
+      <button class="tab" data-tab="auto">Automation &amp; API surface</button>
+    </div>
+
+    <div class="tabpane active" data-pane="scan">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 4h16v4H4zM4 10h16v4H4zM4 16h10v4H4z"/></svg></span>Email authentication</h3><p>Validates <b>SPF</b> (<code>spf</code>), <b>DKIM</b> (<code>dkim</code>, needs <code>domain:selector</code>) and <b>DMARC</b> (<code>dmarc</code>) records &mdash; the three DNS records that decide whether mail is trusted or spoofable.</p><span class="tag">SPF</span><span class="tag">DKIM</span><span class="tag">DMARC</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 5h18v14H3z"/><path d="M3 7l9 6 9-6"/></svg></span>Mail server (MX / SMTP)</h3><p><code>mx</code> lists the domain's mail exchangers; <code>smtp</code> connects to a mail server and checks the banner, reverse DNS, open-relay status and connection health.</p><span class="tag">MX</span><span class="tag">SMTP</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></span>Blacklist (RBL) monitoring</h3><p><code>blacklist</code> checks a domain/IP against <b>100+ email blacklists (RBLs)</b> in one call &mdash; the definitive &ldquo;are we listed and why can't we send mail?&rdquo; verdict. <b>Network request &mdash; paid API tier.</b></p><span class="tag">blacklist</span><span class="tag">RBL</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg></span>DNS records &amp; health</h3><p><code>dns</code> runs a DNS-health check across authoritative nameservers; <code>a</code>, <code>aaaa</code>, <code>soa</code>, <code>txt</code>, <code>asn</code> resolve individual record types &mdash; deterministic resolution and configuration checks.</p><span class="tag">dns</span><span class="tag">a / aaaa</span><span class="tag">soa</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 12h16M14 6l6 6-6 6"/></svg></span>Reverse DNS (PTR)</h3><p><code>ptr</code> resolves an IP back to its hostname &mdash; the reverse-DNS/PTR record that mail servers require for deliverability. A deterministic present/absent verdict.</p><span class="tag">PTR</span><span class="tag">reverse DNS</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Modern email security</h3><p>Newer email-security DNS records: <code>bimi</code> (brand indicators), <code>mta-sts</code> (SMTP MTA-STS policy) and <code>tlsrpt</code> (an <b>RFC 8460</b> TLS-Reporting record) &mdash; each a present/valid check.</p><span class="tag">BIMI</span><span class="tag">MTA-STS</span><span class="tag">TLS-RPT</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></span>Network diagnostics</h3><p><code>http</code>, <code>https</code>, <code>ping</code>, <code>tcp</code>, <code>trace</code> probe reachability and latency. <b>Network requests</b> &mdash; the paid API tier &mdash; and mostly outside Snurra's web-audit scope.</p><span class="tag">http/https</span><span class="tag">ping</span><span class="tag">trace</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3a9 9 0 100 18 9 9 0 000-18z"/><path d="M12 7v5l3 2"/></svg></span>Monitoring &amp; alerting</h3><p>The commercial <b>Delivery Center / Monitoring</b> product re-runs these checks on a schedule and alerts on change (e.g. a new blacklist listing) &mdash; polled via the Monitor API. UI-driven alerting, not a push webhook.</p><span class="tag">monitors</span><span class="tag">alerts</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 8v5M12 16h.01"/></svg></span>
+        <div><h4>The defining strength (for embedding)</h4><p>MXToolbox's output is <b>deterministic and structured</b>: each lookup returns <code>Passed / Failed / Warnings / Timeouts</code> arrays, every item carrying an <code>ID</code>, <code>Name</code>, <code>Info</code> and <code>Url</code> &mdash; a machine-readable pass/fail with a human explanation, no AI-text judgment. That makes it a trustworthy source for the <b>email/DNS-infrastructure</b> slice. But that slice is <b>orthogonal to a web-page audit</b>: it says nothing about SEO, accessibility, performance, page content or cookies. It audits the <b>domain</b>, not the <b>pages</b>.</p></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="auto">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3a9 9 0 100 18 9 9 0 000-18z"/><path d="M12 7v5l3 2"/></svg></span>Lookup API (sync)</h3><p><code>GET https://api.mxtoolbox.com/api/v1/Lookup/{Command}/?argument={arg}</code>. One synchronous GET returns the full result in the body &mdash; no job id, no polling.</p><span class="tag">GET /Lookup</span><span class="tag">sync</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Auth — Authorization header</h3><p>A single <code>Authorization</code> request header carries a <b>plain UUID</b> API key &mdash; <b>no &ldquo;Bearer&rdquo; prefix</b>. <code>example.com</code> works with no key as a free test endpoint.</p><span class="tag">Authorization: uuid</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h6"/></svg></span>Passed/Failed/Warnings/Timeouts</h3><p>Every lookup returns four result arrays &mdash; <code>Passed</code>, <code>Failed</code>, <code>Warnings</code>, <code>Timeouts</code> &mdash; each item with <code>ID</code>, <code>Name</code>, <code>Info</code>, <code>Url</code>. Structured pass/fail, ready to map.</p><span class="tag">JSON</span><span class="tag">verdict arrays</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M2 12h4M18 12h4M12 2v4M12 18v4"/></svg></span>DNS vs Network quota</h3><p>Each command bills to one of two counters &mdash; <code>DnsRequests</code> or <code>NetworkRequests</code>. The free tier gives DNS requests but <b>0 network</b>, so <code>blacklist</code>/<code>smtp</code>/<code>http(s)</code> need a paid plan.</p><span class="tag">DnsRequests</span><span class="tag">NetworkRequests</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3a9 9 0 100 18 9 9 0 000-18z"/><path d="M12 7v5l3 2"/></svg></span>Usage &amp; Monitor API</h3><p><code>GET /api/v1/Usage</code> returns <code>DnsRequests/DnsMax/NetworkRequests/NetworkMax</code>. <code>GET /api/v1/Monitor</code> polls configured monitors (filter by command/name/tag).</p><span class="tag">/Usage</span><span class="tag">/Monitor</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg></span>Rate limits &amp; codes</h3><p><b>Daily</b> quotas reset at <b>00:00 UTC</b>; no documented per-second or concurrency cap. Codes: <b>200</b> OK, <b>401</b> bad key, <b>429</b> quota exceeded, <b>500</b> server error.</p><span class="tag">429</span><span class="tag">daily/UTC</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+        <div><h4>How Snurra would actually drive it</h4><p>The simplest <code>ProviderAdapter</code> of any tool evaluated: <code>buildRequest()</code> issues <code>GET /api/v1/Lookup/{command}/?argument={domain}</code> with the <code>Authorization</code> header; the response is the full result, so there is <b>no polling phase</b>; <code>mapResponse()</code> reads the <code>Failed</code> / <code>Warnings</code> arrays (empty <code>Failed</code> = pass). One HTTP call per check, so a domain's full email/DNS posture is several parallel adapter calls. Gate <code>isConfigured()</code> on the API key <b>plus a paid plan for any network command</b> (blacklist/smtp); degrade to <code>not-applicable</code> on 429 (daily quota) or 401. Watch the <code>dkim</code> quirk &mdash; it needs a <code>domain:selector</code> argument, so the DKIM selector must be known or discovered first.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section id="embed">
+    <div class="kicker">02 · Applicability — how it slots into Snurra</div>
+    <h2>Embedding paths, ranked</h2>
+    <p class="lead">MXToolbox is the cleanest possible API tool &mdash; a synchronous GET per check behind a one-phase <code>ProviderAdapter</code>. The ranking is about which layer it serves (email/DNS, not web pages), the free-tier DNS-only limit and the paid plan for blacklist/volume.</p>
+
+    <div class="fit">
+      <div class="fitrow head"><div>Path</div><div>What it's good for</div><div>Fit</div></div>
+      <div class="fitrow">
+        <div class="name">Email / DNS-health provider <small>(one sync GET per check)</small></div>
+        <div class="desc">The natural fit: a new <b>&ldquo;Email &amp; DNS health&rdquo;</b> capability driven by MXToolbox &mdash; SPF, DKIM, DMARC, MX, blacklist, PTR, BIMI, MTA-STS, TLS-RPT. Each is a sync GET; map empty <code>Failed</code> to pass. Covers the 1 catalog DNS check plus 10 net-new checks.</div>
+        <div class="verd"><span class="badge best">Best fit ✓</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">DNS-resolving check on the free tier <small>(dns / a / mx only)</small></div>
+        <div class="desc">The free API covers DNS commands, so the single catalog check (DNS resolving correctly) and the SPF/DKIM/DMARC/MX/PTR/BIMI/MTA-STS/TLS-RPT records can run on the free tier for a prototype &mdash; within the small daily DNS quota. No blacklist or SMTP here.</div>
+        <div class="verd"><span class="badge ok">Strong (prototype)</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Blacklist &amp; SMTP posture <small>(network commands — paid)</small></div>
+        <div class="desc">The highest-value email signals &mdash; is this domain/IP on an RBL, is the mail server healthy &mdash; are <b>network</b> requests. The free tier has <b>0</b> of these, so they require a paid plan; and MXToolbox does not publish paid API quotas, so size via sales.</div>
+        <div class="verd"><span class="badge cond">Conditional (paid)</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Using it for web-page checks <small>(SEO / a11y / perf / content)</small></div>
+        <div class="desc">MXToolbox audits the <b>domain's DNS &amp; email</b> layer, not the website's pages. It cannot judge SEO, accessibility, performance, page content, cookies or consent. Don't stretch it past email/DNS posture &mdash; those checks belong to other providers.</div>
+        <div class="verd"><span class="badge no">Don't</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="callout info">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+      <div>
+        <h4>Integration shape (synchronous single-GET)</h4>
+        <p>The one-phase adapter Snurra already models best: <b>one GET returns the whole result</b> &mdash; no submit-then-poll like ObservePoint/urlscan. <code>buildRequest()</code> forms <code>GET /api/v1/Lookup/{command}/?argument={domain}</code> with the <code>Authorization: &lt;uuid&gt;</code> header; <code>mapResponse()</code> treats an empty <code>Failed</code> array as pass and reads <code>Info</code> for detail. Because it's one call per check, a domain's posture is a handful of <b>parallel</b> adapter calls, budgeted against the <b>daily DNS/Network quota</b>. Gate <code>isConfigured()</code> on the key <b>and</b> (for network commands) a paid plan; handle <b>429</b> as quota-exhausted; and pre-resolve the <b>DKIM selector</b> since <code>dkim</code> needs <code>domain:selector</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API / TECHNICAL -->
+  <section id="api">
+    <div class="kicker">03 · Technical detail — API, quotas, commands &amp; pricing</div>
+    <h2>What integrating actually looks like</h2>
+    <p class="lead">Enough to scope an integration spike. Expand for detail:</p>
+
+    <div class="acc open">
+      <button>The REST API — one sync GET, request &amp; response <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        One call: a synchronous <b>lookup</b> (<code>GET /api/v1/Lookup/{Command}/</code>) that returns the full result in the body. Auth is a single <code>Authorization</code> header carrying a plain UUID (no &ldquo;Bearer&rdquo;).
+        <div class="codeblock mono">
+# a lookup — synchronous, full result in the body<br>
+curl "https://api.mxtoolbox.com/api/v1/Lookup/spf/?argument=example.com" \<br>
+&nbsp;&nbsp;-H "Authorization: 00000000-0000-0000-0000-000000000000"<br>
+# response shape<br>
+{ "UID":"…", "Command":"spf", "CommandArgument":"example.com",<br>
+&nbsp;&nbsp;"ReportingNameServer":"…", "TimeToComplete":"…", "IsEndpoint":false,<br>
+&nbsp;&nbsp;"Failed":   [ { "ID":0, "Name":"…", "Info":"…", "Url":"…" } ],<br>
+&nbsp;&nbsp;"Warnings": [ { "ID":0, "Name":"…", "Info":"…", "Url":"…" } ],<br>
+&nbsp;&nbsp;"Passed":   [ { "ID":0, "Name":"…", "Info":"…", "Url":"…" } ],<br>
+&nbsp;&nbsp;"Timeouts": [ { "ID":0, "Name":"…", "Info":"…", "Url":"…" } ] }<br><br>
+# dkim needs domain:selector — e.g.<br>
+curl "https://api.mxtoolbox.com/api/v1/Lookup/dkim/?argument=example.com:default" -H "Authorization: $KEY"<br>
+# tcp needs a port — ?argument=example.com&amp;port=80
+        </div>
+        Verdict logic: an empty <code>Failed</code> array = the check passed; each item's <code>Info</code> is the human explanation and <code>Url</code> links MXToolbox's write-up. <b>Note:</b> the current schema has exactly these four arrays &mdash; there is no <code>Errors</code> or <code>Information</code> array in the live docs.
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Lookup commands — the full set &amp; DNS-vs-Network billing <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>DNS requests</code><span>Bill to <code>DnsRequests</code> &mdash; <b>a, aaaa, asn, bimi, dkim, dmarc, dns, mta-sts, mx, ptr, soa, spf, tlsrpt, txt</b>. Email-auth checks (spf/dkim/dmarc/mx) meter as DNS, not a separate bucket.</span>
+          <code>Network requests</code><span>Bill to <code>NetworkRequests</code> &mdash; <b>blacklist, http, https, ping, smtp, tcp, trace</b>. <b>The free tier has 0 of these</b>, so blacklist &amp; SMTP need a paid plan.</span>
+          <code>dkim</code><span>Requires <code>argument=domain:selector</code> (both parts) &mdash; the selector must be known/discovered first.</span>
+          <code>tcp</code><span>Requires a <code>&amp;port=</code> (or <code>argument=host:port</code>) &mdash; both parts required.</span>
+          <code>Test endpoint</code><span><code>example.com</code> lookups work with <b>no API key</b>; any other argument without a valid key returns an Invalid ApiKey error.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Quotas, rate limits &amp; response codes <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Metering</code><span>Two daily counters: <code>DnsRequests</code>/<code>DnsMax</code> and <code>NetworkRequests</code>/<code>NetworkMax</code>. Poll <code>GET /api/v1/Usage</code> for live remaining budget.</span>
+          <code>Reset</code><span>Limits reset <b>daily at 00:00 UTC</b>. No documented per-second rate or concurrency cap (a &ldquo;variable&rdquo; rate limit is mentioned in support notes &mdash; treat as unverified).</span>
+          <code>Codes</code><span><b>200</b> OK · <b>401</b> Unauthorized (missing/invalid key) · <b>429</b> Too Many Requests (quota) · <b>500</b> Server Error.</span>
+          <code>Monitoring</code><span>The <code>Monitor</code> API polls configured monitors (by command/name/tag); alerting on change is a <b>product-UI</b> feature, not a documented push webhook.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Pricing &amp; the free-tier constraint <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Free API</code><span>DNS requests only (documented as <b>64</b> in the rate-limit table but <b>68</b> in the same page's quickstart prose &mdash; an official contradiction, flagged), and <b>0 network requests</b>. Fine for a DNS/email-record prototype; no blacklist/SMTP.</span>
+          <code>Paid API</code><span>Higher DNS + non-zero Network quotas &mdash; but the reference lists paid tiers only as <b>&ldquo;Per plan quota&rdquo;</b>: <b>exact paid API numbers are not publicly published</b> (contact MXToolbox). <span style="color:var(--bad)">UNVERIFIED figures.</span></span>
+          <code>Product plans</code><span>Delivery Center (deliverability + monitoring) is reported to start around <b>$129/mo</b> per <b>third-party</b> listings (G2 / Software Advice) &mdash; not confirmed on MXToolbox's own rendered pricing page. Free web tier = 1 monitor + top 30 blacklists.</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <section id="integrations">
+    <div class="kicker">04 · Feature &amp; capability map</div>
+    <h2>The commands &amp; how you drive them</h2>
+    <p class="lead">A quick map of the lookup surface &mdash; the diagnostics it runs and the API that drives them. Filter it:</p>
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="intSearch" type="text" placeholder="Search commands…">
+      </div>
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="Email auth">Email auth</button>
+      <button class="chip" data-cat="DNS records">DNS records</button>
+      <button class="chip" data-cat="Network">Network</button>
+      <button class="chip" data-cat="Automation">Automation</button>
+    </div>
+    <div class="intgrid" id="intGrid"></div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="kicker">05 · Pricing</div>
+    <h2>What it costs</h2>
+    <p class="lead">MXToolbox meters the API by <b>daily request quota</b>, split into <b>DNS</b> and <b>Network</b> counters. The free API is DNS-only; paid API quotas are <b>not publicly published</b>. Figures below are from MXToolbox's own API reference where noted, with product pricing from third-party listings (flagged). Confirm current pricing with MXToolbox before committing.</p>
+    <table class="price">
+      <thead><tr><th>Plan</th><th>Price</th><th>API quota &amp; notes</th></tr></thead>
+      <tbody>
+        <tr><td class="prod">Free API<small>DNS-only</small></td><td><span class="freeword">$0</span></td><td><b>DNS requests only</b> &mdash; documented as <b>64/day</b> in the rate-limit table but <b>68</b> in the same page's prose (official contradiction, flagged). <b>0 network requests</b> &mdash; no blacklist/SMTP. Good for a DNS/email-record prototype.</td></tr>
+        <tr><td class="prod">Paid API<small>higher DNS + network</small></td><td><span class="money">Per plan</span></td><td><span style="color:var(--bad)">Exact quotas UNVERIFIED.</span> The reference lists paid tiers only as &ldquo;Per plan quota&rdquo; for DNS &amp; Network &mdash; MXToolbox does not publish the numbers; increases are handled by contacting them.</td></tr>
+        <tr><td class="prod">Delivery Center<small>product · deliverability + monitoring</small></td><td><span class="money">~$129</span>/mo <span style="color:var(--bad)">†</span></td><td><span style="color:var(--bad)">Third-party figure (G2 / Software Advice), not confirmed on MXToolbox's own pricing page.</span> Inbox placement, SPF/DKIM/DMARC analysis, 100+ blacklist monitoring, alerting. Up to 5 domains at the entry tier per those listings.</td></tr>
+        <tr><td class="prod">Free web tier<small>SuperTool + 1 monitor</small></td><td><span class="freeword">$0</span></td><td>The web SuperTool is free to use interactively; the free account includes <b>1 monitor</b> with access to the <b>top 30 blacklists</b>. Not an API path &mdash; UI only.</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--mut2);font-size:12.5px;margin-top:10px">The real embedding constraint is the <b>free-tier DNS-only limit</b>: SPF/DKIM/DMARC/MX/PTR/BIMI/MTA-STS/TLS-RPT and the DNS-resolving check run free, but <b>blacklist and SMTP are network requests that need a paid plan</b> &mdash; and because paid API quotas aren't public, size the plan with MXToolbox directly. <span style="color:var(--bad)">† Product price is a third-party figure, not vendor-confirmed; verify before committing.</span></p>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="coverage">
+    <div class="kicker">06 · Which catalog checks it can cover</div>
+    <h2>Coverage — held to a 100%-certain bar</h2>
+    <p class="lead">A check is listed <b>only if</b> MXToolbox can produce its verdict deterministically from its <code>Passed/Failed</code> arrays &mdash; no human, AI-text or page-rendering judgment. Because the catalog is a <b>website</b> audit and MXToolbox audits the <b>domain's DNS/email</b> layer, the overlap is deliberately narrow: exactly one check clears the bar. Its real value is the net-new set below.</p>
+
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="covSearch" type="text" placeholder="Search covered checks…">
+      </div>
+    </div>
+    <p class="covcount" id="covCount"></p>
+    <div class="covgrid" id="covGrid"></div>
+
+    <div class="newcov" style="margin-top:32px">
+      <h3 style="font-size:19px;margin:0 0 6px">Additional checks it can cover — <span style="color:var(--mut2);font-weight:600">not in the catalog</span></h3>
+      <p class="lead" style="margin-top:0">Deterministic, evidence-backed email/DNS-posture verdicts MXToolbox produces that have <b>no matching entry</b> in <code>checks.ts</code> &mdash; candidate additions for an &ldquo;Email &amp; DNS health&rdquo; pillar. Each is referenced.</p>
+      <div class="covgrid" id="newCovGrid"></div>
+    </div>
+
+    <div style="margin-top:18px" class="callout bad">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>
+      <div>
+        <h4>What MXToolbox does NOT cover (for Snurra)</h4>
+        <p>Excluded, because MXToolbox audits the domain's DNS/email layer, not the website: <b>SEO</b> (titles, meta, structured data, canonicals) · <b>accessibility / WCAG</b> · <b>performance / Core Web Vitals</b> · <b>page content / copy quality</b> · <b>cookies &amp; consent-law compliance</b> · <b>SSL certificate page-level checks</b> (it has http/https network commands but Snurra sources SSL from SSL Labs; not claimed here without confirmed cert-expiry fields) · and anything needing <b>page rendering, interaction or a crawl</b> (one command, one lookup). It is an <b>infrastructure</b> tool, complementary to &mdash; not a substitute for &mdash; the web-page providers.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommend">
+    <div class="kicker">07 · Recommendation</div>
+    <h2>Pick your scenario</h2>
+    <p class="lead">MXToolbox earns a slot as a net-new <b>email &amp; DNS health</b> source, not a web-page provider. The recommendation is about which layer to use it for, the free-tier DNS-only limit and the paid plan for blacklist/SMTP. Click the closest match:</p>
+    <div class="picker" id="picker">
+      <button class="scn active" data-s="a">Email &amp; DNS-health provider<small>one sync GET per check</small></button>
+      <button class="scn" data-s="b">Prototype on the free DNS tier<small>records only, no network</small></button>
+      <button class="scn" data-s="c">Add blacklist &amp; SMTP<small>network commands — paid</small></button>
+      <button class="scn" data-s="d">Keep it in its lane<small>domain layer, not pages</small></button>
+    </div>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="kicker">08 · Sources</div>
+    <h2>References</h2>
+    <p class="lead">MXToolbox facts are from MXToolbox's own API reference and knowledgebase (gathered 29 Jul 2026); RFCs link the standards each command checks; product pricing is third-party and flagged. Check names are quoted verbatim from <code>feasibility-app/data/checks.ts</code>.</p>
+    <div class="refs">
+      <div class="ref"><a href="https://mxtoolbox.com/api/api-reference" target="_blank" rel="noopener">MXToolbox — REST API reference</a><p>Base URL, <code>GET /api/v1/Lookup/{command}</code>, <code>Authorization</code> plain-UUID auth, the command list, DNS-vs-Network billing, the <code>Passed/Failed/Warnings/Timeouts</code> response schema, <code>/Usage</code> &amp; <code>/Monitor</code>, daily-UTC reset, 200/401/429/500, and the free-tier 64/68-vs-0 quota (incl. the RFC 8460 TLS-RPT description).</p></div>
+      <div class="ref"><a href="https://knowledgebase.mxtoolbox.com/home/api" target="_blank" rel="noopener">MXToolbox — API knowledgebase</a><p>API overview (lookups, monitors, status), Free/Basic/Pro tier access, and that quota increases are handled by contacting MXToolbox.</p></div>
+      <div class="ref"><a href="https://mxtoolbox.com/c/products/upgrade-matrix" target="_blank" rel="noopener">MXToolbox — plans / upgrade matrix</a><p>Free web tier: 1 monitor with the top-30 blacklists; product tier feature comparison (pricing rendered client-side — see third-party figures).</p></div>
+      <div class="ref"><a href="https://www.rfc-editor.org/rfc/rfc8460" target="_blank" rel="noopener">RFC 8460 — SMTP TLS Reporting (TLS-RPT)</a><p>The standard the <code>tlsrpt</code> command checks — the one RFC MXToolbox cites by number.</p></div>
+      <div class="ref"><a href="https://www.rfc-editor.org/rfc/rfc7208" target="_blank" rel="noopener">RFC 7208 — Sender Policy Framework (SPF)</a><p>The standard behind the <code>spf</code> command (RFC attribution is standards-knowledge; MXToolbox names SPF but not the RFC number).</p></div>
+      <div class="ref"><a href="https://www.rfc-editor.org/rfc/rfc6376" target="_blank" rel="noopener">RFC 6376 — DomainKeys Identified Mail (DKIM)</a><p>The standard behind the <code>dkim</code> command (needs <code>domain:selector</code>).</p></div>
+      <div class="ref"><a href="https://www.rfc-editor.org/rfc/rfc7489" target="_blank" rel="noopener">RFC 7489 — DMARC</a><p>The standard behind the <code>dmarc</code> command.</p></div>
+      <div class="ref"><a href="https://www.rfc-editor.org/rfc/rfc8461" target="_blank" rel="noopener">RFC 8461 — SMTP MTA Strict Transport Security (MTA-STS)</a><p>The standard behind the <code>mta-sts</code> command.</p></div>
+      <div class="ref"><a href="https://www.softwareadvice.com/email-marketing/mxtoolbox-delivery-center-profile/" target="_blank" rel="noopener">Software Advice — MXToolbox Delivery Center</a><p><b>Third-party</b> source for the ~$129/mo Delivery Center starting price and feature set (not vendor-confirmed — flagged).</p></div>
+      <div class="ref"><a href="https://www.g2.com/products/virtualdac/pricing" target="_blank" rel="noopener">G2 — MXToolbox pricing</a><p><b>Third-party</b> corroboration of Delivery Center pricing (flagged; verify with MXToolbox before committing).</p></div>
+      <div class="ref"><a href="https://checks-catalog.vercel.app/" target="_blank" rel="noopener">Feasibility checks catalog</a><p>The 217-check catalog this coverage maps against (source: feasibility-app).</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="disc">
+      <strong>How to read this.</strong> This is an independent capability/integration assessment compiled from public sources for planning purposes &mdash; it is not from or endorsed by MXToolbox, and it is not legal advice. MXToolbox audits the domain's DNS/email infrastructure, a layer complementary to (not a substitute for) a web-page audit. Free-tier API access is DNS-only; blacklist/SMTP and any volume require a paid plan whose exact API quotas MXToolbox does not publish &mdash; verify quotas and pricing with MXToolbox before committing. Product-pricing figures here are third-party and flagged. The coverage list is deliberately conservative: a check is included only where the Passed/Failed verdict is 100% certain.
+    </div>
+    MXToolbox is a product of MXToolbox, Inc. Prepared 29 Jul 2026 · for internal planning.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'),
+    thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var dark=root.getAttribute('data-theme')==='dark';
+  root.setAttribute('data-theme', dark?'light':'dark');
+  thTxt.textContent = dark?'Dark':'Light';
+});
+
+// ---- Capability tabs ----
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var k=t.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.getAttribute('data-pane')===k);
+    });
+  });
+});
+
+// ---- Accordions ----
+document.querySelectorAll('.acc>button').forEach(function(b){
+  b.addEventListener('click',function(){ b.parentElement.classList.toggle('open'); });
+});
+
+// ---- Feature / ecosystem data + filter ----
+var INTS=[
+  {n:'SPF check',c:'Email auth',d:'spf command — validates the Sender Policy Framework record (RFC 7208); DNS request'},
+  {n:'DKIM check',c:'Email auth',d:'dkim command — DKIM key lookup, requires domain:selector (RFC 6376); DNS request'},
+  {n:'DMARC check',c:'Email auth',d:'dmarc command — checks the DMARC policy record (RFC 7489); DNS request'},
+  {n:'BIMI check',c:'Email auth',d:'bimi command — checks the BIMI brand-indicator DNS record; DNS request'},
+  {n:'MTA-STS check',c:'Email auth',d:'mta-sts command — checks the SMTP MTA Strict Transport Security policy record (RFC 8461); DNS request'},
+  {n:'TLS-RPT check',c:'Email auth',d:'tlsrpt command — checks the RFC 8460 SMTP TLS-Reporting DNS record; DNS request'},
+  {n:'MX lookup',c:'DNS records',d:'mx command — lists the domain mail exchangers; DNS request'},
+  {n:'DNS health',c:'DNS records',d:'dns command — DNS-health check across authoritative nameservers; DNS request'},
+  {n:'A / AAAA',c:'DNS records',d:'a / aaaa commands — resolve IPv4 / IPv6 address records; DNS request'},
+  {n:'SOA',c:'DNS records',d:'soa command — start-of-authority record and serial; DNS request'},
+  {n:'TXT',c:'DNS records',d:'txt command — arbitrary TXT records; DNS request'},
+  {n:'ASN',c:'DNS records',d:'asn command — autonomous-system-number lookup; DNS request'},
+  {n:'Reverse DNS (PTR)',c:'DNS records',d:'ptr command — resolves an IP to its hostname (reverse DNS); DNS request'},
+  {n:'Blacklist (RBL)',c:'Network',d:'blacklist command — checks a domain/IP against 100+ blacklists; NETWORK request (paid)'},
+  {n:'SMTP diagnostics',c:'Network',d:'smtp command — banner, reverse DNS, open-relay, connection health; NETWORK request (paid)'},
+  {n:'HTTP / HTTPS',c:'Network',d:'http / https commands — reachability and response checks; NETWORK request (paid)'},
+  {n:'Ping / TCP / Trace',c:'Network',d:'ping / tcp / trace commands — latency and path diagnostics; NETWORK request (paid); tcp needs a port'},
+  {n:'Lookup API (sync)',c:'Automation',d:'GET /api/v1/Lookup/{command}/?argument={arg} — one synchronous GET, full result in the body'},
+  {n:'Authorization header',c:'Automation',d:'Single Authorization header carrying a plain UUID — no Bearer prefix; example.com works keyless'},
+  {n:'Verdict arrays',c:'Automation',d:'JSON Passed / Failed / Warnings / Timeouts, each item ID / Name / Info / Url'},
+  {n:'Usage API',c:'Automation',d:'GET /api/v1/Usage — DnsRequests / DnsMax / NetworkRequests / NetworkMax; daily UTC reset'},
+  {n:'Monitor API',c:'Automation',d:'GET /api/v1/Monitor — polls configured monitors by command / name / tag'}
+
+];
+var grid=document.getElementById('intGrid'), search=document.getElementById('intSearch'), curCat='all';
+function renderInts(){
+  var q=(search.value||'').toLowerCase();
+  var rows=INTS.filter(function(i){
+    var okc = curCat==='all' || i.c===curCat;
+    var okq = !q || i.n.toLowerCase().indexOf(q)>-1 || i.d.toLowerCase().indexOf(q)>-1;
+    return okc && okq;
+  });
+  grid.innerHTML = rows.length ? rows.map(function(i){
+    return '<div class="intitem"><div class="cat">'+i.c+'</div><h5>'+i.n+'</h5><span>'+i.d+'</span></div>';
+  }).join('') : '<div class="empty">No matches.</div>';
+}
+document.querySelectorAll('#integrations .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#integrations .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); curCat=c.getAttribute('data-cat'); renderInts();
+  });
+});
+search.addEventListener('input',renderInts);
+renderInts();
+
+// ---- Coverage data + filter ----
+// check names are verbatim from feasibility-app/data/checks.ts
+var COV=[
+  {ch:'DNS resolving correctly — no unexpected changes', p:'SSL & Domain Health', cap:'dns / a / mx lookup — Passed/Failed arrays', gate:[], note:'MXToolbox runs a DNS-health lookup (dns/a/mx commands) across authoritative nameservers and returns deterministic Passed/Failed/Warnings arrays — a definitive yes/no on whether the domain resolves correctly. A DNS command, so it runs on the free API tier.'}
+
+];
+var covGrid=document.getElementById('covGrid'), covSearch=document.getElementById('covSearch'),
+    covCount=document.getElementById('covCount'), curCov='all';
+function renderCov(){
+  var q=(covSearch.value||'').toLowerCase();
+  var rows=COV.filter(function(i){
+    return !q || i.ch.toLowerCase().indexOf(q)>-1 || i.p.toLowerCase().indexOf(q)>-1 || i.cap.toLowerCase().indexOf(q)>-1;
+  });
+  covCount.innerHTML='Showing <b style="color:var(--ink)">'+rows.length+'</b> of '+COV.length+' checks MXToolbox can cover';
+  covGrid.innerHTML = rows.length ? rows.map(function(i){
+    var gates=(i.gate||[]).map(function(g){
+      return '<span class="gate">'+g+'</span>';
+    }).join('');
+    return '<div class="covitem"><div class="top"><div><h5>'+i.ch+'</h5>'+
+      '<div class="pil">'+i.p+' · <span class="capname">'+i.cap+'</span></div></div></div>'+
+      '<p>'+i.note+'</p>'+(gates?('<div>'+gates+'</div>'):'')+'</div>';
+  }).join('') : '<div class="empty">No checks match that filter.</div>';
+}
+covSearch.addEventListener('input',renderCov);
+renderCov();
+
+// ---- Additional checks NOT in the catalog (candidate new checks) ----
+var NEWCOV=[
+  {name:'Domain / IP on an email blacklist (RBL)', cap:'blacklist command (100+ RBLs)', note:'One call checks a domain/IP against 100+ email blacklists and returns which listed it — the definitive email-reputation verdict, with no catalog equivalent. NETWORK request, so it needs a paid API plan.', ref:'MXToolbox — API reference (network lookups)'},
+  {name:'SPF record present & valid', cap:'spf command', note:'Validates the Sender Policy Framework record (RFC 7208) and returns a deterministic pass/fail — email-authentication posture the catalog does not represent.', ref:'RFC 7208 / MXToolbox — API reference'},
+  {name:'DKIM record present & valid', cap:'dkim command (domain:selector)', note:'Looks up and validates the DKIM key for a given selector (RFC 6376) — requires the domain:selector argument. Net-new email-auth check.', ref:'RFC 6376 / MXToolbox — API reference'},
+  {name:'DMARC policy present & valid', cap:'dmarc command', note:'Checks the DMARC policy record (RFC 7489) and its policy strength (none/quarantine/reject) — a deterministic email-auth verdict absent from the catalog.', ref:'RFC 7489 / MXToolbox — API reference'},
+  {name:'MX records present & mail servers listed', cap:'mx command', note:'Lists the domain mail exchangers and flags missing/misconfigured MX — mail-delivery readiness the catalog does not itemise.', ref:'MXToolbox — API reference'},
+  {name:'SMTP server health (banner, open relay, reverse DNS)', cap:'smtp command', note:'Connects to the mail server and checks banner, reverse DNS and open-relay status — deliverability posture with no catalog match. NETWORK request (paid).', ref:'MXToolbox — API reference (network lookups)'},
+  {name:'Reverse DNS / PTR configured', cap:'ptr command', note:'Resolves an IP back to its hostname — the reverse-DNS/PTR record mail servers require. A deterministic present/absent verdict, net-new to the catalog.', ref:'MXToolbox — API reference'},
+  {name:'BIMI record present', cap:'bimi command', note:'Checks for a BIMI brand-indicator DNS record — a modern email-branding signal the catalog does not represent.', ref:'MXToolbox — API reference'},
+  {name:'MTA-STS policy present', cap:'mta-sts command', note:'Checks for an SMTP MTA Strict Transport Security policy record (RFC 8461) — transport-security posture with no catalog equivalent.', ref:'RFC 8461 / MXToolbox — API reference'},
+  {name:'TLS-RPT record present', cap:'tlsrpt command', note:'Checks for an RFC 8460 SMTP TLS-Reporting DNS record — the one RFC MXToolbox cites by number; a net-new email-security check.', ref:'RFC 8460 / MXToolbox — API reference'}
+
+];
+(function(){
+  var g=document.getElementById('newCovGrid'); if(!g) return;
+  g.innerHTML=NEWCOV.map(function(i){
+    return '<div class="covitem"><div class="top"><div><h5>'+i.name+'</h5>'+
+      '<div class="pil"><span class="capname">'+i.cap+'</span></div></div><span class="gate">new</span></div>'+
+      '<p>'+i.note+'</p><div class="pil" style="margin-top:8px">↳ <span class="capname">'+i.ref+'</span></div></div>';
+  }).join('');
+})();
+
+// ---- Scenario recommender ----
+var RECS={
+  a:{label:'Recommended path',h:'Email &amp; DNS-health provider',
+     p:'Add MXToolbox as a net-new &ldquo;Email &amp; DNS health&rdquo; capability, not a web-page provider. One sync GET per check; map an empty Failed array to pass. Covers the 1 catalog DNS check plus 10 net-new email/DNS checks.',
+     s:['Store the API key; gate isConfigured() on the key (plus a paid plan for network commands).','buildRequest() forms GET /api/v1/Lookup/{command}/?argument={domain} with the Authorization header; there is no polling phase.','mapResponse() treats empty Failed as pass and reads Info for detail; run the several checks as parallel adapter calls.']},
+  b:{label:'Recommended path',h:'Prototype on the free DNS tier',
+     p:'The free API covers DNS commands, so the DNS-resolving check plus SPF/DKIM/DMARC/MX/PTR/BIMI/MTA-STS/TLS-RPT records can be validated for free within a small daily quota — enough to prove the integration.',
+     s:['Wire only DNS commands first (spf, dkim, dmarc, mx, ptr, bimi, mta-sts, tlsrpt, dns) — all bill to DnsRequests.','Pre-resolve the DKIM selector — dkim needs a domain:selector argument.','Poll GET /api/v1/Usage to stay inside the daily DNS quota; handle 429 as quota-exhausted.']},
+  c:{label:'Recommended path',h:'Add blacklist &amp; SMTP',
+     p:'The highest-value email signals — RBL listing and SMTP health — are NETWORK requests. The free tier has 0 of these, so they require a paid plan; and paid API quotas are not published.',
+     s:['Only enable blacklist / smtp behind a paid-plan flag; keep them off the free path.','Contact MXToolbox to size the Network-request quota — the reference lists paid tiers only as &ldquo;per plan quota&rdquo;.','Budget network calls carefully; they are the scarce, metered resource.']},
+  d:{label:'Recommended path',h:'Keep it in its lane',
+     p:'MXToolbox audits the domain DNS/email layer, not the website pages. Use it for email/DNS posture only — do not stretch it to SEO, accessibility, performance, content or cookies.',
+     s:['Surface its findings under an Email/DNS-health pillar, distinct from the web-page checks.','Source SSL, SEO, a11y and performance from the providers built for them — not MXToolbox.','Treat a clean email/DNS verdict as complementary evidence, not a whole-site verdict.']}
+
+};
+function showRec(k){
+  var r=RECS[k];
+  document.getElementById('rec').innerHTML =
+    '<div class="rlabel">'+r.label+'</div><h3>'+r.h+'</h3><p>'+r.p+'</p><ul class="steps"><li>'+r.s.join('</li><li>')+'</li></ul>';
+}
+document.querySelectorAll('.scn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.scn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active'); showRec(b.getAttribute('data-s'));
+  });
+});
+showRec('a');
+</script>
+</body>
+</html>
