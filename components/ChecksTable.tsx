@@ -157,11 +157,6 @@ export function ChecksTable({
                       <span className={'ver-cur' + (onVersion ? ' is-ver' : '')}>
                         {onVersion ? r.versionLabel : `Versions · ${r.versions.length}`}
                       </span>
-                      {r.mvp === 'Duplicated' && r.dupOf && (
-                        <span className="dup-i" title="Duplicated from">
-                          Dup · <span className="dup-of">{r.dupOf}</span>
-                        </span>
-                      )}
                       {r.custom && <span className="custom-i" title="Custom check">✎</span>}
                     </button>
                     {!r.active && r.justification && <span className="just-snippet">“{r.justification}”</span>}

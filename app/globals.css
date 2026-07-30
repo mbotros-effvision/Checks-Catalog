@@ -112,8 +112,6 @@ html[data-theme="dark"] .src { background: #2f2f35; color: #c4bfb6; }
 .mvpsel.is-MVP { background: #dcfce7; color: #14532d; border-color: #86efac; }
 .mvpsel.is-Post { background: var(--track); color: var(--muted); }
 .mvpsel.is-Dup { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
-.dup-i { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; font-family: var(--mono); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 99px; background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
-.dup-i .dup-of { color: #7c2d12; font-weight: 600; }
 .prio { font-family: var(--mono); font-size: 10px; font-weight: 700; padding: 4px 6px; border-radius: 7px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); cursor: pointer; width: 80px; min-width: 0; transition: all .12s; }
 .prio:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .prio-high { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
