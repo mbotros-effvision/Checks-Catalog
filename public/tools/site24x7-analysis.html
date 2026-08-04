@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site24x7 — Capabilities &amp; Embedding Analysis</title>
+<style>
+  :root{
+    --bg:#fbfaf6; --bg2:#f5f2ea; --panel:#ffffff; --panel2:#f7f5ef;
+    --line:#e9e5db; --line2:#ddd8cc;
+    --ink:#1c1a17; --mut:#6f6a61; --mut2:#9a948a;
+    --brand:#0f766e; --brand2:#0f766e; --accent:#0f766e;
+    --warn:#b45309; --bad:#b91c1c; --good:#0f766e;
+    --chip:#f2efe8; --shadow:0 1px 2px rgba(28,26,23,.04),0 8px 24px -12px rgba(28,26,23,.12);
+    --radius:14px;
+  }
+  html[data-theme="dark"]{
+    --bg:#131316; --bg2:#17171b; --panel:#1b1b1f; --panel2:#232328;
+    --line:#2c2c31; --line2:#3a3a41; --ink:#eceae4; --mut:#a39d93; --mut2:#6f6a62;
+    --brand:#2dd4bf; --brand2:#2dd4bf; --accent:#2dd4bf; --good:#2dd4bf;
+    --warn:#fbbf24; --bad:#f87171;
+    --chip:#232328; --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1100px 520px at 88% -8%,#eef6f4,transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,#f6f1e9,transparent 55%),
+               var(--bg);
+    background-attachment:fixed;
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  html[data-theme="dark"] body{
+    background:radial-gradient(1100px 520px at 88% -8%,rgba(45,212,191,.07),transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,rgba(180,140,60,.06),transparent 55%),
+               var(--bg);
+  }
+  a{color:var(--brand2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 22px}
+
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(15,118,110,.5)}
+  .logo .mark svg{width:18px;height:18px}
+  nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
+  nav.links a:hover{background:var(--chip); color:var(--ink); text-decoration:none}
+  .tbtn{border:1px solid var(--line2); background:var(--chip); color:var(--ink); border-radius:9px;
+    padding:7px 10px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; gap:6px; align-items:center}
+  .tbtn:hover{border-color:var(--brand)}
+
+  .hero{padding:46px 0 26px}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:var(--chip);
+    border:1px solid var(--line2); padding:6px 12px; border-radius:999px}
+  h1{font-size:40px; line-height:1.12; margin:16px 0 10px; letter-spacing:-.5px}
+  h1 .grad{background:linear-gradient(120deg,var(--brand2),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--mut); font-size:17px; max-width:810px}
+  .meta{margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; color:var(--mut2); font-size:13px}
+  .meta b{color:var(--mut)}
+
+  .tldr{margin-top:26px; border:1px solid var(--line2); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:var(--shadow); overflow:hidden}
+  .tldr .hd{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line);
+    font-weight:800; letter-spacing:.3px}
+  .tldr .hd .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,170,.18)}
+  .tldr .bd{padding:18px 20px; color:var(--mut); font-size:15.5px}
+  .tldr .bd strong{color:var(--ink)}
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .vcard{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .vcard h4{margin:0 0 4px; font-size:13px; color:var(--mut2); text-transform:uppercase; letter-spacing:.08em}
+  .vcard p{margin:0; font-size:14px; color:var(--ink)}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; margin-top:8px}
+  .pill.good{background:rgba(34,211,170,.14); color:var(--good); border:1px solid rgba(34,211,170,.35)}
+  .pill.warn{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.35)}
+  .pill.bad{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.35)}
+
+  section{padding:34px 0; border-top:1px solid var(--line)}
+  .kicker{font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--brand2)}
+  h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.3px}
+  .lead{color:var(--mut); max-width:880px; margin:0 0 20px}
+
+  .tabs{display:flex; gap:8px; margin:6px 0 18px; flex-wrap:wrap}
+  .tab{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:9px 16px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:14px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--accent)); color:#04122a; border-color:transparent}
+  .tabpane{display:none; animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .grid{display:grid; gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:16.5px; display:flex; align-items:center; gap:9px}
+  .card .ic{width:30px;height:30px;border-radius:9px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .card .ic svg{width:17px;height:17px;stroke:var(--brand2)}
+  .card p{margin:0; color:var(--mut); font-size:14px}
+  .tag{font-size:11px; font-weight:700; color:var(--mut2); background:var(--chip); border:1px solid var(--line2);
+    padding:2px 8px; border-radius:6px; margin-right:6px; display:inline-block; margin-top:8px}
+
+  .fit{overflow:hidden; border:1px solid var(--line); border-radius:14px}
+  .fitrow{display:grid; grid-template-columns:1.4fr 2.2fr .9fr; gap:0; border-bottom:1px solid var(--line)}
+  .fitrow:last-child{border-bottom:0}
+  .fitrow.head{background:var(--chip); font-weight:800; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut2)}
+  .fitrow>div{padding:14px 16px}
+  .fitrow .name{font-weight:700; color:var(--ink)}
+  .fitrow .name small{display:block; font-weight:500; color:var(--mut2); margin-top:3px}
+  .fitrow .desc{color:var(--mut); font-size:14px; border-left:1px solid var(--line); border-right:1px solid var(--line)}
+  .fitrow .verd{display:flex; align-items:center; justify-content:center}
+  .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
+  .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .badge.ok{background:rgba(15,118,110,.16); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
+
+  .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
+  .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
+  .callout.info{background:rgba(15,118,110,.08); border-color:rgba(15,118,110,.4)}
+  .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
+  .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
+  .callout.warn .cic{background:rgba(255,176,32,.16)}
+  .callout.info .cic{background:rgba(15,118,110,.16)}
+  .callout.bad .cic{background:rgba(255,93,108,.16)}
+  .callout h4{margin:0 0 5px; font-size:15.5px}
+  .callout p{margin:0; color:var(--mut); font-size:14.5px}
+  .callout.warn h4{color:var(--warn)}
+  .callout.bad h4{color:var(--bad)}
+  .callout .cic svg{width:19px;height:19px}
+
+  .picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
+  .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
+  .scn.active{border-color:var(--brand); background:rgba(15,118,110,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(15,118,110,.12)}
+  .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
+  .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
+  .rec h3{margin:6px 0 6px; font-size:18px}
+  .rec p{margin:0 0 8px; color:var(--mut); font-size:14.5px}
+  .rec .steps{margin:8px 0 0; padding-left:18px; color:var(--mut); font-size:14px}
+  .rec .steps li{margin:3px 0}
+
+  .filterbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--chip);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 12px}
+  .search input{border:0; background:transparent; color:var(--ink); font-size:14px; width:100%; outline:none}
+  .chip{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:7px 12px; border-radius:999px;
+    cursor:pointer; font-size:12.5px; font-weight:700}
+  .chip.active{background:var(--brand); color:#04122a; border-color:transparent}
+  .intgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .intitem{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px}
+  .intitem h5{margin:0 0 3px; font-size:14px}
+  .intitem span{font-size:12px; color:var(--mut2)}
+  .intitem .cat{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--brand2)}
+  .empty{color:var(--mut2); font-size:14px; padding:16px; text-align:center; grid-column:1/-1}
+
+  .covgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .covitem{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px; position:relative}
+  .covitem .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .covitem h5{margin:0; font-size:14.5px; color:var(--ink); font-weight:700; line-height:1.3}
+  .covitem .pil{font-size:10px; color:var(--mut2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+  .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
+  .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
+  .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .ttag.redundant{background:rgba(15,118,110,.14); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .ttag.partial{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
+    border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
+  .capname{color:var(--accent); font-weight:700}
+  .covcount{font-size:12.5px; color:var(--mut2); margin:0 0 10px}
+
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:10px; background:var(--panel)}
+  .acc>button{width:100%; text-align:left; background:transparent; border:0; color:var(--ink); padding:15px 18px;
+    font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .acc>button .ar{transition:transform .2s; color:var(--mut2)}
+  .acc.open>button .ar{transform:rotate(90deg)}
+  .acc .panel{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc.open .panel{max-height:1600px}
+  .acc .panel .inner{padding:0 18px 18px; color:var(--mut); font-size:14px}
+  code,.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px}
+  .codeblock{background:#0a1024; border:1px solid var(--line2); border-radius:10px; padding:13px 15px;
+    overflow:auto; color:#cfe0ff; margin:10px 0}
+  html[data-theme="light"] .codeblock{background:#0d1530; color:#dbe6ff}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:8px 0}
+  .kv code{color:var(--accent)}
+  .kv span{color:var(--mut)}
+
+  table.price{width:100%; border-collapse:collapse; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.price th,table.price td{padding:13px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top}
+  table.price th{background:var(--chip); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut2)}
+  table.price td.prod{font-weight:700; color:var(--ink)}
+  table.price td.prod small{display:block; font-weight:500; color:var(--mut2); margin-top:2px}
+  .money{font-weight:800; color:var(--accent)}
+  .quote{color:var(--warn); font-weight:700}
+  .freeword{color:var(--good); font-weight:800}
+
+  .refs{columns:2; column-gap:26px}
+  .refs .ref{break-inside:avoid; margin-bottom:12px; padding-left:14px; border-left:2px solid var(--line2)}
+  .refs .ref a{font-weight:600; font-size:13.5px}
+  .refs .ref p{margin:2px 0 0; color:var(--mut2); font-size:12px}
+
+  footer{padding:30px 0 60px; color:var(--mut2); font-size:12.5px; border-top:1px solid var(--line)}
+  .disc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px}
+
+  @media(max-width:860px){
+    .g2,.g3,.verdict,.intgrid,.covgrid{grid-template-columns:1fr}
+    .fitrow{grid-template-columns:1fr}
+    .fitrow .desc{border-left:0;border-right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .refs{columns:1}
+    h1{font-size:31px}
+    nav.links{display:none}
+  }
+  @media print{
+    header.top,.tbtn,.picker,.filterbar{display:none!important}
+    .tabpane{display:block!important} .acc .panel{max-height:none!important}
+    body{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v6" stroke="#04122a" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="13.5" r="6" stroke="#04122a" stroke-width="1.8"/><path d="M12 13.5l3-2" stroke="#04122a" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      Site24x7 <span style="color:var(--mut2);font-weight:600">· Embedding Analysis</span>
+    </div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#embed">Embedding</a>
+      <a href="#api">API</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#coverage">Checks covered</a>
+      <a href="#recommend">Recommendation</a>
+      <a href="#refs">Sources</a>
+    </nav>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <span class="eyebrow">● Product &amp; Integration Assessment</span>
+    <h1>Site24x7, assessed for <span class="grad">embedding into Snurra</span></h1>
+    <!-- snurraFit pill: api-with-setup → #b45309 "API + setup" -->
+    <div style="margin:12px 0 4px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid #b45309;color:#b45309;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;white-space:nowrap"><span style="width:7px;height:7px;border-radius:50%;background:currentColor"></span>Fits into Snurra: API + setup</span>
+      <span style="font-size:12.5px;color:var(--mut,#6f6a61)">Genuine Zoho-OAuth REST API, but every result comes from a monitor you create up front (referenced by <code>monitor_id</code>) that polls on a schedule — no one-shot URL-in scan; on-demand “Poll&nbsp;Now” is console/mobile-only.</span>
+    </div>
+    <p class="sub">Site24x7 (Zoho / ManageEngine) is a <b>cloud full-stack monitoring &amp; observability suite</b> — uptime, synthetic (real-browser) page-speed &amp; multi-step transactions, Real&nbsp;User&nbsp;Monitoring, SSL/domain/DNS health, RBL/blacklist, defacement, plus server/network/cloud/log monitoring. Checks run from <b>130 global locations</b> (or an on-premise poller). It exposes a <b>documented REST API</b> (Zoho OAuth&nbsp;2.0), but it is <b>monitor-provisioned and schedule-driven</b>: you create a persistent monitor and read its <b>rolled-up status/reports</b> — not a URL-in/verdict-out scanner. This page maps its capabilities, how it slots into Snurra’s worker, what it costs, and — held to a strict 100%-certain bar — precisely which feasibility-catalog checks it can cover.</p>
+    <div class="meta">
+      <span><b>Prepared:</b> 4 Aug 2026</span>
+      <span><b>Use case:</b> Uptime · SSL/domain/DNS · real-browser performance monitoring for the Snurra Site Audit</span>
+      <span><b>Catalog:</b> feasibility-app · 217 checks</span>
+    </div>
+
+    <div class="tldr">
+      <div class="hd"><span class="dot"></span> Bottom line up front</div>
+      <div class="bd">
+        Site24x7 monitors a site from <strong>130 global locations</strong> and, held to a deterministic bar, can cover <strong>14 catalog checks</strong> — its strength is the <strong>availability / SSL-domain-DNS</strong> family (1-min uptime, uptime %, response-time SLA, backend-endpoint health, SSL-cert &amp; domain expiry, DNS-change), plus real-Chrome <strong>Core Web Vitals</strong> (LCP/CLS), mixed-content detection and content-vs-baseline defacement. It is a <strong>real SaaS with a documented REST API</strong> (base <code>www.site24x7.com/api</code>, <code>Zoho-oauthtoken</code> auth, <code>version=2.0</code>) with IT-Automation webhooks, scheduling and a Terraform provider — so it embeds behind an HTTP adapter, but <strong>two-phase and provisioned</strong>: create the monitor, then poll <code>current_status</code> / reports it collects on its schedule. Pricing is <strong>per “basic monitor” unit</strong> (a website is ≈$0.36/mo a-la-carte) with a free-forever tier. It does <strong>not</strong> do SEO crawling, tag/analytics/consent governance, visual regression, or WCAG conformance (only Lighthouse’s automated a11y score).
+        <div class="verdict">
+          <div class="vcard"><h4>Technical fit</h4><p><b>API + setup.</b> Documented REST API, but monitor-provisioned &amp; schedule-driven: create a monitor → poll <code>current_status</code>/reports. Async, off the hot path.</p><span class="pill warn">API + setup</span></div>
+          <div class="vcard"><h4>What it covers</h4><p><b>14 checks</b> — uptime &amp; response-time SLA, SSL/domain/DNS health, real-Chrome LCP/CLS, mixed content, content-baseline.</p><span class="pill good">Uptime &amp; SSL/CWV</span></div>
+          <div class="vcard"><h4>Cost</h4><p><b>Per “basic monitor” unit</b> — a website is ≈$0.36/mo a-la-carte; free-forever tier + 30-day trial. Published USD list prices; verify by quote.</p><span class="pill good">Low per-monitor</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="kicker">01 · What Site24x7 actually does</div>
+    <h2>Capabilities</h2>
+    <p class="lead">Two layers matter for embedding: what the <b>monitors measure</b> (the availability, timings, certificates, DNS records and page metrics they capture from real locations/browsers) and its <b>automation surface</b> (the REST API, IT Automations, webhooks and scheduling a backend drives it through). Toggle between them:</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="mon">What it monitors</button>
+      <button class="tab" data-tab="auto">Automation &amp; API surface</button>
+    </div>
+
+    <div class="tabpane active" data-pane="mon">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 12a8 8 0 018-8M20 12a8 8 0 01-8 8"/><path d="M12 8v4l3 2"/></svg></span>Uptime / availability</h3><p>HTTP/HTTPS (and ping/port/protocol) monitors poll a URL as often as <b>every 1 minute</b> from up to <b>130 locations</b>, verdicting up/down/trouble + <b>availability %</b>, with a response-time breakdown (DNS, connect, SSL handshake, first byte, download).</p><span class="tag">1-min · 130 locations</span><span class="tag">Response breakdown</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg></span>Web Page Speed (Browser)</h3><p>Loads a URL in <b>real Chrome</b> and records the resource waterfall, page size &amp; request counts, <b>Core Web Vitals (FCP/LCP/CLS)</b> + TBT, a rendered <b>screenshot</b>, <b>unsecure (mixed-content) resources</b>, and <b>Lighthouse</b> scores (Perf / A11y / Best-Practices / SEO / PWA).</p><span class="tag">Real Chrome</span><span class="tag">CWV + Lighthouse</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h6"/></svg></span>Web Transaction (Browser)</h3><p>Record a user path or import a <b>Selenium IDE</b> script and replay a <b>multi-step flow</b> (login, add-to-cart, form submit) on real Chrome/Firefox/Edge across locations — availability &amp; timing per step.</p><span class="tag">Multi-step</span><span class="tag">Selenium</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>SSL / TLS certificate</h3><p>Tracks <b>days-to-expiry</b>, validates the <b>trust chain</b>, <b>OCSP revocation</b>, a changed <b>SHA-1 fingerprint</b> (tamper), <b>blacklisted CA</b>, and protocol/cipher strength — alerting a configurable number of days before expiry.</p><span class="tag">Expiry + OCSP</span><span class="tag">Cipher/chain</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M2 12h20M12 3a15 15 0 010 18"/></svg></span>Domain &amp; DNS</h3><p>A <b>domain-expiry</b> monitor tracks the registration date; a <b>DNS</b> monitor resolves the domain’s records and can assert them against expected values, alerting on an unexpected change.</p><span class="tag">Domain expiry</span><span class="tag">DNS change</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></span>Blacklist (RBL) &amp; defacement</h3><p>An <b>RBL</b> monitor checks a host/IP against <b>20 DNSBLs</b> and alerts on a listing. A <b>defacement</b> monitor snapshots a page’s DOM (images, scripts, anchors, iframes, links, text) as a baseline and alerts when content changes beyond a threshold.</p><span class="tag">20 DNSBLs</span><span class="tag">DOM baseline</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h4l2-5 3 10 2-5h7"/></svg></span>Real User Monitoring</h3><p>Passive telemetry from <b>real visitor browsers/devices</b> — field <b>LCP / INP / CLS</b>, page/geography/browser breakdowns and session replay. Requires the <b>RUM JS snippet</b> installed on the site.</p><span class="tag">Field CWV</span><span class="tag">Needs snippet</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg></span>Content &amp; protocol checks</h3><p>Assert a <b>keyword / regex</b> is present or absent in the response, match an expected <b>HTTP status code</b>, follow redirects (up to 10), and monitor <b>TCP/UDP ports</b> &amp; internet services (SMTP/POP/IMAP/DNS/NTP/WebSocket).</p><span class="tag">Keyword/regex</span><span class="tag">Ports/protocols</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8"/></svg></span>Real browser, geo &amp; private locations</h3><p>Browser monitors run on <b>real Chrome/Firefox/Edge</b>; checks run from <b>130 global locations</b>; an <b>On-Premise Poller</b> monitors internal / behind-firewall / staging sites; down-at-primary is re-verified from a secondary location before alerting.</p><span class="tag">130 locations</span><span class="tag">On-prem poller</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M12 3l9 16H3l9-16z" transform="rotate(180 12 12)"/><path d="M12 8v5M12 16h.01"/></svg></span>
+        <div><h4>Standards it relies on</h4><p>Site24x7’s verdicts key off formal standards: <b>Core Web Vitals</b> (LCP/INP/CLS — RUM; FCP/LCP/CLS — synthetic lab), Google <b>Lighthouse</b> (Performance / Accessibility / Best-Practices / SEO / PWA scores), <b>SSL/TLS</b> validation (OCSP revocation, SHA-1 fingerprint, protocol/cipher, blacklisted-CA), <b>20 DNSBL/RBL</b> blacklists, and configurable <b>HTTP status codes</b>. It is deliberately a monitoring suite — not a WCAG-conformance, SEO-crawl or consent-governance engine.</p></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="auto">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></span>REST API (v2, JSON)</h3><p>Base <code>https://www.site24x7.com/api</code> (data-center-specific: <code>.eu</code>/<code>.in</code>/<code>.net.au</code>/… ). Header <code>Accept: application/json; version=2.0</code>. <b>CRUD over persistent monitor objects</b> + status/report reads — not an on-demand scan.</p><span class="tag">JSON · v2</span><span class="tag">DC-specific base</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>Auth — Zoho OAuth 2.0</h3><p>Header <code>Authorization: Zoho-oauthtoken &lt;token&gt;</code>. Mint access tokens from a Zoho client&nbsp;ID / secret / refresh token; scoped (e.g. <code>Site24x7.Reports.Read</code>). Not a static API key.</p><span class="tag">OAuth 2.0</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>Monitors &amp; reports</h3><p><code>POST/GET /api/monitors</code> (create/list), <code>GET /api/current_status/&lt;id&gt;</code> for rolled-up status, and summary / performance / SLA / alarm reports. Results are <b>per-monitor attribute arrays</b>, not a raw per-check stream.</p><span class="tag">current_status</span><span class="tag">reports</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 12a8 8 0 018-8M20 12a8 8 0 01-8 8"/><path d="M12 8v4l3 2"/></svg></span>IT Automations &amp; webhooks</h3><p>Trigger <b>webhooks</b> / IT Automations on threshold breach and route alerts to <b>Slack, PagerDuty, ServiceNow, Opsgenie</b> and more — the clean “state changed” signal for an async consumer.</p><span class="tag">Webhooks</span><span class="tag">Alert routing</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>Terraform &amp; scheduling</h3><p>An official <b>Terraform provider</b> manages monitors/profiles as code; monitors run on a configurable <b>check frequency</b> (down to 1&nbsp;min / 30&nbsp;sec on higher tiers). Provisioning is IaC-friendly.</p><span class="tag">IaC</span><span class="tag">check_frequency</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Poll Now (on-demand)</h3><p>An on-demand re-check exists, but it is documented as a <b>console / mobile-app action</b> on an already-created monitor (report valid ~1 day; can’t re-poll mid-run). A public REST trigger for Poll&nbsp;Now was <b>not found</b> in the docs (unverified).</p><span class="tag">Console/mobile</span><span class="tag">No REST trigger?</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+        <div><h4>How Snurra would actually drive it</h4><p>A <code>ProviderAdapter</code> that is <b>provisioned + polled</b>, not one-shot: on first use it <code>POST</code>s a monitor (URL + threshold/notification/location profiles) and stores the returned <code>monitor_id</code>; thereafter <code>mapResponse()</code> reads <code>GET /api/current_status/&lt;id&gt;</code> (or a summary/SLA report) on Snurra’s own schedule and maps the per-monitor attributes into neutral check inputs. Gate <code>isConfigured()</code> on a valid Zoho OAuth token + the account’s data-center base URL; reuse the access token (refresh on expiry) and <b>back off</b> — the API can answer over-limit with <code>HTTP 200</code> + an “access denied” body rather than <code>429</code>. Never create/poll a monitor inline on the per-request hot path.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section id="embed">
+    <div class="kicker">02 · Applicability — how it slots into Snurra</div>
+    <h2>Embedding paths, ranked</h2>
+    <p class="lead">Site24x7 fits Snurra’s <code>ProviderAdapter</code> pattern — an HTTP service like PageSpeed / ObservePoint — with one shape: it is <b>provisioned + polled</b> (create a monitor, read the status/reports it collects on a schedule), not URL-in/verdict-out. The ranking is driven by <em>where</em> it adds the most signal: the availability / SSL-domain-DNS family.</p>
+
+    <div class="fit">
+      <div class="fitrow head"><div>Path</div><div>What it’s good for</div><div>Fit</div></div>
+      <div class="fitrow">
+        <div class="name">Provisioned monitors → poll <code>current_status</code> for the availability / SSL-domain-DNS slice <small>(uptime, SSL, domain, DNS, response-time SLA, backend health)</small></div>
+        <div class="desc">Create URL / SSL / domain / DNS / REST-API monitors once; read their rolled-up status &amp; SLA/availability reports on Snurra’s schedule for uptime %, response-time-SLA breach, SSL-cert &amp; domain expiry and DNS-change verdicts. This is Site24x7’s core and cleanest fit.</div>
+        <div class="verd"><span class="badge best">Best fit ✓</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Web Page Speed (Browser) monitor for real-Chrome vitals <small>(LCP / CLS / mixed content)</small></div>
+        <div class="desc">A real-Chrome page-speed monitor supplies LCP and CLS measurements (mapped to the 2.5s / 0.1 thresholds) and flags http:// “unsecure resources” on an https page — the mixed-content verdict.</div>
+        <div class="verd"><span class="badge ok">Strong</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Defacement &amp; transaction monitors for content-baseline &amp; funnel availability <small>(DOM diff · scripted flow)</small></div>
+        <div class="desc">A defacement monitor gives the content-vs-approved-baseline verdict; a Web Transaction monitor replays a scripted login/checkout flow to verdict multi-step availability a single-page probe can’t reach.</div>
+        <div class="verd"><span class="badge ok">Good</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Treat it as an on-demand URL scanner on the per-request hot path</div>
+        <div class="desc">There is no URL-in/verdict-out endpoint: you must provision a monitor and wait for a scheduled poll (Poll&nbsp;Now is console/mobile-only). Creating/polling a monitor inline per page-audit request burns the monitor budget and blocks — schedule it and read status out-of-band.</div>
+        <div class="verd"><span class="badge no">Don’t</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="callout info">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+      <div>
+        <h4>Integration shape (contrast with the sync tools)</h4>
+        <p>Unlike PSI’s single GET, Site24x7 is <b>provisioned + scheduled</b>: the adapter creates a monitor (or references an existing <code>monitor_id</code>) and later reads <code>GET /api/current_status/&lt;id&gt;</code> or a summary/SLA report — results arrive as <b>per-monitor attribute arrays</b> (key off <code>attribute_label</code>/<code>unit</code>, the schema has changed over time). Auth is <b>Zoho OAuth 2.0</b> against the account’s <b>data-center-specific base URL</b>. There is <b>no published numeric rate limit</b>, and over-limit can return <code>HTTP 200</code> + “access denied” rather than <code>429</code> — so reuse the access token and treat any denial body as back-off. Gate <code>isConfigured()</code> on the token + base URL; degrade to <code>not-applicable</code> when a monitor isn’t provisioned or a poll hasn’t completed.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API / TECHNICAL -->
+  <section id="api">
+    <div class="kicker">03 · Technical detail — API, rate limits, monitors &amp; licensing</div>
+    <h2>What integrating actually looks like</h2>
+    <p class="lead">Enough to scope an integration spike. Expand for detail:</p>
+
+    <div class="acc open">
+      <button>The REST API — auth, base URLs, resources <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        Base <code>https://www.site24x7.com/api</code> (use the account’s data-center domain: <code>.eu</code> / <code>.in</code> / <code>.net.au</code> / <code>app.site24x7.jp</code> / <code>.ca</code> / <code>app.site24x7.uk</code> / <code>.ae</code> / <code>.sa</code> / <code>.cn</code>). JSON only; every request sends <code>Accept: application/json; version=2.0</code> and a Zoho OAuth bearer.
+        <div class="codeblock mono">
+# 1) create a monitor — a PERSISTENT object referenced by monitor_id<br>
+curl -X POST https://www.site24x7.com/api/monitors \<br>
+&nbsp;&nbsp;-H "Accept: application/json; version=2.0" \<br>
+&nbsp;&nbsp;-H "Authorization: Zoho-oauthtoken &lt;ACCESS_TOKEN&gt;" \<br>
+&nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+&nbsp;&nbsp;-d '{ "display_name":"Client site", "type":"URL",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"website":"https://example.com", "check_frequency":"1",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"location_profile_id":"…", "threshold_profile_id":"…",<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"notification_profile_id":"…", "user_group_ids":["…"] }'<br><br>
+# 2) later, read the rolled-up status the monitor has collected<br>
+curl "https://www.site24x7.com/api/current_status/&lt;monitor_id&gt;" \<br>
+&nbsp;&nbsp;-H "Accept: application/json; version=2.0" \<br>
+&nbsp;&nbsp;-H "Authorization: Zoho-oauthtoken &lt;ACCESS_TOKEN&gt;"
+        </div>
+        Confirmed resources: <code>monitors</code> (CRUD), <code>current_status</code> (per-monitor + by group/type, e.g. <code>type/SSL_CERT</code>), and summary / performance / SLA / <code>reports/alarm</code>. Monitor field names (<code>type</code>, <code>check_frequency</code>, <code>matching_keyword</code>, <code>up_status_codes</code>, <code>follow_http_redirection</code>, <code>ip_type</code>, …) are verified via the official Terraform provider; the create-body <b>JSON envelope above is reconstructed</b> (field names authoritative, wrapper approximate).
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Rate limits &amp; execution model <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Rate limit</code><span><b>No published numeric limit.</b> Docs say limits vary by API and give only an illustrative “<b>10 requests / 5 min</b>” example; over-limit can return <b>HTTP 200 with an “access denied” body</b> rather than <code>429</code>. Numbers are <b>unverified</b> — build in token reuse + backoff.</span>
+          <code>Execution</code><span><b>Provisioned + scheduled.</b> A monitor runs on its <code>check_frequency</code> (1-min, or 30-sec on higher tiers); the API is CRUD + status/report reads. There is no on-demand URL→verdict call.</span>
+          <code>Poll Now</code><span>On-demand re-check is a <b>console / mobile-app</b> action on an existing monitor (report valid ~1 day; can’t re-poll while a poll is running). A public REST trigger was <b>not found</b> (unverified).</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Monitors, “basic-monitor” units, scale &amp; licensing <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Scale unit</code><span>Licensing is by <b>“basic monitor”</b> — each monitored resource (a website, port, DNS, SSL cert…) counts as one basic monitor; “advanced” monitors (server/APM/network) are counted separately and extended via <b>add-ons</b>.</span>
+          <code>Provisioning</code><span>Monitors are <b>persistent objects</b> grouped into <b>Monitor Groups</b> / sub-groups with <b>tags</b>; profiles (location / threshold / notification) are reusable and manageable via Terraform.</span>
+          <code>Caps</code><span>Monitor counts, polling floor and location count are set by <b>plan + add-ons</b> (e.g. 25 → 2,500 websites; 1-min → 30-sec polling; 8 → 32 locations). See Pricing.</span>
+          <code>Retention</code><span>Log-retention tiers are 7 / 15 / 30 day add-ons; general monitor-data retention durations are <b>unverified</b>.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Real browser, locations &amp; private/staging access <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Rendering</code><span>Web Page Speed &amp; Web Transaction monitors use <b>real Chrome/Firefox/Edge</b> (not HTTP fetch) — full waterfall, CWV, Lighthouse and a rendered screenshot. Basic uptime is a lightweight HTTP check.</span>
+          <code>Locations</code><span><b>130 global</b> monitoring locations; down-at-primary is re-verified from a <b>secondary</b> location before alerting (false-positive avoidance).</span>
+          <code>Private / staging</code><span>An <b>On-Premise Poller</b> runs checks from inside your network — monitor internal, behind-firewall or staging sites (and use it as a custom geo location).</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Webhooks, IT Automations, scheduling &amp; ecosystem <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Webhooks</code><span>IT Automations fire a webhook (or a remediation action) on threshold breach / state change — the clean async “something changed” signal.</span>
+          <code>Alert routing</code><span><b>Slack, PagerDuty, ServiceNow, Opsgenie, Microsoft Teams, Jira</b> and email/SMS/voice notification profiles.</span>
+          <code>Scheduling</code><span>Per-monitor <code>check_frequency</code>; maintenance windows; business-hours SLA reporting.</span>
+          <code>IaC</code><span>Official <b>Terraform provider</b> manages monitors + profiles as code. A legacy XML add-monitor API still exists but is superseded by the V2 JSON + OAuth API.</span>
+          <code>Status pages</code><span><b>StatusIQ</b> public/private status pages are bundled per plan.</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <section id="integrations">
+    <div class="kicker">04 · Feature &amp; ecosystem map</div>
+    <h2>What it monitors &amp; plugs into</h2>
+    <p class="lead">A quick map of the platform’s surface — the monitor types, the validation layers, the automation hooks and ecosystem integrations. Filter it:</p>
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="intSearch" type="text" placeholder="Search monitors & integrations…">
+      </div>
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="Monitoring">Monitoring</button>
+      <button class="chip" data-cat="Validation">Validation</button>
+      <button class="chip" data-cat="Automation">Automation</button>
+      <button class="chip" data-cat="Integration">Integration</button>
+    </div>
+    <div class="intgrid" id="intGrid"></div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="kicker">05 · Pricing</div>
+    <h2>What it costs</h2>
+    <p class="lead">Site24x7 is metered by the <b>“basic monitor”</b> unit — each monitored resource counts as one — bundled into editions (Website / Infrastructure&nbsp;/&nbsp;All-in-One / MSP) and extended via <b>add-ons</b>, with a <b>free-forever</b> tier plus a 30-day trial. Figures below are the <b>annual (discounted) per-month</b> rates from the official pricing page (checked Aug 2026) in USD; verify current numbers before committing.</p>
+    <table class="price">
+      <thead><tr><th>Plan / lever</th><th>Price</th><th>Model &amp; notes</th></tr></thead>
+      <tbody>
+        <tr><td class="prod">Free Forever<small>entry</small></td><td><span class="freeword">Free</span></td><td>Up to <b>50 basic monitors</b> with instant downtime email alerts, no credit card — plus a separate <b>30-day free trial</b> of paid features. (Free-tier resource count is as read on the pricing page; verify.)</td></tr>
+        <tr><td class="prod">Website · Web Uptime<small>annual</small></td><td><span class="money">$9</span>/mo</td><td>25 websites / transaction monitors, <b>1-min</b> polling, 32 locations, RUM page views, 3 status pages, integrations. ($10/mo monthly.)</td></tr>
+        <tr><td class="prod">Website · Web Perf<small>annual</small></td><td><span class="money">$36</span>/mo</td><td>40 websites, 8 transaction monitors, 1-min polling, 8 locations, 100K RUM page views, 10 status pages. ($39/mo monthly.)</td></tr>
+        <tr><td class="prod">Website · Enterprise Plus Web<small>annual</small></td><td><span class="money">$899</span>/mo</td><td>2,500 websites, 100 transaction monitors, <b>30-sec</b> polling, 16 locations, 5M RUM page views. ($999/mo monthly.)</td></tr>
+        <tr><td class="prod">All-in-One / Infrastructure<small>annual</small></td><td><span class="money">$9 / $42 / $625+</span>/mo</td><td>Lite $9 (2 servers, 5 websites), Professional $42 (5 servers, 1 app, 20 websites, logs, network), Enterprise from $625 (anomaly detection, event correlation, compliance).</td></tr>
+        <tr><td class="prod">MSP<small>annual</small></td><td><span class="money">$54 / $225</span>/mo</td><td>MSP $54 (9 customers, 15 websites, 8 locations…); MSP Enterprise $225. Multi-tenant / managed-service edition.</td></tr>
+        <tr><td class="prod">A-la-carte<small>the real cost driver</small></td><td><span class="money">$0.36</span>/website/mo</td><td>Website <b>$0.36</b>/site/mo · Synthetic <b>$8</b>/transaction or $10/10K runs · RUM <b>$5</b>/100K page views · Cloud $1/resource · Server $2.50/VM · Network $3/device · Logs $0.30–$1.20/GB by retention. Buy exactly the monitor units you need.</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--mut2);font-size:12.5px;margin-top:10px">All figures are from Site24x7’s <b>official pricing pages</b> (site24x7-pricing.html · msp/pricing.html), read Aug 2026, and shown as the <b>annual</b> per-month rate (monthly is higher). The <b>“basic monitor = one monitored resource”</b> definition also appears on the pricing page (third-party summaries corroborate). For Snurra the practical driver is the <b>a-la-carte website rate (~$0.36/site/mo)</b> plus any synthetic/RUM add-ons — cheap per site, but each monitor is a persistent, metered resource to schedule.</p>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="coverage">
+    <div class="kicker">06 · Which catalog checks it can cover</div>
+    <h2>Coverage — held to a 100%-certain bar</h2>
+    <p class="lead">A check is listed <b>only if</b> Site24x7 can produce its verdict as a <b>deterministic measurement</b> from one of its monitors — a reachability/response-time poll, a certificate/domain/DNS check, a real-Chrome metric (LCP/CLS/unsecure-resource), or a DOM-vs-baseline diff — <b>no human, AI-text or visual judgment</b>. Checks where Site24x7 captures only part of the signal (or needs a whole-site crawl / tag-governance / compliance-meaning it doesn’t do) are not listed here; this is the set it can cover end-to-end. Each verdict assumes the relevant <b>monitor is provisioned</b> and has polled at least once.</p>
+
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="covSearch" type="text" placeholder="Search covered checks…">
+      </div>
+    </div>
+    <p class="covcount" id="covCount"></p>
+    <div class="covgrid" id="covGrid"></div>
+
+    <div class="newcov" style="margin-top:32px">
+      <h3 style="font-size:19px;margin:0 0 6px">Additional checks it can cover — <span style="color:var(--mut2);font-weight:600">not in the catalog</span></h3>
+      <p class="lead" style="margin-top:0">Deterministic checks Site24x7 covers that have <b>no matching entry</b> in <code>checks.ts</code> — candidate additions to the catalog. Each is referenced.</p>
+      <div class="covgrid" id="newCovGrid"></div>
+    </div>
+
+    <div style="margin-top:18px" class="callout bad">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>
+      <div>
+        <h4>What Site24x7 does NOT cover (for Snurra)</h4>
+        <p>Excluded, because Site24x7 can’t deliver these verdicts on its own: <b>whole-site SEO crawl</b> (broken-link/redirect-chain mapping, metadata/canonical/hreflang/structured-data completeness across pages — it monitors specific pages, it isn’t a crawler) · <b>tag / analytics / consent governance</b> (GA4 firing, correct-property, pre-consent tracking, CMP load order — it’s not a consent scanner) · <b>compliance <em>meaning</em></b> (CCPA-vs-GDPR wording, privacy-policy, REMS/ISI/PI — AI-text judgments) · <b>geo <em>content correctness</em></b> (it can check from a geo, but “US visitor must not see EU content” is an AI/human verdict) · <b>visual regression</b> · <b>accessibility conformance</b> (only Lighthouse’s automated a11y <em>score</em>, not a WCAG engine) · and <b>form / functional interaction</b> beyond a Selenium transaction you author yourself.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommend">
+    <div class="kicker">07 · Recommendation</div>
+    <h2>Pick your scenario</h2>
+    <p class="lead">Site24x7 earns its slot on the availability / SSL-domain-DNS family — the recommendation is about pointing it at that strength and driving it provisioned-and-polled. Click the closest match:</p>
+    <div class="picker" id="picker">
+      <button class="scn active" data-s="a">Cover the availability / SSL-domain-DNS slice<small>uptime, SSL, domain, DNS, response-time SLA</small></button>
+      <button class="scn" data-s="b">Real-Chrome vitals &amp; mixed content<small>LCP / CLS / unsecure resources</small></button>
+      <button class="scn" data-s="c">Content-baseline &amp; funnel availability<small>defacement diff · scripted transaction</small></button>
+      <button class="scn" data-s="d">Provision &amp; poll — off the hot path<small>Zoho OAuth, current_status, backoff</small></button>
+    </div>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="kicker">08 · Sources</div>
+    <h2>References</h2>
+    <p class="lead">Site24x7 facts are from site24x7.com, its Help docs (help/…), the official Terraform provider (github.com/site24x7) and the pricing pages, gathered 4 Aug 2026. Items flagged unverified: exact API rate-limit numbers, a programmatic Poll-Now endpoint, general monitor-data retention, and the free-tier resource count (as read on the pricing page). Check names are quoted verbatim from <code>feasibility-app/data/checks.ts</code> (the source behind checks-catalog.vercel.app).</p>
+    <div class="refs">
+      <div class="ref"><a href="https://www.site24x7.com/website-monitoring.html" target="_blank" rel="noopener">Site24x7 — website monitoring</a><p>Product positioning: full-stack website / app / infrastructure monitoring.</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/website-uptime-monitoring.html" target="_blank" rel="noopener">Website uptime monitoring</a><p>HTTP/HTTPS, REST API, DNS, ping, WebSocket, TCP/UDP ports, mail-server protocols.</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/help/internet-service-metrics/website-monitor.html" target="_blank" rel="noopener">Website monitor metrics</a><p>Availability %, response-time breakdown (DNS/connect/SSL/first-byte/download).</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/help/internet-service-metrics/web-page-analyzer.html" target="_blank" rel="noopener">Web Page Speed (Browser) monitor</a><p>Real Chrome: FCP/LCP/CLS/TBT, page size, unsecure (mixed-content) resources, Lighthouse scores, screenshot.</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/synthetic-monitoring.html" target="_blank" rel="noopener">Synthetic / Web Transaction monitoring</a><p>Multi-step real-browser flows; record or import Selenium IDE scripts; 130 locations.</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/real-user-monitoring.html" target="_blank" rel="noopener">Real User Monitoring (RUM)</a><p>Field Core Web Vitals (LCP/INP/CLS) from real visitor browsers/devices; session replay.</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/help/internet-service-metrics/ssl-certificate.html" target="_blank" rel="noopener">SSL/TLS certificate monitor</a><p>Days-to-expiry, chain/trust, OCSP revocation, SHA-1 fingerprint, blacklisted-CA, protocol/cipher.</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/learn/monitor-troubleshoot-domains.html" target="_blank" rel="noopener">Domain expiry monitoring</a><p>Track registration expiry and alert a configurable number of days ahead.</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/help/admin/adding-a-monitor/rbl-monitor.html" target="_blank" rel="noopener">RBL / blacklist monitor</a><p>Host/IP checked against 20 DNSBLs (SORBS, SURBL, UCEPROTECT, …).</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/help/admin/adding-a-monitor/website-defacement-monitoring.html" target="_blank" rel="noopener">Website defacement monitoring</a><p>DOM baseline (images/scripts/anchors/iframes/links/text) + %-change threshold alerts.</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/help/api/" target="_blank" rel="noopener">REST API docs</a><p>Zoho-oauthtoken auth, <code>Accept: …; version=2.0</code>, data-center base URLs, monitors + current_status + reports.</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/help/reports/poll-now.html" target="_blank" rel="noopener">Poll Now</a><p>On-demand re-check via console/mobile; report valid ~1 day (no documented REST trigger).</p></div>
+      <div class="ref"><a href="https://github.com/site24x7/terraform-provider-site24x7/blob/main/docs/resources/website_monitor.md" target="_blank" rel="noopener">Terraform provider — website_monitor</a><p>Authoritative monitor fields: keyword/regex match, up_status_codes, follow redirects, ip_type.</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/help/getting-started/global-monitoring-locations.html" target="_blank" rel="noopener">Global monitoring locations</a><p>130 locations; on-premise poller for internal/behind-firewall; secondary re-check.</p></div>
+      <div class="ref"><a href="https://support.site24x7.com/portal/en/kb/articles/api-exceeded-error" target="_blank" rel="noopener">API “exceeded” error (KB)</a><p>Rate limits vary; over-limit may return HTTP 200 + “access denied”; only an illustrative 10-req/5-min example.</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/site24x7-pricing.html" target="_blank" rel="noopener">Pricing (Website / All-in-One / a-la-carte)</a><p>Editions, add-ons, basic-monitor unit, free-forever tier; a-la-carte website $0.36/mo.</p></div>
+      <div class="ref"><a href="https://www.site24x7.com/msp/pricing.html" target="_blank" rel="noopener">MSP pricing</a><p>MSP $54 / MSP Enterprise $225 per month (annual).</p></div>
+      <div class="ref"><a href="https://checks-catalog.vercel.app/" target="_blank" rel="noopener">Feasibility checks catalog</a><p>The 217-check catalog this coverage maps against (source: feasibility-app).</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="disc">
+      <strong>How to read this.</strong> This is an independent capability/integration assessment compiled from public sources for planning purposes — it is not from or endorsed by Site24x7, Zoho or ManageEngine, and it is not legal advice. Pricing and features change; figures here are as read on Site24x7’s own pages in Aug 2026 (annual per-month rates) — verify current numbers, and note the items flagged unverified (API rate-limit numbers, a programmatic Poll-Now endpoint, monitor-data retention, free-tier resource count). The coverage list is deliberately conservative: checks are included only where a deterministic monitor measurement makes the verdict 100% certain.
+    </div>
+    Site24x7® is a trademark of Zoho Corporation. Prepared 4 Aug 2026 · for internal planning.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'),
+    thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var dark=root.getAttribute('data-theme')==='dark';
+  root.setAttribute('data-theme', dark?'light':'dark');
+  thTxt.textContent = dark?'Dark':'Light';
+});
+
+// ---- Capability tabs ----
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var k=t.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.getAttribute('data-pane')===k);
+    });
+  });
+});
+
+// ---- Accordions ----
+document.querySelectorAll('.acc>button').forEach(function(b){
+  b.addEventListener('click',function(){ b.parentElement.classList.toggle('open'); });
+});
+
+// ---- Feature / ecosystem data + filter ----
+var INTS=[
+  {n:'Website / uptime monitor',c:'Monitoring',d:'HTTP/HTTPS reachability + response time, 1-min, from up to 130 locations'},
+  {n:'Web Page Speed (Browser)',c:'Monitoring',d:'Real Chrome — CWV (FCP/LCP/CLS), Lighthouse scores, screenshot, unsecure resources'},
+  {n:'Web Transaction (Browser)',c:'Monitoring',d:'Multi-step Selenium flow replayed on real Chrome/Firefox/Edge'},
+  {n:'Real User Monitoring (RUM)',c:'Monitoring',d:'Field LCP/INP/CLS from real visitors; needs the RUM JS snippet'},
+  {n:'SSL / TLS certificate monitor',c:'Monitoring',d:'Expiry, chain/trust, OCSP revocation, SHA-1 fingerprint, cipher, blacklisted-CA'},
+  {n:'Domain expiry monitor',c:'Monitoring',d:'Registration expiry date + alert N days ahead'},
+  {n:'DNS monitor',c:'Monitoring',d:'Resolve records + assert against expected values; alert on change'},
+  {n:'RBL / blacklist monitor',c:'Monitoring',d:'Host/IP checked against 20 DNSBLs'},
+  {n:'Website defacement monitor',c:'Monitoring',d:'DOM baseline (img/script/anchor/iframe/link/text) + %-change alert'},
+  {n:'Port / protocol monitors',c:'Monitoring',d:'TCP/UDP ports, SMTP/POP/IMAP, DNS, NTP, WebSocket service availability'},
+  {n:'On-Premise Poller',c:'Monitoring',d:'Monitor internal / behind-firewall / staging sites; custom geo location'},
+  {n:'Keyword / regex content match',c:'Validation',d:'Assert a string/regex is present or absent in the response'},
+  {n:'HTTP status-code assertion',c:'Validation',d:'Match expected up_status_codes; follow redirects (up to 10)'},
+  {n:'Response-time breakdown',c:'Validation',d:'DNS / connect / SSL-handshake / first-byte / download phases'},
+  {n:'Unsecure (mixed-content) detection',c:'Validation',d:'Flag http:// subresources loaded on an https page'},
+  {n:'Threshold profiles + anomaly detection',c:'Validation',d:'Configurable thresholds; ML anomaly detection on higher tiers'},
+  {n:'REST API (v2, JSON)',c:'Automation',d:'Zoho OAuth 2.0; monitor CRUD + current_status/reports; DC-specific base URL'},
+  {n:'Terraform provider',c:'Automation',d:'Manage monitors and profiles as infrastructure-as-code'},
+  {n:'IT Automations & webhooks',c:'Automation',d:'Fire a webhook / remediation action on threshold breach or state change'},
+  {n:'Scheduling / check frequency',c:'Automation',d:'Per-monitor cadence (1-min → 30-sec) + maintenance windows'},
+  {n:'Slack / PagerDuty / ServiceNow / Opsgenie',c:'Integration',d:'Alert routing to on-call and ITSM tools'},
+  {n:'StatusIQ status pages',c:'Integration',d:'Public/private status pages bundled per plan'},
+  {n:'Microsoft Teams / Jira',c:'Integration',d:'Notifications and issue creation on incidents'}
+];
+var grid=document.getElementById('intGrid'), search=document.getElementById('intSearch'), curCat='all';
+function renderInts(){
+  var q=(search.value||'').toLowerCase();
+  var rows=INTS.filter(function(i){
+    var okc = curCat==='all' || i.c===curCat;
+    var okq = !q || i.n.toLowerCase().indexOf(q)>-1 || i.d.toLowerCase().indexOf(q)>-1;
+    return okc && okq;
+  });
+  grid.innerHTML = rows.length ? rows.map(function(i){
+    return '<div class="intitem"><div class="cat">'+i.c+'</div><h5>'+i.n+'</h5><span>'+i.d+'</span></div>';
+  }).join('') : '<div class="empty">No matches.</div>';
+}
+document.querySelectorAll('#integrations .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#integrations .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); curCat=c.getAttribute('data-cat'); renderInts();
+  });
+});
+search.addEventListener('input',renderInts);
+renderInts();
+
+// ---- Coverage data + filter ----
+// check names are verbatim from feasibility-app/data/checks.ts
+var COV=[
+  {ch:'Homepage uptime check (1-min interval)', p:'Availability & Monitoring', cap:'Website (uptime) monitor', gate:['monitor'], note:'A URL/HTTP monitor polls the homepage as often as every 1 minute from up to 130 global locations and verdicts reachable within an acceptable response time — Site24x7’s core function.'},
+  {ch:'Uptime history tracked — 7 and 30 day percentage', p:'SSL & Domain Health', cap:'Availability / SLA report', gate:['monitor'], note:'Availability and SLA reports give the uptime percentage over any window (incl. 7- and 30-day) per monitor — the exact metric the catalog names Site24x7 for.'},
+  {ch:'Response-time SLA breach alert', p:'Availability & Monitoring', cap:'Threshold profile + alert', gate:['monitor'], note:'A threshold profile fires an alert the moment a monitor’s response time crosses a configured limit — a deterministic SLA-breach verdict.'},
+  {ch:'API / backend endpoint health', p:'Availability & Monitoring', cap:'REST API monitor', gate:['monitor'], note:'A dedicated REST API monitor checks a backend endpoint returns the expected status/response (and can assert JSON values), catching outages not visible in the UI.'},
+  {ch:'SSL certificate not expiring within 30 days', p:'SSL & Domain Health', cap:'SSL/TLS certificate monitor', gate:['monitor'], note:'The SSL/TLS certificate monitor tracks days-to-expiry and alerts a configurable number of days before expiry — a deterministic expiry verdict.'},
+  {ch:'SSL certificate not expiring within 30 days', p:'Security', cap:'SSL/TLS certificate monitor', gate:['monitor'], note:'The same certificate monitor; the catalog carries this check under Security as well as SSL & Domain Health.'},
+  {ch:'SSL certificate valid with no browser warnings', p:'SSL & Domain Health', cap:'SSL/TLS certificate monitor', gate:['monitor'], note:'The certificate monitor validates the trust chain, expiry and OCSP revocation status — the conditions that trigger a browser SSL warning.'},
+  {ch:'HTTPS valid with no browser security warnings', p:'Security', cap:'SSL/TLS certificate monitor', gate:['monitor'], note:'The same certificate validation (trust chain, expiry, OCSP revocation, blacklisted-CA) underpins the “no security warning” verdict.'},
+  {ch:'Domain not expiring within 60 days', p:'SSL & Domain Health', cap:'Domain expiry monitor', gate:['monitor'], note:'A domain-expiry monitor tracks the registration expiry date and alerts a configurable number of days ahead.'},
+  {ch:'DNS resolving correctly — no unexpected changes', p:'SSL & Domain Health', cap:'DNS monitor', gate:['monitor'], note:'A DNS monitor resolves the domain’s records and can assert them against expected values, alerting when a record changes unexpectedly.'},
+  {ch:'LCP loads within 2.5 seconds', p:'Performance & SEO', cap:'Web Page Speed (Browser) monitor', gate:['monitor'], note:'The real-Chrome page-speed monitor records Largest Contentful Paint per run; the adapter maps the measured LCP against the 2.5s threshold (same as the intended PageSpeed path).'},
+  {ch:'CLS layout shift score below 0.1', p:'Performance & SEO', cap:'Web Page Speed (Browser) monitor', gate:['monitor'], note:'The same real-Chrome page-speed monitor records Cumulative Layout Shift; the adapter maps the measured value against the 0.1 threshold.'},
+  {ch:'No mixed content warnings in browser', p:'Security', cap:'Web Page Speed (Browser) monitor', gate:['monitor'], note:'The page-speed monitor flags “unsecure resources” — http:// subresources loaded on an https page — the exact cause of a mixed-content warning.'},
+  {ch:'Key page content matches last approved baseline', p:'Content Change Detection', cap:'Website defacement monitor', gate:['monitor','baseline'], note:'The defacement monitor snapshots a page’s DOM (images, scripts, anchors, iframes, links, text) as a baseline and alerts when content changes beyond a set threshold — deterministic change-vs-baseline detection.'}
+];
+var covGrid=document.getElementById('covGrid'), covSearch=document.getElementById('covSearch'),
+    covCount=document.getElementById('covCount'), curCov='all';
+function renderCov(){
+  var q=(covSearch.value||'').toLowerCase();
+  var rows=COV.filter(function(i){
+    return !q || i.ch.toLowerCase().indexOf(q)>-1 || i.p.toLowerCase().indexOf(q)>-1 || i.cap.toLowerCase().indexOf(q)>-1;
+  });
+  covCount.innerHTML='Showing <b style="color:var(--ink)">'+rows.length+'</b> of '+COV.length+' checks Site24x7 can cover';
+  covGrid.innerHTML = rows.length ? rows.map(function(i){
+    var gates=(i.gate||[]).map(function(g){
+      return '<span class="gate">'+g+'</span>';
+    }).join('');
+    return '<div class="covitem"><div class="top"><div><h5>'+i.ch+'</h5>'+
+      '<div class="pil">'+i.p+' · <span class="capname">'+i.cap+'</span></div></div></div>'+
+      '<p>'+i.note+'</p>'+(gates?('<div>'+gates+'</div>'):'')+'</div>';
+  }).join('') : '<div class="empty">No checks match that filter.</div>';
+}
+covSearch.addEventListener('input',renderCov);
+renderCov();
+
+// ---- Additional checks NOT in the catalog (candidate new checks) ----
+var NEWCOV=[
+  {name:'Domain / IP on a spam or DNS blacklist (RBL / DNSBL)', cap:'Blacklist (RBL) monitor', note:'Checks a host/IP against 20 DNSBLs (SORBS, SURBL, UCEPROTECT, Backscatterer, Nordspam, …) and alerts on a listing. The catalog has no blacklist check.', ref:'site24x7.com/help — RBL monitor'},
+  {name:'Configurable keyword present / absent on the page (should-contain / should-not-contain / regex)', cap:'Website monitor keyword match', note:'Asserts an arbitrary string or regex is present (or absent) in the response — a configurable content assertion the catalog’s fixed content checks don’t represent.', ref:'Site24x7 Terraform provider — website_monitor'},
+  {name:'TCP/UDP port & protocol service availability (SMTP / POP / IMAP / DNS / NTP / WebSocket / custom port)', cap:'Port / protocol monitors', note:'Verdicts whether a specific port or internet service is up and responding — no catalog equivalent (its uptime checks are page-level).', ref:'site24x7.com — website uptime monitoring'},
+  {name:'Multi-step web transaction (login / funnel) availability & timing', cap:'Web Transaction (Browser) monitor', note:'Records or imports a Selenium script and replays a multi-step flow in real Chrome/Firefox/Edge, verdicting each step’s success and timing — the catalog has no scripted-transaction uptime check.', ref:'site24x7.com — synthetic monitoring'},
+  {name:'Availability & response time measured from N specific global locations', cap:'130-location monitoring', note:'Reports per-location availability and response time from up to 130 global points (or an on-premise poller) — geographic availability the single-probe catalog check doesn’t cover.', ref:'site24x7.com/help — global monitoring locations'},
+  {name:'SSL/TLS deep validation — OCSP revocation, SHA-1 fingerprint tamper, cipher/protocol strength, blacklisted-CA', cap:'SSL/TLS certificate monitor', note:'Beyond expiry/validity, verdicts revocation (OCSP), a changed SHA-1 fingerprint, weak protocol/cipher and a blacklisted issuing CA — deeper than the catalog’s expiry-only SSL checks.', ref:'site24x7.com/help — SSL certificate'},
+  {name:'Lighthouse Performance / Accessibility / Best-Practices / SEO / PWA scores (0–100) per page', cap:'Web Page Speed (Browser) monitor', note:'The real-Chrome page-speed monitor emits the five Lighthouse category scores per run; the catalog has no Lighthouse-category-score check (its a11y/SEO checks are dedicated engines).', ref:'site24x7.com/help — web page analyzer'},
+  {name:'Real-user field Core Web Vitals (LCP / INP / CLS) from actual visitors (RUM)', cap:'Real User Monitoring', note:'RUM reports field LCP/INP/CLS from real visitor browsers/devices — needs the RUM JS snippet installed (code-in); the catalog’s field-CWV check is CrUX-sourced, a different origin.', ref:'site24x7.com — real user monitoring'}
+];
+(function(){
+  var g=document.getElementById('newCovGrid'); if(!g) return;
+  g.innerHTML=NEWCOV.map(function(i){
+    return '<div class="covitem"><div class="top"><div><h5>'+i.name+'</h5>'+
+      '<div class="pil"><span class="capname">'+i.cap+'</span></div></div><span class="gate">new</span></div>'+
+      '<p>'+i.note+'</p><div class="pil" style="margin-top:8px">↳ <span class="capname">'+i.ref+'</span></div></div>';
+  }).join('');
+})();
+
+// ---- Scenario recommender ----
+var RECS={
+  a:{label:'Recommended path',h:'Provisioned monitors → poll current_status for the availability / SSL-domain-DNS slice',
+     p:'Site24x7 earns its keep on availability and SSL/domain/DNS — 1-min uptime + uptime %, response-time-SLA breach, backend-endpoint health, SSL-cert & domain expiry, and DNS-change. These are deterministic monitor verdicts.',
+     s:['Provision URL / SSL / domain / DNS / REST-API monitors (with location, threshold and notification profiles) via the API or Terraform; store each monitor_id.','On Snurra’s schedule, GET /api/current_status/<id> (or a summary/SLA report) and map the per-monitor attributes into neutral check inputs.','Gate isConfigured() on a valid Zoho OAuth token + the account’s data-center base URL; degrade to not-applicable when a monitor isn’t provisioned or hasn’t polled.']},
+  b:{label:'Recommended path',h:'Real-Chrome vitals & mixed content via the Web Page Speed monitor',
+     p:'For LCP, CLS and mixed-content, provision a Web Page Speed (Browser) monitor — it renders in real Chrome and records the vitals + unsecure resources deterministically.',
+     s:['Create a Web Page Speed (Browser) monitor for each key URL.','Read the LCP and CLS attributes and map them against the 2.5s / 0.1 thresholds in the adapter (same mechanism as the PageSpeed adapter).','Read the “unsecure resources” list to verdict the mixed-content check; treat any http:// subresource on an https page as a fail.']},
+  c:{label:'Recommended path',h:'Content-baseline & funnel availability',
+     p:'Use a defacement monitor for the content-vs-approved-baseline verdict, and a Web Transaction monitor for multi-step availability a single-page probe can’t reach.',
+     s:['Provision a defacement monitor, set/approve the DOM baseline, and treat a beyond-threshold change as the content-baseline fail.','Record or import a Selenium IDE script as a Web Transaction monitor for the login/checkout funnel; treat a failed step as the availability verdict.','Schedule both; read status via current_status/reports — mind the per-transaction usage cost.']},
+  d:{label:'Recommended path',h:'Provision & poll — off the hot path, with backoff',
+     p:'There is no URL-in/verdict-out call, so treat Site24x7 as a scheduled, provisioned provider — never an inline per-request scan.',
+     s:['Mint a Zoho OAuth access token (reuse it; refresh on expiry) and target the account’s data-center base URL.','Provision monitors out-of-band; poll current_status/reports on Snurra’s schedule and cache the last verdict per monitor.','Back off on any over-limit signal (the API can answer HTTP 200 + “access denied” instead of 429); never create/poll a monitor inline on the page-audit path.']}
+};
+function showRec(k){
+  var r=RECS[k];
+  document.getElementById('rec').innerHTML =
+    '<div class="rlabel">'+r.label+'</div><h3>'+r.h+'</h3><p>'+r.p+'</p><ul class="steps"><li>'+r.s.join('</li><li>')+'</li></ul>';
+}
+document.querySelectorAll('.scn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.scn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active'); showRec(b.getAttribute('data-s'));
+  });
+});
+showRec('a');
+</script>
+</body>
+</html>

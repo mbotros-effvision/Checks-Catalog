@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uptime Kuma — Capabilities &amp; Embedding Analysis</title>
+<style>
+  :root{
+    --bg:#fbfaf6; --bg2:#f5f2ea; --panel:#ffffff; --panel2:#f7f5ef;
+    --line:#e9e5db; --line2:#ddd8cc;
+    --ink:#1c1a17; --mut:#6f6a61; --mut2:#9a948a;
+    --brand:#0f766e; --brand2:#0f766e; --accent:#0f766e;
+    --warn:#b45309; --bad:#b91c1c; --good:#0f766e;
+    --chip:#f2efe8; --shadow:0 1px 2px rgba(28,26,23,.04),0 8px 24px -12px rgba(28,26,23,.12);
+    --radius:14px;
+  }
+  html[data-theme="dark"]{
+    --bg:#131316; --bg2:#17171b; --panel:#1b1b1f; --panel2:#232328;
+    --line:#2c2c31; --line2:#3a3a41; --ink:#eceae4; --mut:#a39d93; --mut2:#6f6a62;
+    --brand:#2dd4bf; --brand2:#2dd4bf; --accent:#2dd4bf; --good:#2dd4bf;
+    --warn:#fbbf24; --bad:#f87171;
+    --chip:#232328; --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px -16px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1100px 520px at 88% -8%,#eef6f4,transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,#f6f1e9,transparent 55%),
+               var(--bg);
+    background-attachment:fixed;
+    color:var(--ink); line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  html[data-theme="dark"] body{
+    background:radial-gradient(1100px 520px at 88% -8%,rgba(45,212,191,.07),transparent 60%),
+               radial-gradient(900px 500px at -6% 0%,rgba(180,140,60,.06),transparent 55%),
+               var(--bg);
+  }
+  a{color:var(--brand2); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 22px}
+
+  header.top{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+    background:color-mix(in srgb,var(--bg) 78%, transparent);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 0}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px}
+  .logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--accent));
+    display:grid;place-items:center;box-shadow:0 6px 18px rgba(15,118,110,.5)}
+  .logo .mark svg{width:18px;height:18px}
+  nav.links{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  nav.links a{color:var(--mut); padding:7px 11px; border-radius:9px; font-size:13.5px; font-weight:600}
+  nav.links a:hover{background:var(--chip); color:var(--ink); text-decoration:none}
+  .tbtn{border:1px solid var(--line2); background:var(--chip); color:var(--ink); border-radius:9px;
+    padding:7px 10px; cursor:pointer; font-size:13px; font-weight:600; display:inline-flex; gap:6px; align-items:center}
+  .tbtn:hover{border-color:var(--brand)}
+
+  .hero{padding:46px 0 26px}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent); background:var(--chip);
+    border:1px solid var(--line2); padding:6px 12px; border-radius:999px}
+  h1{font-size:40px; line-height:1.12; margin:16px 0 10px; letter-spacing:-.5px}
+  h1 .grad{background:linear-gradient(120deg,var(--brand2),var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--mut); font-size:17px; max-width:810px}
+  .meta{margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; color:var(--mut2); font-size:13px}
+  .meta b{color:var(--mut)}
+
+  .tldr{margin-top:26px; border:1px solid var(--line2); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); box-shadow:var(--shadow); overflow:hidden}
+  .tldr .hd{display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line);
+    font-weight:800; letter-spacing:.3px}
+  .tldr .hd .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(34,211,170,.18)}
+  .tldr .bd{padding:18px 20px; color:var(--mut); font-size:15.5px}
+  .tldr .bd strong{color:var(--ink)}
+  .verdict{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px}
+  .vcard{background:var(--bg2); border:1px solid var(--line); border-radius:12px; padding:14px}
+  .vcard h4{margin:0 0 4px; font-size:13px; color:var(--mut2); text-transform:uppercase; letter-spacing:.08em}
+  .vcard p{margin:0; font-size:14px; color:var(--ink)}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; margin-top:8px}
+  .pill.good{background:rgba(34,211,170,.14); color:var(--good); border:1px solid rgba(34,211,170,.35)}
+  .pill.warn{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.35)}
+  .pill.bad{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.35)}
+
+  section{padding:34px 0; border-top:1px solid var(--line)}
+  .kicker{font-size:12.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:var(--brand2)}
+  h2{font-size:26px; margin:8px 0 6px; letter-spacing:-.3px}
+  .lead{color:var(--mut); max-width:880px; margin:0 0 20px}
+
+  .tabs{display:flex; gap:8px; margin:6px 0 18px; flex-wrap:wrap}
+  .tab{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:9px 16px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:14px}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--accent)); color:#04122a; border-color:transparent}
+  .tabpane{display:none; animation:fade .25s ease}
+  .tabpane.active{display:block}
+  @keyframes fade{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+
+  .grid{display:grid; gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:14px; padding:18px; box-shadow:var(--shadow)}
+  .card h3{margin:0 0 6px; font-size:16.5px; display:flex; align-items:center; gap:9px}
+  .card .ic{width:30px;height:30px;border-radius:9px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .card .ic svg{width:17px;height:17px;stroke:var(--brand2)}
+  .card p{margin:0; color:var(--mut); font-size:14px}
+  .tag{font-size:11px; font-weight:700; color:var(--mut2); background:var(--chip); border:1px solid var(--line2);
+    padding:2px 8px; border-radius:6px; margin-right:6px; display:inline-block; margin-top:8px}
+
+  .fit{overflow:hidden; border:1px solid var(--line); border-radius:14px}
+  .fitrow{display:grid; grid-template-columns:1.4fr 2.2fr .9fr; gap:0; border-bottom:1px solid var(--line)}
+  .fitrow:last-child{border-bottom:0}
+  .fitrow.head{background:var(--chip); font-weight:800; font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut2)}
+  .fitrow>div{padding:14px 16px}
+  .fitrow .name{font-weight:700; color:var(--ink)}
+  .fitrow .name small{display:block; font-weight:500; color:var(--mut2); margin-top:3px}
+  .fitrow .desc{color:var(--mut); font-size:14px; border-left:1px solid var(--line); border-right:1px solid var(--line)}
+  .fitrow .verd{display:flex; align-items:center; justify-content:center}
+  .badge{font-size:12px; font-weight:800; padding:6px 10px; border-radius:8px; text-align:center; width:100%}
+  .badge.best{background:rgba(34,211,170,.16); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .badge.ok{background:rgba(15,118,110,.16); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .badge.cond{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .badge.no{background:rgba(255,93,108,.14); color:var(--bad); border:1px solid rgba(255,93,108,.4)}
+
+  .callout{border-radius:14px; padding:18px 20px; border:1px solid; display:flex; gap:14px; align-items:flex-start}
+  .callout.warn{background:rgba(255,176,32,.08); border-color:rgba(255,176,32,.4)}
+  .callout.info{background:rgba(15,118,110,.08); border-color:rgba(15,118,110,.4)}
+  .callout.bad{background:rgba(255,93,108,.07); border-color:rgba(255,93,108,.4)}
+  .callout .cic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center}
+  .callout.warn .cic{background:rgba(255,176,32,.16)}
+  .callout.info .cic{background:rgba(15,118,110,.16)}
+  .callout.bad .cic{background:rgba(255,93,108,.16)}
+  .callout h4{margin:0 0 5px; font-size:15.5px}
+  .callout p{margin:0; color:var(--mut); font-size:14.5px}
+  .callout.warn h4{color:var(--warn)}
+  .callout.bad h4{color:var(--bad)}
+  .callout .cic svg{width:19px;height:19px}
+
+  .picker{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .scn{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:11px 14px;
+    border-radius:11px; cursor:pointer; font-weight:700; font-size:13.5px; max-width:250px; text-align:left; line-height:1.35}
+  .scn small{display:block; color:var(--mut2); font-weight:500; margin-top:3px; font-size:12px}
+  .scn.active{border-color:var(--brand); background:rgba(15,118,110,.12); color:var(--ink); box-shadow:0 0 0 3px rgba(15,118,110,.12)}
+  .rec{border:1px dashed var(--line2); border-radius:14px; padding:18px 20px; background:var(--bg2); min-height:96px}
+  .rec .rlabel{font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:800}
+  .rec h3{margin:6px 0 6px; font-size:18px}
+  .rec p{margin:0 0 8px; color:var(--mut); font-size:14.5px}
+  .rec .steps{margin:8px 0 0; padding-left:18px; color:var(--mut); font-size:14px}
+  .rec .steps li{margin:3px 0}
+
+  .filterbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px}
+  .search{flex:1; min-width:220px; display:flex; align-items:center; gap:8px; background:var(--chip);
+    border:1px solid var(--line2); border-radius:10px; padding:9px 12px}
+  .search input{border:0; background:transparent; color:var(--ink); font-size:14px; width:100%; outline:none}
+  .chip{border:1px solid var(--line2); background:var(--chip); color:var(--mut); padding:7px 12px; border-radius:999px;
+    cursor:pointer; font-size:12.5px; font-weight:700}
+  .chip.active{background:var(--brand); color:#04122a; border-color:transparent}
+  .intgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .intitem{background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 14px}
+  .intitem h5{margin:0 0 3px; font-size:14px}
+  .intitem span{font-size:12px; color:var(--mut2)}
+  .intitem .cat{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--brand2)}
+  .empty{color:var(--mut2); font-size:14px; padding:16px; text-align:center; grid-column:1/-1}
+
+  .covgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .covitem{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:13px 15px; position:relative}
+  .covitem .top{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .covitem h5{margin:0; font-size:14.5px; color:var(--ink); font-weight:700; line-height:1.3}
+  .covitem .pil{font-size:10px; color:var(--mut2); text-transform:uppercase; letter-spacing:.05em; margin-top:2px}
+  .covitem p{margin:8px 0 0; font-size:12.8px; color:var(--mut); line-height:1.5}
+  .ttag{font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto; letter-spacing:.03em}
+  .ttag.additive{background:rgba(34,211,170,.15); color:var(--good); border:1px solid rgba(34,211,170,.4)}
+  .ttag.redundant{background:rgba(15,118,110,.14); color:var(--brand2); border:1px solid rgba(15,118,110,.4)}
+  .ttag.partial{background:rgba(255,176,32,.14); color:var(--warn); border:1px solid rgba(255,176,32,.4)}
+  .gate{display:inline-block; font-size:10px; font-weight:700; color:var(--mut2); background:var(--chip);
+    border:1px solid var(--line2); padding:1px 7px; border-radius:5px; margin-top:8px; margin-right:5px}
+  .capname{color:var(--accent); font-weight:700}
+  .covcount{font-size:12.5px; color:var(--mut2); margin:0 0 10px}
+
+  .acc{border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:10px; background:var(--panel)}
+  .acc>button{width:100%; text-align:left; background:transparent; border:0; color:var(--ink); padding:15px 18px;
+    font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .acc>button .ar{transition:transform .2s; color:var(--mut2)}
+  .acc.open>button .ar{transform:rotate(90deg)}
+  .acc .panel{max-height:0; overflow:hidden; transition:max-height .3s ease}
+  .acc.open .panel{max-height:1600px}
+  .acc .panel .inner{padding:0 18px 18px; color:var(--mut); font-size:14px}
+  code,.mono{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:12.5px}
+  .codeblock{background:#0a1024; border:1px solid var(--line2); border-radius:10px; padding:13px 15px;
+    overflow:auto; color:#cfe0ff; margin:10px 0}
+  html[data-theme="light"] .codeblock{background:#0d1530; color:#dbe6ff}
+  .kv{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:8px 0}
+  .kv code{color:var(--accent)}
+  .kv span{color:var(--mut)}
+
+  table.price{width:100%; border-collapse:collapse; border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.price th,table.price td{padding:13px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top}
+  table.price th{background:var(--chip); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut2)}
+  table.price td.prod{font-weight:700; color:var(--ink)}
+  table.price td.prod small{display:block; font-weight:500; color:var(--mut2); margin-top:2px}
+  .money{font-weight:800; color:var(--accent)}
+  .quote{color:var(--warn); font-weight:700}
+  .freeword{color:var(--good); font-weight:800}
+
+  .refs{columns:2; column-gap:26px}
+  .refs .ref{break-inside:avoid; margin-bottom:12px; padding-left:14px; border-left:2px solid var(--line2)}
+  .refs .ref a{font-weight:600; font-size:13.5px}
+  .refs .ref p{margin:2px 0 0; color:var(--mut2); font-size:12px}
+
+  footer{padding:30px 0 60px; color:var(--mut2); font-size:12.5px; border-top:1px solid var(--line)}
+  .disc{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-bottom:16px}
+
+  @media(max-width:860px){
+    .g2,.g3,.verdict,.intgrid,.covgrid{grid-template-columns:1fr}
+    .fitrow{grid-template-columns:1fr}
+    .fitrow .desc{border-left:0;border-right:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .refs{columns:1}
+    h1{font-size:31px}
+    nav.links{display:none}
+  }
+  @media print{
+    header.top,.tbtn,.picker,.filterbar{display:none!important}
+    .tabpane{display:block!important} .acc .panel{max-height:none!important}
+    body{background:#fff;color:#000}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topbar">
+    <div class="logo">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#04122a" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-6 4 12 2.5-6H21"/></svg></span>
+      Uptime Kuma <span style="color:var(--mut2);font-weight:600">· Embedding Analysis</span>
+    </div>
+    <nav class="links">
+      <a href="#overview">Overview</a>
+      <a href="#capabilities">Capabilities</a>
+      <a href="#embed">Embedding</a>
+      <a href="#api">API</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#coverage">Checks covered</a>
+      <a href="#recommend">Recommendation</a>
+      <a href="#refs">Sources</a>
+    </nav>
+    <button class="tbtn" id="themeToggle" title="Toggle theme">
+      <svg id="thIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>
+      <span id="thTxt">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- HERO -->
+  <div class="hero" id="overview">
+    <span class="eyebrow">● Product &amp; Integration Assessment</span>
+    <h1>Uptime Kuma, assessed for <span class="grad">embedding into Snurra</span></h1>
+    <!-- snurraFit pill: api-with-setup #b45309 "API + setup" -->
+    <div style="margin:12px 0 4px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <span style="display:inline-flex;align-items:center;gap:6px;border:1px solid #b45309;color:#b45309;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;white-space:nowrap"><span style="width:7px;height:7px;border-radius:50%;background:currentColor"></span>Fits into Snurra: API + setup</span>
+      <span style="font-size:12.5px;color:var(--mut,#6f6a61)">No official monitor-management API — you self-host it and pre-provision a persistent monitor per URL (via the community Socket.IO wrapper), then poll its status-page JSON / Prometheus <code>/metrics</code>; it is continuous interval monitoring, not an on-demand per-URL scan.</span>
+    </div>
+    <p class="sub">Uptime Kuma is a <b>free, open-source, self-hosted uptime &amp; availability monitor</b> — a self-hosted alternative to UptimeRobot. It repeatedly probes a target on an interval (<b>HTTP(s), TCP port, Ping, DNS record, HTTP keyword, HTTP JSON-query, Docker, Push, database and more</b>) and records a binary <b>UP/DOWN heartbeat plus response time</b>, tracks <b>TLS-certificate expiry</b>, fans out to <b>90+ notification services</b>, and publishes <b>public status pages</b>. It is an <b>availability monitor, not a site auditor</b> — no accessibility, SEO, content, tag/consent or visual testing. This page maps what it can deterministically verdict, how it would slot into Snurra's worker, what it costs, and — held to a strict 100%-certain bar — precisely which feasibility-catalog checks it can cover.</p>
+    <div class="meta">
+      <span><b>Prepared:</b> 4 Aug 2026</span>
+      <span><b>Use case:</b> Availability / uptime &amp; certificate monitoring for the Snurra Site Audit</span>
+      <span><b>Catalog:</b> feasibility-app · 217 checks</span>
+    </div>
+
+    <div class="tldr">
+      <div class="hd"><span class="dot"></span> Bottom line up front</div>
+      <div class="bd">
+        Uptime Kuma continuously probes a configured target and records an <strong>UP/DOWN heartbeat + response time</strong>, plus <strong>TLS-cert days-to-expiry</strong> on HTTPS monitors. Held to the 100% bar it can cover <strong>5 catalog checks</strong> — homepage uptime, API/backend endpoint health, SSL-certificate-not-expiring (two catalog entries), and DNS resolving correctly — a narrow but genuine <strong>availability/monitoring</strong> slice. The catch for embedding: there is <strong>no official REST API</strong> to create or manage monitors (an intentional design choice) — writes go through the <strong>unofficial, version-pinned community Socket.IO wrapper</strong>, while reads come from the official <strong>Prometheus <code>/metrics</code></strong> endpoint and the <strong>status-page JSON API</strong> for monitors you have pre-provisioned. It runs as a <strong>self-hosted</strong> service, so it embeds as an <strong>out-of-band, continuously-polling availability layer</strong>, not a synchronous URL-in adapter. Licensing is the easy part: <strong>MIT, 100% free</strong> — you pay only for the box you run it on.
+        <div class="verdict">
+          <div class="vcard"><h4>Technical fit</h4><p>Self-host; <b>no official write API</b> (community Socket.IO wrapper). Read pre-provisioned monitors via <b>/metrics + status-page JSON</b>. Continuous, not on-demand.</p><span class="pill warn">API + setup</span></div>
+          <div class="vcard"><h4>What it covers</h4><p><b>5 checks</b> — uptime, endpoint health, SSL-cert expiry (×2) and DNS resolution. A focused availability tool, not a site auditor.</p><span class="pill warn">Availability only</span></div>
+          <div class="vcard"><h4>Cost</h4><p><b>MIT · 100% free &amp; open source.</b> No paid tier from the project — the only cost is the infrastructure you self-host it on.</p><span class="pill good">Free · OSS</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPABILITIES -->
+  <section id="capabilities">
+    <div class="kicker">01 · What Uptime Kuma actually does</div>
+    <h2>Capabilities</h2>
+    <p class="lead">Two layers matter for embedding: what the <b>monitors verdict</b> (the reachability / status / keyword / cert / DNS signals each probe produces) and its <b>access surface</b> (how a backend reads results and provisions monitors, given there is no official REST API). Toggle between them:</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="scan">What it monitors</button>
+      <button class="tab" data-tab="auto">Automation &amp; access surface</button>
+    </div>
+
+    <div class="tabpane active" data-pane="scan">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h4l2.5-6 4 12 2.5-6H21"/></svg></span>HTTP(s) monitor</h3><p>Polls a URL on an interval and marks it <b>UP</b> when the status code is within the <b>accepted range</b> (default 200–299), <b>DOWN</b> otherwise — recording <b>response time</b> in ms. Also validates the TLS certificate during the check.</p><span class="tag">UP/DOWN</span><span class="tag">Response time</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 7h11M4 12h7M4 17h9"/><path d="M17 10l3 2-3 2"/></svg></span>Keyword &amp; JSON-Query</h3><p><b>HTTP Keyword</b> = UP if a configured keyword is present in the response body. <b>HTTP JSON Query</b> = UP if a <b>JSONata</b> expression against the JSON body matches the configured condition — API-payload assertions, not just status codes.</p><span class="tag">Keyword</span><span class="tag">JSONata</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.5"/><path d="M4 15l4-3 4 3 3-2 5 3"/></svg></span>TCP · Ping · Docker</h3><p><b>TCP Port</b> = UP if a port accepts a connection. <b>Ping</b> = UP on ICMP reply + latency. <b>Docker</b> = UP if the container is running (via the Docker socket). Host- and service-level reachability below the HTTP layer.</p><span class="tag">TCP</span><span class="tag">ICMP</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>DNS Record monitor</h3><p>Resolves a chosen record type (A, AAAA, CNAME, MX, TXT, NS, SOA, SRV, CAA) and marks <b>UP</b> on successful resolution; with an <b>expected record value</b> configured it goes <b>DOWN on mismatch</b> — deterministic resolution + drift detection.</p><span class="tag">Resolve</span><span class="tag">Drift</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></span>TLS-certificate expiry</h3><p>Every HTTP(s) monitor reads the certificate and computes <b>days-until-expiry</b>, exposed as <code>monitor_cert_days_remaining</code>. A <b>configurable threshold</b> notification fires ahead of expiry — a proactive cert-expiry alarm.</p><span class="tag">X.509</span><span class="tag">Days remaining</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3a9 9 0 100 18 9 9 0 000-18z"/><path d="M12 8v5l3 2"/></svg></span>Push (dead-man's switch)</h3><p>A <b>passive</b> monitor: an external job pings <code>/api/push/&lt;token&gt;</code> on each success. If the heartbeat <b>stops arriving</b> within the interval the monitor flips <b>DOWN</b> — catching silent cron / background-job failures.</p><span class="tag">Passive</span><span class="tag">Cron watch</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5h16v11H4z"/><path d="M8 20h8M9 16v4M15 16v4"/></svg></span>Status pages &amp; uptime %</h3><p>Publishes <b>public status pages</b> with per-monitor status, <b>rolling uptime percentage</b> and an <b>incident timeline</b> — stakeholder-facing SLA evidence. Uptime is computed per monitor over rolling windows (e.g. 24h).</p><span class="tag">Public page</span><span class="tag">Uptime %</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8z"/><path d="M10 20a2 2 0 004 0"/></svg></span>Notifications (90+)</h3><p>Fans failures/recoveries out to <b>90+ services</b> — Telegram, Discord, Slack, Email/SMTP, Gotify, Pushover and a <b>generic webhook</b>. Per-monitor retries and "important-event only" filtering.</p><span class="tag">Webhook</span><span class="tag">Multi-channel</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/></svg></span>Broader probe types</h3><p>Also <b>Websocket, Steam / GameDig, MQTT, gRPC keyword, Kafka producer, SNMP, RADIUS, Tailscale ping</b> and <b>databases</b> (SQL Server, Postgres, MySQL, MongoDB, Redis) — all resolving to the same UP/DOWN heartbeat.</p><span class="tag">Infra</span><span class="tag">DB</span></div>
+      </div>
+      <div style="margin-top:14px" class="grid g2">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 12l2 2 4-4"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></span>Standards &amp; protocols it relies on</h3><p><b>HTTP/HTTPS</b> status semantics · <b>TLS / X.509</b> certificate parsing &amp; expiry · <b>DNS</b> record types (A/AAAA/CNAME/MX/TXT/NS/SOA/SRV/CAA) · <b>ICMP</b>, <b>TCP</b>, <b>WebSocket</b> · <b>JSON / JSONata</b> · <b>Prometheus</b> exposition format (<code>/metrics</code>) · <b>SNMP</b>, <b>MQTT</b>, <b>gRPC</b>, SQL wire protocols. It implements <b>no</b> WCAG / OWASP / Schema.org / Core-Web-Vitals standard.</p><span class="tag">TLS/X.509</span><span class="tag">DNS</span><span class="tag">Prometheus</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>The deterministic core (for embedding)</h3><p>Each monitor's verdict is a <b>deterministic probe</b>: the status code was in-range (or not), the port accepted (or not), the keyword was present (or not), the JSONata condition matched (or not), the cert had N days left, the record resolved to X. <b>No human, AI-text or visual judgment</b> — which is exactly what makes the covered checks 100%-certain. What is configurable is the target, interval, accepted codes, keyword/JSON condition, retries and cert-alert threshold.</p><span class="tag">No AI/human</span><span class="tag">Configurable target</span></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="auto">
+      <div class="grid g3">
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>No official REST API</h3><p>Uptime Kuma has <b>no built-in REST API</b> to create/edit/delete monitors — an <b>intentional design choice</b> (open feature requests #644 / #1343 / #2771 / #7151). All writes go through its <b>internal Socket.IO API</b>, "not officially supported for third-party integrations."</p><span class="tag">By design</span><span class="tag">Socket.IO</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h18M12 3v18"/><circle cx="12" cy="12" r="9"/></svg></span>Prometheus <code>/metrics</code></h3><p>Official read endpoint exposing gauges <code>monitor_status</code>, <code>monitor_response_time</code> and <code>monitor_cert_days_remaining</code>, labelled with name/type/url/hostname/port. Auth = Basic by default, or a <b>Bearer API key</b> (<code>uk2_…</code>) once created.</p><span class="tag">Gauges</span><span class="tag">Bearer key</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/></svg></span>Status-page JSON API</h3><p>Read-only, public if the page is published: <code>/api/status-page/&lt;slug&gt;</code> (config, groups→monitors, incidents) and <code>/api/status-page/heartbeat/&lt;slug&gt;</code> (<code>heartbeatList</code> + <code>uptimeList</code>). The cleanest read path for pre-provisioned monitors.</p><span class="tag">Heartbeats</span><span class="tag">uptimeList</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 12a8 8 0 018-8M20 12a8 8 0 01-8 8"/><path d="M12 8v4l3 2"/></svg></span>Push endpoint</h3><p><code>GET/POST /api/push/&lt;token&gt;?status=up&amp;msg=OK&amp;ping=&lt;ms&gt;</code> returns <code>{"ok":true}</code>. The one write-ish HTTP surface — a passive heartbeat sink for jobs, not a monitor-management API.</p><span class="tag">Heartbeat in</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M7 10l3 3-3 3M13 16h4"/></svg></span>Community wrapper</h3><p><code>uptime-kuma-api</code> (Python, by <b>lucasheld — third-party</b>) drives <code>add_monitor</code> / <code>get_monitors</code> / <code>edit_monitor</code> over the reverse-engineered Socket.IO API. It is <b>version-pinned</b> to specific Uptime Kuma releases and "breaks with updates."</p><span class="tag">Unofficial</span><span class="tag">Version-pinned</span></div>
+        <div class="card"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3v18M3 8l9-5 9 5"/></svg></span>Interval &amp; scale</h3><p>Interval <b>default 60s, minimum 20s</b>; <b>retries default 0</b> in v2 (N retries = N+1 failures before DOWN); "Upside-Down Mode" inverts the verdict. Self-hosted, so scale is <b>host-bound</b> (SQLite default, MariaDB in v2). Login limiter: <b>20 attempts/min</b>.</p><span class="tag">60s default</span><span class="tag">Host-bound</span></div>
+      </div>
+      <div style="margin-top:14px" class="callout info">
+        <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+        <div><h4>How Snurra would actually drive it</h4><p>Not a synchronous URL-in adapter. Snurra would <b>pre-provision</b> a persistent monitor per target — through the UI or the <b>community Socket.IO wrapper</b> (accepting version-pinning and upgrade breakage) — then read verdicts <b>out-of-band</b> by scraping the <b>Prometheus <code>/metrics</code></b> endpoint (Bearer <code>uk2_…</code> key) or the <b>status-page heartbeat JSON</b> for that monitor's ID. <code>isConfigured()</code> gates on "a monitor exists for this target + a reachable Uptime Kuma with an API key"; degrade to <b>not-applicable</b> when the monitor was never set up. Because it monitors on a fixed interval, treat freshness as "last heartbeat," never trigger a scan inline on the page-audit request.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMBEDDING -->
+  <section id="embed">
+    <div class="kicker">02 · Applicability — how it slots into Snurra</div>
+    <h2>Embedding paths, ranked</h2>
+    <p class="lead">Uptime Kuma does <b>not</b> fit Snurra's on-demand <code>ProviderAdapter</code> shape (POST a URL → get a verdict). It is a <b>continuously-polling, self-hosted availability layer</b>: you provision monitors once, then read their accumulated state. The ranking is about the least-painful way to wire that in.</p>
+
+    <div class="fit">
+      <div class="fitrow head"><div>Path</div><div>What it's good for</div><div>Fit</div></div>
+      <div class="fitrow">
+        <div class="name">Read pre-provisioned monitors via <code>/metrics</code> or status-page JSON <small>(async poll of monitor state)</small></div>
+        <div class="desc">For monitors you have already set up, poll <code>monitor_status</code> / <code>monitor_response_time</code> / <code>monitor_cert_days_remaining</code> (Prometheus) or the <code>heartbeatList</code> / <code>uptimeList</code> (status-page JSON) and map into neutral inputs for the uptime, endpoint-health, cert-expiry and DNS checks. Official read surface, API-key auth.</div>
+        <div class="verd"><span class="badge best">Best fit ✓</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Provision monitors programmatically <small>(community Socket.IO wrapper)</small></div>
+        <div class="desc">Automate <code>add_monitor</code> per client target via <code>uptime-kuma-api</code> so Snurra can onboard sites without manual UI work. Works, but it is <b>unofficial</b>, <b>version-pinned</b> to specific Uptime Kuma releases, and can break on upgrade — pin versions and treat it as fragile.</div>
+        <div class="verd"><span class="badge cond">Conditional</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Dead-man's-switch for Snurra's own background jobs <small>(Push monitor)</small></div>
+        <div class="desc">Have Snurra's crawlers / scheduled workers ping <code>/api/push/&lt;token&gt;</code> on success; Uptime Kuma alerts when a job goes silent. A clean, officially-supported HTTP surface — good for internal job health, unrelated to per-URL catalog checks.</div>
+        <div class="verd"><span class="badge ok">Good (internal)</span></div>
+      </div>
+      <div class="fitrow">
+        <div class="name">Drive an on-demand per-URL scan inline on the audit hot path</div>
+        <div class="desc">There is no on-demand trigger and no official write API; monitoring runs on a fixed interval and provisioning is heavy. Firing "check this URL now" per page-audit request is not how the tool works.</div>
+        <div class="verd"><span class="badge no">Don't</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px" class="callout info">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--brand2)" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+      <div>
+        <h4>Integration shape (contrast with the sync tools)</h4>
+        <p>Unlike PSI's single GET or ObservePoint's trigger→webhook, there is <b>no request that returns a fresh verdict</b>. The adapter is an <b>async reader of pre-provisioned state</b>: config lives in Uptime Kuma (the monitor's target, interval, accepted codes, expected DNS record, cert threshold), referenced by <b>monitor ID / status-page slug</b>. Auth is a <b>Bearer API key</b> (<code>uk2_…</code>) for <code>/metrics</code>; the status page is public. Provisioning has <b>no official API</b> — the community Socket.IO wrapper is the only programmatic write path. Gate <code>isConfigured()</code> on "Uptime Kuma reachable + monitor exists for this target"; degrade to <b>not-applicable</b> otherwise; never block a page-audit request on it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API / TECHNICAL -->
+  <section id="api">
+    <div class="kicker">03 · Technical detail — access surface, limits, scale &amp; licensing</div>
+    <h2>What integrating actually looks like</h2>
+    <p class="lead">Enough to scope an integration spike. Expand for detail:</p>
+
+    <div class="acc open">
+      <button>No official REST API — how you actually drive it <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        There is <b>no official REST API for monitor CRUD</b> — a deliberate, long-standing decision (feature requests #644 / #1343 / #2771 / #7151). <b>Writes</b> (create/edit monitors) go only through the internal <b>Socket.IO API</b>, exercised in practice by the third-party <code>uptime-kuma-api</code> Python wrapper (version-pinned; "breaks with updates"). <b>Reads</b> use two official HTTP surfaces plus the push sink:
+        <div class="codeblock mono">
+# READ — status-page heartbeat JSON (public if the page is published)<br>
+curl https://uptime.example.com/api/status-page/heartbeat/&lt;slug&gt;<br><br>
+# WRITE-ish — passive push heartbeat from a job (the only write HTTP surface)<br>
+curl "https://uptime.example.com/api/push/&lt;token&gt;?status=up&amp;msg=OK&amp;ping=142"<br>
+# → {"ok": true}
+        </div>
+        Confirmed read/write surfaces: Prometheus <code>/metrics</code>, <code>/api/status-page/&lt;slug&gt;</code>, <code>/api/status-page/heartbeat/&lt;slug&gt;</code>, <code>/api/push/&lt;token&gt;</code>. Monitor management = community Socket.IO wrapper only.
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Prometheus <code>/metrics</code> — auth &amp; the gauges you'd map <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="codeblock mono">
+# prometheus.yml scrape (from the official wiki)<br>
+- job_name: "uptime"<br>
+&nbsp;&nbsp;metrics_path: "/metrics"<br>
+&nbsp;&nbsp;static_configs:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- targets: ["uptime.example.com"]<br>
+&nbsp;&nbsp;basic_auth: { username: "&lt;user&gt;", password: "&lt;uk2_key&gt;" }<br><br>
+# representative output lines (structure per wiki; sample values illustrative)<br>
+monitor_status{monitor_name="Home",monitor_type="http",monitor_url="https://x.com"} 1<br>
+monitor_response_time{monitor_name="Home",monitor_type="http",...} 245<br>
+monitor_cert_days_remaining{monitor_name="Home",monitor_type="http",...} 63
+        </div>
+        <div class="kv">
+          <code>Auth</code><span><b>HTTP Basic</b> (Uptime Kuma user/pass) by default. Once you create an <b>API key</b> under Settings → API Keys, Basic Auth is <b>permanently disabled</b> and you use the key — as <code>Authorization: Bearer &lt;key&gt;</code> or as the Basic password. Keys look like <code>uk2_…</code> and are shown once.</span>
+          <code>Gauges</code><span><code>monitor_status</code> (1=UP · 0=DOWN · 2=PENDING · 3=MAINTENANCE), <code>monitor_response_time</code> (ms), <code>monitor_cert_days_remaining</code> — labelled with <code>monitor_name/type/url/hostname/port</code>.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Status-page JSON — heartbeats &amp; uptime <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="codeblock mono">
+GET /api/status-page/heartbeat/&lt;slug&gt;<br>
+{<br>
+&nbsp;&nbsp;"heartbeatList": {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"1": [ { "status": 1, "time": "2026-…", "msg": "200 - OK", "ping": 55 } ],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"2": [ { "status": 0, "time": "2026-…", "msg": "Timeout", "ping": null } ]<br>
+&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;"uptimeList": { "1_24": 0.9998, "2_24": 0.95 }<br>
+}
+        </div>
+        <div class="kv">
+          <code>heartbeatList</code><span>Keyed by <b>monitor ID</b> → array of recent beats (<code>status</code>, <code>time</code>, <code>msg</code>, <code>ping</code>), up to ~100.</span>
+          <code>uptimeList</code><span>Keyed <code>"{monitorID}_{period}"</code> — e.g. <code>"1_24"</code> = 24-hour uptime fraction. 24h is the confirmed window; longer rolling windows are not documented via this API.</span>
+          <code>Status page</code><span><code>/api/status-page/&lt;slug&gt;</code> also returns <code>config</code>, <code>publicGroupList</code> (groups→monitors), <code>incident</code> and <code>maintenanceList</code>. 404 if the slug is missing/unpublished.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Monitors, intervals, retries &amp; scale <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Interval</code><span>Default <b>60s</b>, minimum <b>20s</b>. There is no on-demand "check now via API" trigger — freshness is the last scheduled heartbeat.</span>
+          <code>Retries</code><span>Default <b>0</b> in v2 (was 1 in v1); N retries means N+1 consecutive failures before DOWN. "Upside-Down Mode" inverts the verdict (default off).</span>
+          <code>Scale</code><span><b>No documented hard cap</b> on monitors or concurrency — self-hosted, so bounded by the host. SQLite is the historic default (known ceilings at high monitor counts); v2 adds MariaDB/MySQL. Specific max-monitor numbers are unpublished (unverified).</span>
+          <code>Rate limits</code><span>A hardcoded <b>20 login attempts/min</b> limiter (<code>server/rate-limiter.js</code>); internal throttling exists on some API/metrics paths. No public per-endpoint request quota.</span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="acc">
+      <button>Deployment, notifications &amp; ecosystem <span class="ar">▸</span></button>
+      <div class="panel"><div class="inner">
+        <div class="kv">
+          <code>Deploy</code><span>Node.js app; primary path is <b>Docker / docker-compose</b> (also bare Node via npm / pm2). Default web port <b>3001</b>; data in a <code>/app/data</code> volume (SQLite by default).</span>
+          <code>Notifications</code><span><b>90+</b> services out — Telegram, Discord, Slack, Email/SMTP, Gotify, Pushover, and a <b>generic webhook</b>. Per-monitor assignment + retries; "notify on important events only" filtering.</span>
+          <code>Provisioning</code><span>UI, or the community <code>uptime-kuma-api</code> Python wrapper over Socket.IO (unofficial, version-pinned). No first-party IaC / Terraform provider.</span>
+          <code>License</code><span><b>MIT</b> — free to self-host, modify and run; no usage metering or seat limits imposed by the project.</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <section id="integrations">
+    <div class="kicker">04 · Feature &amp; ecosystem map</div>
+    <h2>What it monitors &amp; plugs into</h2>
+    <p class="lead">A quick map of the surface — the probe types, the alerting fan-out, the read/write access points and the deployment story. Filter it:</p>
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="intSearch" type="text" placeholder="Search monitors & integrations…">
+      </div>
+      <button class="chip active" data-cat="all">All</button>
+      <button class="chip" data-cat="Monitors">Monitors</button>
+      <button class="chip" data-cat="Alerting">Alerting</button>
+      <button class="chip" data-cat="Access">Access</button>
+      <button class="chip" data-cat="Deploy">Deploy</button>
+    </div>
+    <div class="intgrid" id="intGrid"></div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="kicker">05 · Pricing</div>
+    <h2>What it costs</h2>
+    <p class="lead">Uptime Kuma is <b>100% free and open source under the MIT license</b> — there is <b>no paid tier, no seat count and no usage metering</b> from the project. The only cost is the <b>infrastructure you self-host it on</b>. The project ships <b>no first-party managed SaaS</b>; third-party one-click hosting exists and is flagged as such.</p>
+    <table class="price">
+      <thead><tr><th>Plan / lever</th><th>Price</th><th>Model &amp; notes</th></tr></thead>
+      <tbody>
+        <tr><td class="prod">Uptime Kuma<small>the software</small></td><td><span class="freeword">Free</span> · MIT</td><td>Full functionality — all monitor types, status pages, 90+ notifications, Prometheus <code>/metrics</code>. No feature gating, no seats, no metering. Confirmed via the repo LICENSE.</td></tr>
+        <tr><td class="prod">Your infrastructure<small>self-host</small></td><td><span class="money">Infra only</span></td><td>A small always-on box — a container or micro-VM (Docker / docker-compose, port 3001, SQLite or MariaDB volume). This is the <b>real cost driver</b>: hosting + ops, not licence fees.</td></tr>
+        <tr><td class="prod">Third-party managed hosting<small>third-party</small></td><td><span class="quote">Varies</span></td><td>One-click deploy templates (e.g. a Railway template) run Uptime Kuma on someone else's infra for a hosting fee. <b>Third-party offering — not from the project</b>; verify pricing with that provider.</td></tr>
+        <tr><td class="prod">Metering<small>how it's billed</small></td><td><span class="freeword">None</span></td><td>No per-scan, per-monitor, per-seat or per-run billing. The embedding constraint is <b>ops</b> (running &amp; upgrading a self-hosted service), not spend.</td></tr>
+      </tbody>
+    </table>
+    <p style="color:var(--mut2);font-size:12.5px;margin-top:10px">The software itself is unambiguously free (MIT). Any dollar figure attaches only to <b>where you run it</b> — your own cloud/VM cost, or a third-party managed-hosting fee. There are no vendor list prices to verify because there is no vendor plan.</p>
+  </section>
+
+  <!-- COVERAGE -->
+  <section id="coverage">
+    <div class="kicker">06 · Which catalog checks it can cover</div>
+    <h2>Coverage — held to a 100%-certain bar</h2>
+    <p class="lead">A check is listed <b>only if</b> Uptime Kuma can produce its verdict as a <b>deterministic probe</b> — an UP/DOWN heartbeat, an accepted-status verdict, a cert-days-remaining value, or a DNS resolution / expected-record match — with <b>no human, AI-text or visual judgment</b>. Checks where it captures only part of the signal are excluded: e.g. <b>"Uptime history tracked — 7 and 30 day percentage"</b> (only a 24h window is confirmed via the API), <b>"Response-time SLA breach alert"</b> (no native soft response-time threshold — only a hard timeout → DOWN) and <b>SSL validity "no browser warnings"</b> (it validates the cert chain but does not replicate the full browser-warning surface). This is the set it can cover end-to-end.</p>
+
+    <div class="filterbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mut2)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="covSearch" type="text" placeholder="Search covered checks…">
+      </div>
+    </div>
+    <p class="covcount" id="covCount"></p>
+    <div class="covgrid" id="covGrid"></div>
+
+    <div class="newcov" style="margin-top:32px">
+      <h3 style="font-size:19px;margin:0 0 6px">Additional checks it can cover — <span style="color:var(--mut2);font-weight:600">not in the catalog</span></h3>
+      <p class="lead" style="margin-top:0">Deterministic checks Uptime Kuma covers that have <b>no matching entry</b> in <code>checks.ts</code> — candidate additions to the catalog. Each is referenced.</p>
+      <div class="covgrid" id="newCovGrid"></div>
+    </div>
+
+    <div style="margin-top:18px" class="callout bad">
+      <span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--bad)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8M16 8l-8 8"/></svg></span>
+      <div>
+        <h4>What Uptime Kuma does NOT cover (for Snurra)</h4>
+        <p>Excluded, because it can't deliver these verdicts on its own: <b>accessibility (WCAG)</b>, <b>SEO / content / metadata</b>, <b>forms &amp; CTAs</b>, <b>tag / analytics / consent governance</b> and <b>visual regression</b> — none of these are monitor types · <b>full-site crawl / broken-link scanning</b> (it probes individual configured endpoints, not a crawl) · <b>Core Web Vitals</b> as a performance verdict (it records a single response-time / ping, not LCP/INP/CLS) · <b>SSL validity as "no browser security warnings"</b> (it validates the chain, but not mixed content / HSTS / the full browser-warning surface — only expiry is a clean verdict) · <b>domain-registration (WHOIS/RDAP) expiry</b> (it does <em>certificate</em> expiry, not domain expiry) · <b>error-rate spike detection</b> (single-endpoint status, not aggregate failure rates) · and any <b>on-demand per-URL scan</b> (it monitors continuously on an interval, with no trigger API).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMMENDATION -->
+  <section id="recommend">
+    <div class="kicker">07 · Recommendation</div>
+    <h2>Pick your scenario</h2>
+    <p class="lead">Uptime Kuma earns a slot as a free, self-hosted <b>availability layer</b> — the recommendation is about reading its state cleanly rather than pretending it's an on-demand adapter. Click the closest match:</p>
+    <div class="picker" id="picker">
+      <button class="scn active" data-s="a">Poll pre-provisioned monitors<small>status-page JSON / Prometheus metrics</small></button>
+      <button class="scn" data-s="b">Provision monitors via the wrapper<small>community Socket.IO — unofficial</small></button>
+      <button class="scn" data-s="c">Dead-man's-switch for Snurra jobs<small>push heartbeats + alert on silence</small></button>
+      <button class="scn" data-s="d">Self-host &amp; operate it<small>Docker, API key, notifications</small></button>
+    </div>
+    <div class="rec" id="rec"></div>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="kicker">08 · Sources</div>
+    <h2>References</h2>
+    <p class="lead">Uptime Kuma facts are from the official GitHub repo/README, the project wiki (Internal-API, Prometheus-Integration, Prometheus-API-Keys), the LICENSE, open REST-API feature issues, and the third-party <code>uptime-kuma-api</code> wrapper docs — gathered 4 Aug 2026. Items flagged unverified (interval max, exact Prometheus sample formatting, max-monitor counts) are marked inline. Check names are quoted verbatim from <code>feasibility-app/data/checks.ts</code>.</p>
+    <div class="refs">
+      <div class="ref"><a href="https://github.com/louislam/uptime-kuma" target="_blank" rel="noopener">Uptime Kuma — repo &amp; README</a><p>Positioning, monitor-type list (HTTP/TCP/Keyword/JSON-Query/Ping/DNS/Push/Docker…), 90+ notifications, status pages.</p></div>
+      <div class="ref"><a href="https://github.com/louislam/uptime-kuma/blob/master/LICENSE" target="_blank" rel="noopener">LICENSE (MIT)</a><p>Confirms the project is MIT-licensed and free.</p></div>
+      <div class="ref"><a href="https://github.com/louislam/uptime-kuma/wiki/Internal-API" target="_blank" rel="noopener">Internal-API wiki</a><p>Heartbeat status codes, status-page JSON endpoints (heartbeatList / uptimeList), push endpoint; "not officially supported for third-party integrations."</p></div>
+      <div class="ref"><a href="https://github.com/louislam/uptime-kuma/wiki/Prometheus-Integration" target="_blank" rel="noopener">Prometheus-Integration wiki</a><p><code>/metrics</code> gauges (monitor_status / response_time / cert_days_remaining), labels, scrape config.</p></div>
+      <div class="ref"><a href="https://github.com/louislam/uptime-kuma/wiki/Prometheus-API-Keys" target="_blank" rel="noopener">Prometheus / API keys wiki</a><p>Basic Auth default; creating an API key (<code>uk2_…</code>) disables Basic Auth and switches to Bearer.</p></div>
+      <div class="ref"><a href="https://github.com/louislam/uptime-kuma/issues/7151" target="_blank" rel="noopener">Feature request — REST API (#7151)</a><p>No official REST API for monitor CRUD (intentional); community Socket.IO tools break on updates.</p></div>
+      <div class="ref"><a href="https://github.com/louislam/uptime-kuma/issues/2771" target="_blank" rel="noopener">Feature request — API (#2771)</a><p>Long-standing absence of an official management API.</p></div>
+      <div class="ref"><a href="https://uptime-kuma-api.readthedocs.io/en/latest/api.html" target="_blank" rel="noopener">uptime-kuma-api docs (third-party)</a><p>MonitorType enum, add/get/edit_monitor over Socket.IO, accepted status codes, interval/retry model, version-compat table.</p></div>
+      <div class="ref"><a href="https://github.com/lucasheld/uptime-kuma-api" target="_blank" rel="noopener">uptime-kuma-api repo (lucasheld)</a><p>Third-party Python wrapper for the Socket.IO API — not by the Uptime Kuma author; version-pinned.</p></div>
+      <div class="ref"><a href="https://github.com/louislam/uptime-kuma/blob/master/server/rate-limiter.js" target="_blank" rel="noopener">rate-limiter.js</a><p>Hardcoded 20 login-attempts/minute limiter.</p></div>
+      <div class="ref"><a href="https://railway.com/deploy/uptime-kuma" target="_blank" rel="noopener">Railway one-click template (third-party)</a><p>Example third-party managed hosting — not a first-party offering; pricing per the provider.</p></div>
+      <div class="ref"><a href="https://checks-catalog.vercel.app/" target="_blank" rel="noopener">Feasibility checks catalog</a><p>The 217-check catalog this coverage maps against (source: feasibility-app). Two checks name Uptime Kuma directly in their <code>how</code>.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="disc">
+      <strong>How to read this.</strong> This is an independent capability/integration assessment compiled from public sources for planning purposes — it is not from or endorsed by the Uptime Kuma project. Uptime Kuma is free/open-source (MIT); the "cost" is entirely self-hosting infrastructure. The coverage list is deliberately conservative: checks are included only where a deterministic probe makes the verdict 100% certain — Uptime Kuma is a focused availability monitor, not a site auditor, so the count is small by design. A few facts (interval max, exact Prometheus exposition formatting, max-monitor counts) could not be pinned to a single official page and are flagged unverified.
+    </div>
+    Uptime Kuma is an open-source project by Louis Lam and contributors (MIT). Prepared 4 Aug 2026 · for internal planning.
+  </footer>
+</div>
+
+<script>
+// ---- Theme toggle ----
+var root=document.documentElement, tt=document.getElementById('themeToggle'),
+    thTxt=document.getElementById('thTxt');
+tt.addEventListener('click',function(){
+  var dark=root.getAttribute('data-theme')==='dark';
+  root.setAttribute('data-theme', dark?'light':'dark');
+  thTxt.textContent = dark?'Dark':'Light';
+});
+
+// ---- Capability tabs ----
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    var k=t.getAttribute('data-tab');
+    document.querySelectorAll('.tabpane').forEach(function(p){
+      p.classList.toggle('active', p.getAttribute('data-pane')===k);
+    });
+  });
+});
+
+// ---- Accordions ----
+document.querySelectorAll('.acc>button').forEach(function(b){
+  b.addEventListener('click',function(){ b.parentElement.classList.toggle('open'); });
+});
+
+// ---- Feature / ecosystem data + filter ----
+var INTS=[
+  {n:'HTTP(s) monitor',c:'Monitors',d:'Poll a URL; UP if status in accepted range; records response time + validates cert'},
+  {n:'HTTP Keyword monitor',c:'Monitors',d:'UP if a configured keyword is present in the response body'},
+  {n:'HTTP JSON Query monitor',c:'Monitors',d:'UP if a JSONata expression against the JSON body matches a condition'},
+  {n:'TCP Port monitor',c:'Monitors',d:'UP if a specified TCP port accepts a connection'},
+  {n:'Ping (ICMP) monitor',c:'Monitors',d:'UP on ICMP echo reply; records round-trip latency'},
+  {n:'DNS Record monitor',c:'Monitors',d:'Resolves A/AAAA/CNAME/MX/TXT/NS/SOA/SRV/CAA; DOWN on mismatch vs expected'},
+  {n:'TLS-certificate expiry',c:'Monitors',d:'Days-until-expiry on HTTPS monitors (monitor_cert_days_remaining) + threshold alert'},
+  {n:'Push (dead-man’s switch)',c:'Monitors',d:'Passive — a job pings /api/push/<token>; DOWN if the heartbeat stops'},
+  {n:'Docker container monitor',c:'Monitors',d:'UP if the container is running, via the Docker socket/API'},
+  {n:'Database monitors',c:'Monitors',d:'SQL Server, Postgres, MySQL, MongoDB, Redis — UP on a successful test connection'},
+  {n:'Infra probes',c:'Monitors',d:'Websocket, Steam/GameDig, MQTT, gRPC keyword, Kafka, SNMP, RADIUS, Tailscale ping'},
+  {n:'Status pages',c:'Alerting',d:'Public page — per-monitor status, rolling uptime %, incident timeline'},
+  {n:'90+ notification services',c:'Alerting',d:'Telegram, Discord, Slack, Email/SMTP, Gotify, Pushover, generic webhook…'},
+  {n:'Generic webhook',c:'Alerting',d:'POST failure/recovery events to an arbitrary endpoint'},
+  {n:'Prometheus /metrics',c:'Access',d:'Read gauges (status/response_time/cert_days_remaining); Bearer uk2_ key auth'},
+  {n:'Status-page JSON API',c:'Access',d:'/api/status-page/<slug> + /heartbeat/<slug> — heartbeatList + uptimeList'},
+  {n:'Push endpoint',c:'Access',d:'/api/push/<token> — the only write-ish HTTP surface (heartbeat sink)'},
+  {n:'uptime-kuma-api (Socket.IO)',c:'Access',d:'Third-party Python wrapper for monitor CRUD — unofficial, version-pinned'},
+  {n:'Docker / docker-compose',c:'Deploy',d:'Primary deployment; default port 3001, data volume (SQLite default)'},
+  {n:'MariaDB / MySQL (v2)',c:'Deploy',d:'Optional DB backend in v2 for higher monitor counts (SQLite is default)'}
+];
+var grid=document.getElementById('intGrid'), search=document.getElementById('intSearch'), curCat='all';
+function renderInts(){
+  var q=(search.value||'').toLowerCase();
+  var rows=INTS.filter(function(i){
+    var okc = curCat==='all' || i.c===curCat;
+    var okq = !q || i.n.toLowerCase().indexOf(q)>-1 || i.d.toLowerCase().indexOf(q)>-1;
+    return okc && okq;
+  });
+  grid.innerHTML = rows.length ? rows.map(function(i){
+    return '<div class="intitem"><div class="cat">'+i.c+'</div><h5>'+i.n+'</h5><span>'+i.d+'</span></div>';
+  }).join('') : '<div class="empty">No matches.</div>';
+}
+document.querySelectorAll('#integrations .chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('#integrations .chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); curCat=c.getAttribute('data-cat'); renderInts();
+  });
+});
+search.addEventListener('input',renderInts);
+renderInts();
+
+// ---- Coverage data + filter ----
+// check names are verbatim from feasibility-app/data/checks.ts
+var COV=[
+  {ch:'Homepage uptime check (1-min interval)', p:'Availability & Monitoring', cap:'HTTP(s) monitor', gate:['monitor'], note:'An HTTP(s) monitor polls the homepage on an interval (default 60s, min 20s) and records an UP/DOWN heartbeat plus response time; setting the request timeout to the acceptable-response threshold makes a too-slow response fail — exactly this check’s intent. Uptime Kuma is named for this check in the catalog.'},
+  {ch:'API / backend endpoint health', p:'Availability & Monitoring', cap:'HTTP / Keyword / JSON-Query monitor', gate:['monitor'], note:'A monitor probes the backend endpoint and marks it UP only when the status code is in the accepted range — optionally also when a keyword is present or a JSONata condition matches — a deterministic endpoint-health verdict on an interval.'},
+  {ch:'SSL certificate not expiring within 30 days', p:'Security', cap:'HTTP(s) cert-expiry', gate:['https monitor'], note:'Every HTTP(s) monitor reads the TLS certificate and computes days-until-expiry (exposed as monitor_cert_days_remaining); the 30-day verdict is a direct comparison, and a configurable threshold notification fires ahead of expiry.'},
+  {ch:'SSL certificate not expiring within 30 days', p:'SSL & Domain Health', cap:'HTTP(s) cert-expiry', gate:['https monitor'], note:'Same capability, second catalog entry — the HTTPS monitor’s cert-days-remaining value gives a deterministic “≥30 days left” verdict, with a proactive expiry alert at a configurable threshold.'},
+  {ch:'DNS resolving correctly — no unexpected changes', p:'SSL & Domain Health', cap:'DNS Record monitor', gate:['expected record'], note:'A DNS Record monitor resolves the chosen record type and marks UP on success; with an expected record value configured it goes DOWN when the resolved value differs — deterministic resolution plus drift detection.'}
+];
+var covGrid=document.getElementById('covGrid'), covSearch=document.getElementById('covSearch'),
+    covCount=document.getElementById('covCount'), curCov='all';
+function renderCov(){
+  var q=(covSearch.value||'').toLowerCase();
+  var rows=COV.filter(function(i){
+    return !q || i.ch.toLowerCase().indexOf(q)>-1 || i.p.toLowerCase().indexOf(q)>-1 || i.cap.toLowerCase().indexOf(q)>-1;
+  });
+  covCount.innerHTML='Showing <b style="color:var(--ink)">'+rows.length+'</b> of '+COV.length+' checks Uptime Kuma can cover';
+  covGrid.innerHTML = rows.length ? rows.map(function(i){
+    var gates=(i.gate||[]).map(function(g){
+      return '<span class="gate">'+g+'</span>';
+    }).join('');
+    return '<div class="covitem"><div class="top"><div><h5>'+i.ch+'</h5>'+
+      '<div class="pil">'+i.p+' · <span class="capname">'+i.cap+'</span></div></div></div>'+
+      '<p>'+i.note+'</p>'+(gates?('<div>'+gates+'</div>'):'')+'</div>';
+  }).join('') : '<div class="empty">No checks match that filter.</div>';
+}
+covSearch.addEventListener('input',renderCov);
+renderCov();
+
+// ---- Additional checks NOT in the catalog (candidate new checks) ----
+var NEWCOV=[
+  {name:'TCP port reachability (e.g. SMTP 25, IMAP 993, database 5432)', cap:'TCP Port monitor', note:'Verifies a specific TCP port accepts a connection on an interval. The catalog’s availability checks are HTTP-only — there is no generic port-reachability check.', ref:'github.com/louislam/uptime-kuma — monitor types'},
+  {name:'Host ICMP ping reachability & latency', cap:'Ping monitor', note:'Pings a host over ICMP and records round-trip latency, catching host-level outages below the HTTP layer. The catalog has no ICMP host-reachability check.', ref:'github.com/louislam/uptime-kuma — Ping monitor'},
+  {name:'Critical keyword still present in page body (defacement / content-drift watch)', cap:'HTTP Keyword monitor', note:'Continuously asserts an expected keyword is present (or absent) in the response body — a lightweight defacement / content-drift alarm. The catalog has content checks but no continuous keyword-presence monitor.', ref:'github.com/louislam/uptime-kuma — HTTP Keyword'},
+  {name:'API JSON response-value assertion (contract check beyond status code)', cap:'HTTP JSON Query monitor (JSONata)', note:'Evaluates a JSONata expression against an endpoint’s JSON response and asserts an expected value/condition — validating payload correctness, not just the HTTP status. No catalog equivalent.', ref:'github.com/louislam/uptime-kuma — JSON Query'},
+  {name:'Dead-man’s-switch heartbeat for cron & background jobs', cap:'Push monitor', note:'A background job pings /api/push/<token> on each successful run; Uptime Kuma alerts if the heartbeat stops arriving within the interval — catching silent job failures. The catalog has no dead-man’s-switch check.', ref:'github.com/louislam/uptime-kuma/wiki/Internal-API — Push'},
+  {name:'Public status page with published per-monitor uptime & incident history', cap:'Status Pages', note:'Publishes a public status page (rolling uptime % + incident timeline) for stakeholders and SLA evidence. The catalog tracks uptime internally but has no published-status-page check.', ref:'github.com/louislam/uptime-kuma — Status pages'}
+];
+(function(){
+  var g=document.getElementById('newCovGrid'); if(!g) return;
+  g.innerHTML=NEWCOV.map(function(i){
+    return '<div class="covitem"><div class="top"><div><h5>'+i.name+'</h5>'+
+      '<div class="pil"><span class="capname">'+i.cap+'</span></div></div><span class="gate">new</span></div>'+
+      '<p>'+i.note+'</p><div class="pil" style="margin-top:8px">↳ <span class="capname">'+i.ref+'</span></div></div>';
+  }).join('');
+})();
+
+// ---- Scenario recommender ----
+var RECS={
+  a:{label:'Recommended path',h:'Read pre-provisioned monitors via /metrics or status-page JSON',
+     p:'For monitors you have already set up, poll the official read surfaces and map their state into neutral check inputs — the cleanest, officially-supported way to use Uptime Kuma from Snurra.',
+     s:['Provision a monitor per target (HTTP for uptime/endpoint/cert, DNS with an expected record) — UI or wrapper.','Create an API key (uk2_…) and scrape /metrics for monitor_status / monitor_response_time / monitor_cert_days_remaining, or GET /api/status-page/heartbeat/<slug>.','Map to the uptime, endpoint-health, cert-expiry and DNS checks; degrade to not-applicable when no monitor exists. Treat freshness as “last heartbeat”, never inline on the hot path.']},
+  b:{label:'Conditional path',h:'Provision monitors programmatically via the community wrapper',
+     p:'Automate onboarding with uptime-kuma-api so Snurra can create a monitor per client target without manual UI work — accepting that this rides the unofficial Socket.IO API.',
+     s:['Pin uptime-kuma-api to the version that matches your Uptime Kuma release (compat table in its docs).','Call add_monitor / edit_monitor to provision targets; store the returned monitor IDs against each site.','Add a smoke test that fails loudly on upgrade — the wrapper breaks when the internal Socket.IO API changes.']},
+  c:{label:'Internal path',h:'Dead-man’s-switch for Snurra’s own background jobs',
+     p:'Use the Push monitor to watch Snurra’s crawlers / scheduled workers themselves — an officially-supported HTTP surface, unrelated to per-URL catalog checks.',
+     s:['Create a Push monitor per job and note its token + interval.','Have the job ping /api/push/<token>?status=up&msg=OK&ping=<ms> on each successful run.','Route failures to Slack/Email via Uptime Kuma notifications so a silent job surfaces immediately.']},
+  d:{label:'Foundational path',h:'Self-host and operate it',
+     p:'Because it is a self-hosted service with no first-party SaaS, running and upgrading it is the real cost — plan it as an out-of-band availability layer, not an on-demand adapter.',
+     s:['Deploy via Docker / docker-compose (port 3001, persistent data volume; MariaDB backend if monitor counts get high).','Create an API key, wire notifications, and lock down access (only the login limiter is built in).','Budget for ongoing ops — version upgrades can break any Socket.IO-based automation you built on top.']}
+};
+function showRec(k){
+  var r=RECS[k];
+  document.getElementById('rec').innerHTML =
+    '<div class="rlabel">'+r.label+'</div><h3>'+r.h+'</h3><p>'+r.p+'</p><ul class="steps"><li>'+r.s.join('</li><li>')+'</li></ul>';
+}
+document.querySelectorAll('.scn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.scn').forEach(function(x){x.classList.remove('active')});
+    b.classList.add('active'); showRec(b.getAttribute('data-s'));
+  });
+});
+showRec('a');
+</script>
+</body>
+</html>

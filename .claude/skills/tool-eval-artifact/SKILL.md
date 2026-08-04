@@ -2,7 +2,7 @@
 name: tool-eval-artifact
 description: >-
   Generate a vendor-tool "capability & embedding analysis" artifact for the Snurra Site-Audit product —
-  a self-contained interactive HTML page at the Effvision repo root that assesses one external tool's
+  a self-contained interactive HTML page (served from feasibility-app/public/tools/) that assesses one external tool's
   overall functionality and the catalog pillars it touches, the standards it relies on, its integration
   model (URL-in vs code/SDK access, per-check vs summary responses, real API request/response shapes,
   rate-limit / project / run limits, and whether it fits Snurra's adapter model), the catalog checks it
@@ -21,8 +21,10 @@ description: >-
 # Tool-eval artifact generator
 
 Given a **tool name** (optionally a URL), produce the finished capability & embedding analysis:
-`D:\Projects\Effvision\<tool-slug>-analysis.html`. The whole point is that the user supplies the name and
-this skill drives research → coverage mapping → writing the HTML in house style → verifying it.
+`D:\Projects\Effvision\feasibility-app\public\tools\<tool-slug>-analysis.html` (the served location — the app
+links it as `/tools/<file>`; the repo-root `*-analysis.html` copies are **legacy, do not write there**). The
+whole point is that the user supplies the name and this skill drives research → coverage mapping → writing the
+HTML in house style → verifying it.
 
 **Read `references/methodology.md` in full before writing anything.** It holds the mandated content spec,
 the 100%-flat-coverage rule (the part that's easy to get wrong), the `checks.ts` schema + parse pattern,
@@ -75,7 +77,7 @@ that have NO match in `checks.ts`** — these populate a distinct "checks not in
 (candidate new catalog checks, in `NEWCOV[]`); they are not part of the verbatim COV map.
 
 ### 3. Write the HTML
-Copy `assets/template.html` → `D:\Projects\Effvision\<tool-slug>-analysis.html`. Adapt every section to the
+Copy `assets/template.html` → `D:\Projects\Effvision\feasibility-app\public\tools\<tool-slug>-analysis.html`. Adapt every section to the
 mandated content (methodology §2, §5): Hero + TL;DR (3 verdict cards, flat coverage count, **plus the
 `snurraFit` pill right after the `<h1>`** — set its tier colour/label and `fitNote` per methodology §2.3) → Capabilities
 (tabbed; include a standards card) → Embedding paths (fit table + integration-shape callout carrying the
@@ -93,9 +95,11 @@ teal accent `#0f766e`), a charcoal dark theme via the toggle (teal `#2dd4bf`), a
 that palette; never reintroduce a different theme (e.g. the old blue/purple one).
 
 ### 4. Verify (always)
-- `node <this-skill>/scripts/verify_coverage.js <tool-slug>-analysis.html` → must print "OK all N coverage
-  names match checks.ts verbatim" with no LEFTOVER TIER markers. Fix any MISSING name to match exactly.
-- Open `file:///D:/Projects/Effvision/<tool-slug>-analysis.html` in the browser pane. Confirm
+- `node <this-skill>/scripts/verify_coverage.js feasibility-app/public/tools/<tool-slug>-analysis.html` → must
+  print "OK all N coverage names match checks.ts verbatim" with no LEFTOVER TIER markers. Fix any MISSING name to match exactly.
+- Open it in the browser pane — via the dev server (`npm run dev` in `feasibility-app`, port 4100 →
+  `http://localhost:4100/tools/<tool-slug>-analysis.html`) or
+  `file:///D:/Projects/Effvision/feasibility-app/public/tools/<tool-slug>-analysis.html`. Confirm
   `read_console_messages onlyErrors:true` is clean, and via `javascript_tool` that `#covGrid .covitem`
   count == COV length, the count line is correct, `#coverage .chip` == 0 and `#covGrid .ttag` == 0, and the
   search / tabs / accordions / scenario picker / theme toggle work.
@@ -103,12 +107,17 @@ that palette; never reintroduce a different theme (e.g. the old blue/purple one)
   and named standard must have a matching entry in the References section, or a visible inline
   third-party/unverified flag. An unsourced claim is a defect — find it and fix it before you finish.
 
-### 5. Update the coverage summary (ALWAYS — on every add or edit)
-The native summary is a React component — **`feasibility-app/components/ToolsSummary.tsx`** renders the
-`TOOLS[]` array in **`feasibility-app/app/tools-analysis/toolsData.ts`** (in the app's own theme, no iframe).
-This array is the single source of truth for the summary and it must never drift from the analyses. Whenever
-you **create a new analysis _or_ edit an existing one** (coverage, cost, integration, limitations — anything),
-update `toolsData.ts` in the same pass:
+### 5. Update the summary + the card list (ALWAYS — on every add or edit)
+**Two files on the Tools-Analysis page must stay in sync with every analysis** — update BOTH in the same pass:
+1. **`feasibility-app/app/tools-analysis/toolsData.ts`** — the `TOOLS[]` array rendered natively by
+   **`feasibility-app/components/ToolsSummary.tsx`** (the expandable summary; app's own theme, no iframe). This
+   is the single source of truth for coverage and must never drift from the analyses.
+2. **`feasibility-app/app/tools-analysis/page.tsx`** — the `ANALYSES[]` array (the per-tool link cards at the
+   top of the page). Add/replace `{ file:'<slug>-analysis.html', name:'<Tool>', meta:'N catalog · +M net-new' }`
+   (each card links to `/tools/<file>`; `meta` = the COV count + NEWCOV count).
+
+Whenever you **create a new analysis _or_ edit an existing one** (coverage, cost, integration, limitations —
+anything), update `toolsData.ts` in the same pass:
 - Run `node <this-skill>/scripts/summary_entry.js <tool-slug>-analysis.html` — it prints a ready-to-paste
   **TypeScript** `TOOLS[]` entry with the tool's `cov`/`newcov` arrays extracted **verbatim** (and the
   correct counts), so the summary never disagrees with the artifact.
@@ -131,4 +140,4 @@ Add or update the artifact's one-line entry in the memory file `feasibility-tool
 - `assets/template.html` — the house-style structural/style template to copy from (styled to the checks-catalog UI).
 - `scripts/verify_coverage.js` — verbatim name-match + leftover-tier check against `checks.ts`.
 - `scripts/summary_entry.js` — emits a ready-to-paste `TOOLS[]` entry (verbatim cov/newcov + counts) for
-  keeping `tools-coverage-summary.html` in sync on every add/edit.
+  keeping `toolsData.ts` in sync on every add/edit.

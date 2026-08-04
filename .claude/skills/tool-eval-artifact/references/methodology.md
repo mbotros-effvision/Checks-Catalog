@@ -17,8 +17,10 @@ interactive HTML page that assesses whether an external vendor tool is worth emb
 
 ## 1. What the artifact is
 
-- **Output file:** `D:\Projects\Effvision\<tool-slug>-analysis.html` (repo root). Slug = lowercased tool
-  name, hyphenated, e.g. `browserstack-automate-analysis.html`, `observepoint-analysis.html`.
+- **Output file:** `D:\Projects\Effvision\feasibility-app\public\tools\<tool-slug>-analysis.html` — the
+  **served** location (the app links it as `/tools/<file>`). The repo-root `D:\Projects\Effvision\*-analysis.html`
+  copies are **legacy stragglers; do not write there.** Slug = lowercased tool name, hyphenated, e.g.
+  `browserstack-automate-analysis.html`, `observepoint-analysis.html`.
 - **Self-contained:** one HTML file, embedded CSS + JS, no external build. Dark theme with a light toggle.
 - **Template:** `assets/template.html` in this skill is a current, correctly-styled example
   (ObservePoint). **Copy it, then replace the content section by section** — keep its CSS, its section
@@ -197,13 +199,15 @@ Copy `assets/template.html` and adapt. Keep this section skeleton (kickers `01`�
 
 ## 6. Verifying
 
-1. **Names:** `node <skill>/scripts/verify_coverage.js <tool>-analysis.html` — must print
-   "OK all N coverage names match checks.ts verbatim" and no LEFTOVER TIER markers. Fix any MISSING name
-   to match `checks.ts` exactly.
+1. **Names:** `node <skill>/scripts/verify_coverage.js feasibility-app/public/tools/<tool>-analysis.html` —
+   must print "OK all N coverage names match checks.ts verbatim" and no LEFTOVER TIER markers. Fix any MISSING
+   name to match `checks.ts` exactly.
 2. **References completeness:** confirm every pricing figure, rate limit, project/run cap, API detail and
    named standard has a matching References entry (or a visible inline third-party/unverified flag). Once
    more: an unsourced claim is a defect — hunt them down before declaring the artifact done.
-3. **Render:** open `file:///D:/Projects/Effvision/<tool>-analysis.html` in the browser pane; check
+3. **Render:** open the artifact in the browser pane — via the dev server (`npm run dev` in `feasibility-app`,
+   port 4100 → `http://localhost:4100/tools/<tool>-analysis.html`) or
+   `file:///D:/Projects/Effvision/feasibility-app/public/tools/<tool>-analysis.html`; check
    `read_console_messages onlyErrors:true` is clean; assert via `javascript_tool` that `#covGrid .covitem`
    count == COV length, the count line reads "…checks <Tool> can cover", `#coverage .chip` == 0 (no tier
    chips), `#covGrid .ttag` == 0, and the search box / tabs / accordions / scenario picker / theme toggle
@@ -216,6 +220,13 @@ renders the `TOOLS[]` array in `feasibility-app/app/tools-analysis/toolsData.ts`
 tool (counts, cost, integration, limitations, full check lists) in the app's own light/dark theme — no
 iframe, no standalone HTML. `toolsData.ts` is the single source of truth and **must be updated on every add
 or edit of an analysis**, so it never drifts from the artifacts.
+
+**Two files on the Tools-Analysis page must stay in sync — update BOTH on every add/edit:** (1) `toolsData.ts`
+`TOOLS[]` (the expandable summary, below) and (2) the **`ANALYSES[]`** array in
+`feasibility-app/app/tools-analysis/page.tsx` (the per-tool link cards at the top of the page). For a new tool,
+add `{ file: '<slug>-analysis.html', name: '<Tool>', meta: 'N catalog · +M net-new' }` to `ANALYSES[]`
+(each card links to `/tools/<file>`; `meta` = the COV count + NEWCOV count); for an edit, update its `meta`
+counts. The old standalone `tools-coverage-summary.html` is **retired** — do not recreate it.
 
 - The data is a single typed `TOOLS: Tool[]` array in `toolsData.ts`. Each entry:
   `{name, file, snurraFit, fitNote, ident, costShort, cost, integ:{Input,API,'Adapter fit'}, lims:[…],
@@ -236,8 +247,9 @@ or edit of an analysis**, so it never drifts from the artifacts.
 
 - **Curly apostrophes in `COV[]` notes.** The notes are single-quoted JS strings. Use a curly `’` (or
   `\'`) for any apostrophe inside a note, otherwise a straight `'` closes the string and breaks the array.
-- **Grep/Glob skip the root-level HTML artifacts** in `D:\Projects\Effvision` (ignore-file interaction) —
-  locate them by exact filename or `ls`, not content search. Editing/reading by full path works fine.
+- **Grep/Glob skip the HTML artifacts** under `D:\Projects\Effvision` (both the served
+  `feasibility-app\public\tools\` copies and any legacy root-level ones — ignore-file interaction) — locate
+  them by exact filename or `ls`, not content search. Editing/reading by full path works fine.
 - **Verbatim or it's wrong.** A near-miss check name (extra space, wrong dash, dropped word) fails the
   verify and silently misrepresents coverage. Always run the verify script.
 - **Absolute dates.** Stamp "Prepared <today's date>" and convert any "recently/last week" into an
